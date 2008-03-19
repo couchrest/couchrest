@@ -4,9 +4,16 @@ describe CouchRest do
 
   before(:each) do
     @cr = CouchRest.new("http://local.grabb.it:5984")
-    db = @cr.database('couchrest-test')
+    @db = @cr.database('couchrest-test')
     begin
-      db.delete! 
+      @db.delete! 
+    rescue RestClient::Request::RequestFailed
+    end
+  end
+
+  after(:each) do
+    begin
+      @db.delete!
     rescue RestClient::Request::RequestFailed
     end
   end

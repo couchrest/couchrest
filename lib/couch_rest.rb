@@ -36,19 +36,25 @@ class CouchRest
   end
 
   class << self
-    def put uri, payload = nil
-      response = RestClient.put(uri, payload)
-      JSON.parse response
+    def put uri, doc = nil
+      payload = JSON.unparse doc if doc
+      JSON.parse(RestClient.put(uri, payload))
     end
   
     def get uri
-      response = RestClient.get(uri)
-      JSON.parse response
+      JSON.parse(RestClient.get(uri))
+    end
+    
+    def post uri, doc = nil
+      payload = JSON.unparse doc if doc
+      JSON.parse(RestClient.post(uri, payload))
     end
     
     def delete uri
-      response = RestClient.delete(uri)
-      JSON.parse response
+      JSON.parse(RestClient.delete(uri))
     end
   end
+  
 end
+
+
