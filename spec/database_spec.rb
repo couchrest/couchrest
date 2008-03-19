@@ -19,10 +19,15 @@ describe CouchRest::Database do
   describe "GET (document by id) when the doc exists" do
     before(:each) do
       @r = @db.save({'lemons' => 'from texas', 'and' => 'spain'})
+      @docid = "http://example.com/stuff.cgi?things=and%20stuff"
+      @db.save({'_id' => @docid, 'will-exist' => 'here'})
     end
     it "should get the document" do
       doc = @db.get(@r['id'])
       doc['lemons'].should == 'from texas'
+    end
+    it "should work with a funky id" do
+      @db.get(@docid)['will-exist'].should == 'here'
     end
   end
   
@@ -36,6 +41,15 @@ describe CouchRest::Database do
       r = @db.save({'lemons' => 'from texas', 'and' => 'spain'})
       # @db.documents.should include(r)
       lambda{@db.save({'_id' => r['id']})}.should raise_error(RestClient::Request::RequestFailed)
+    end
+  end
+
+  describe "PUT (new document with url id)" do
+    it "should create the document" do
+      @docid = "http://example.com/stuff.cgi?things=and%20stuff"
+      @db.save({'_id' => @docid, 'will-exist' => 'here'})
+      lambda{@db.save({'_id' => @docid})}.should raise_error(RestClient::Request::RequestFailed)
+      @db.get(@docid)['will-exist'].should == 'here'
     end
   end
   

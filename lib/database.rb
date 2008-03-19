@@ -1,3 +1,5 @@
+require 'cgi'
+
 class CouchRest
   class Database
     attr_accessor :host, :name
@@ -16,19 +18,19 @@ class CouchRest
     end
   
     def get id
-      CouchRest.get "#{@root}/#{id}"
+      slug = CGI.escape(id)
+      CouchRest.get "#{@root}/#{slug}"
     end
     
     # PUT or POST depending on precense of _id attribute
     def save doc
       if doc['_id']
-        url = doc['_id']
-        CouchRest.put "#{@root}/#{doc['_id']}", doc
+        slug = CGI.escape(doc['_id'])
+        CouchRest.put "#{@root}/#{slug}", doc
       else
         CouchRest.post "#{@root}", doc
       end
     end
-    
     
     def delete!
       CouchRest.delete @root
