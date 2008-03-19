@@ -31,6 +31,53 @@ describe CouchRest::Database do
     end
   end
   
+  describe "POST (adding bulk documents)" do
+    it "should add them without ids" do
+      rs = @db.bulk_save([
+          {"wild" => "and random"},
+          {"mild" => "yet local"},
+          {"another" => ["set","of","keys"]}
+        ])
+      rs['results'].each do |r|
+        @db.get(r['id'])
+      end
+    end
+    it "should add them with uniq ids" do
+      rs = @db.bulk_save([
+          {"_id" => "oneB", "wild" => "and random"},
+          {"_id" => "twoB", "mild" => "yet local"},
+          {"another" => ["set","of","keys"]}
+        ])
+      rs['results'].each do |r|
+        @db.get(r['id'])
+      end
+    end
+    it "should with one bad id should save the ones it can" do
+      @r = @db.save({'lemons' => 'from texas', 'and' => 'how', "_id" => "oneB"})
+      
+      rs = @db.bulk_save([
+          {"_id" => "oneB", "wild" => "and random"},
+          {"_id" => "twoB", "mild" => "yet local"},
+          {"another" => ["set","of","keys"]}
+        ])
+        
+      # should save the new document
+      newid = @db.documents['rows'].reject do |d|
+        ['oneB','twoB'].include?(d['id'])
+      end.first['id']
+      newdoc = @db.get(newid)
+      newdoc["another"][2].should == 'keys'
+
+      # should save the ok id
+      @db.get('twoB')['mild'].should == "yet local"
+
+      # should confict on the duplicate id
+      oneB = @db.get('oneB')
+      oneB['wild'].should be_nil
+      oneB['lemons'].should == 'from texas'
+    end
+  end
+  
   describe "POST (new document without an id)" do
     it "should start without the document" do
       @db.documents.should_not include({'_id' => 'my-doc'})

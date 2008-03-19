@@ -32,6 +32,10 @@ class CouchRest
       end
     end
     
+    def bulk_save docs
+      CouchRest.post "#{@root}/_bulk_docs", docs
+    end
+    
     def delete doc
       slug = CGI.escape(doc['_id'])
       CouchRest.delete "#{@root}/#{slug}?rev=#{doc['_rev']}"
