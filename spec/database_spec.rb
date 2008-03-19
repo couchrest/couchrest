@@ -69,6 +69,22 @@ describe CouchRest::Database do
     end
   end
   
+  describe "PUT (existing document with rev)" do
+    before(:each) do
+      @db.save({'_id' => 'my-doc', 'will-exist' => 'here'})
+      @doc = @db.get('my-doc')
+    end
+    it "should start with the document" do
+      @doc['will-exist'].should == 'here'
+    end
+    it "should update the document" do
+      @doc['them-keys'] = 'huge'
+      @db.save(@doc)
+      now = @db.get('my-doc')
+      now['them-keys'].should == 'huge'
+    end
+  end
+  
   describe "DELETE existing document" do
     before(:each) do
       @r = @db.save({'lemons' => 'from texas', 'and' => 'spain'})
@@ -80,6 +96,11 @@ describe CouchRest::Database do
       doc['and'].should == 'spain'
       @db.delete doc
       lambda{@db.get @r['id']}.should raise_error
+    end
+    it "should work with uri id" do
+      doc = @db.get(@docid)
+      @db.delete doc
+      lambda{@db.get @docid}.should raise_error
     end
   end
   

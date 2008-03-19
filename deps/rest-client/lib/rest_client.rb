@@ -57,7 +57,8 @@ module RestClient
 
 		def execute_inner
 			uri = parse_url(url)
-			transmit uri, net_http_class(method).new(uri.path, make_headers(headers)), payload
+			uri_path = uri.respond_to?(:request_uri) ? uri.request_uri : uri.path
+			transmit uri, net_http_class(method).new(uri_path, make_headers(headers)), payload
 		end
 
 		def make_headers(user_headers)
