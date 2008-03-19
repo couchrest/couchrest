@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../lib/couchrest'
+require File.dirname(__FILE__) + '/../lib/couch_rest'
 
 describe CouchRest do
 

@@ -1,10 +1,17 @@
-require File.dirname(__FILE__) + '/../lib/couchrest'
+require File.dirname(__FILE__) + '/../lib/couch_rest'
 
-describe Couchrest::Database do
+describe CouchRest::Database do
   before(:each) do
-    @cr = Couchrest.new("http://local.grabb.it:5984")
+    @cr = CouchRest.new("http://local.grabb.it:5984")
+    begin
+      @cr.create_db('couchrest-test')
+    rescue RestClient::Request::RequestFailed
+    end
   end
   describe "deleting one" do
+    before(:each) do
+      
+    end
     it "should start with the test database" do
       @cr.databases.should include('couchrest-test')
     end
