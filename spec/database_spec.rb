@@ -69,6 +69,20 @@ describe CouchRest::Database do
     end
   end
   
+  describe "DELETE existing document" do
+    before(:each) do
+      @r = @db.save({'lemons' => 'from texas', 'and' => 'spain'})
+      @docid = "http://example.com/stuff.cgi?things=and%20stuff"
+      @db.save({'_id' => @docid, 'will-exist' => 'here'})
+    end
+    it "should work" do
+      doc = @db.get(@r['id'])
+      doc['and'].should == 'spain'
+      @db.delete doc
+      lambda{@db.get @r['id']}.should raise_error
+    end
+  end
+  
   it "should list documents" do
     5.times do
       @db.save({'another' => 'doc', 'will-exist' => 'anywhere'})
@@ -97,5 +111,6 @@ describe CouchRest::Database do
       @cr.databases.should_not include('couchrest-test')
     end
   end
+
 
 end

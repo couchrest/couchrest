@@ -32,6 +32,11 @@ class CouchRest
       end
     end
     
+    def delete doc
+      slug = CGI.escape(doc['_id'])
+      CouchRest.delete "#{@root}/#{slug}?rev=#{doc['_rev']}"
+    end
+    
     def delete!
       CouchRest.delete @root
     end
