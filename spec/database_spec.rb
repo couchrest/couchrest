@@ -16,33 +16,59 @@ describe CouchRest::Database do
     end
   end
     
-  describe "inserting documents without an id: POST" do
+  describe "GET (document by id) when the doc exists" do
+    before(:each) do
+      @r = @db.save({'lemons' => 'from texas', 'and' => 'spain'})
+    end
+    it "should get the document" do
+      doc = @db.get(@r['id'])
+      doc['lemons'].should == 'from texas'
+    end
+  end
+  
+  describe "POST (new document without an id)" do
     it "should start without the document" do
       @db.documents.should_not include({'_id' => 'my-doc'})
       # this needs to be a loop over docs on content with the post
       # or instead make it return something with a fancy <=> method
     end
-    it "should create the document" do
+    it "should create the document and return the id" do
       r = @db.save({'lemons' => 'from texas', 'and' => 'spain'})
-      @db.documents.should include(r)
+      # @db.documents.should include(r)
+      lambda{@db.save({'_id' => r['id']})}.should raise_error(RestClient::Request::RequestFailed)
     end
   end
   
-  describe "with documents in it" do
-    before(:each) do
-      # @db.create_doc()
+  describe "PUT (new document with id)" do
+    it "should start without the document" do
+      # r = @db.save({'lemons' => 'from texas', 'and' => 'spain'})
+      @db.documents['rows'].each do |doc|
+        doc['id'].should_not == 'my-doc'
+      end
+      # should_not include({'_id' => 'my-doc'})
+      # this needs to be a loop over docs on content with the post
+      # or instead make it return something with a fancy <=> method
     end
-    it "should list them" do
-      ds = @db.documents
-      ds['rows'].should be_an_instance_of(Array)
-      # ds[:total_rows].should be_greater_than 0
-      # should I  use a View class?
-      ds.should be_an_instance_of(CouchRest::View)
-      
-      # ds.rows = []
-      # ds.rows.include?(...)
-      # ds.total_rows
+    it "should create the document" do
+      @db.save({'_id' => 'my-doc', 'will-exist' => 'here'})
+      lambda{@db.save({'_id' => 'my-doc'})}.should raise_error(RestClient::Request::RequestFailed)
     end
+  end
+  
+  it "should list documents" do
+    5.times do
+      @db.save({'another' => 'doc', 'will-exist' => 'anywhere'})
+    end
+    ds = @db.documents
+    ds['rows'].should be_an_instance_of(Array)
+    ds['rows'][0]['id'].should_not be_nil
+    ds['total_rows'].should == 5
+    # should I  use a View class?
+    # ds.should be_an_instance_of(CouchRest::View)
+    
+    # ds.rows = []
+    # ds.rows.include?(...)
+    # ds.total_rows
   end
   
   describe "deleting a database" do

@@ -14,7 +14,12 @@ class CouchRest
     def view name
       CouchRest.get "#{@root}/#{name}"      
     end
+  
+    def get id
+      CouchRest.get "#{@root}/#{id}"
+    end
     
+    # PUT or POST depending on precense of _id attribute
     def save doc
       if doc['_id']
         url = doc['_id']
