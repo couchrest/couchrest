@@ -30,6 +30,24 @@ describe CouchRest::Database do
     end
   end
 
+  describe "select from an existing view" do
+    before(:each) do
+      r = @db.save({"_id" => "_design/first", "views" => {"test" => "function(doc){for(var w in doc){ if(!w.match(/^_/))map(w,doc[w])}}"}})
+      @db.bulk_save([
+          {"wild" => "and random"},
+          {"mild" => "yet local"},
+          {"another" => ["set","of","keys"]}
+        ])
+    end
+    it "should have the view" do
+      @db.get('_design/first')['views']['test'].should == "function(doc){for(var w in doc){ if(!w.match(/^_/))map(w,doc[w])}}"
+    end
+    it "should list from the view" do
+      rs = @db.view('first/test')
+      rs['rows'].select{|r|r['key'] == 'wild' && r['value'] == 'and random'}.length.should == 1
+    end
+  end
+
   describe "GET (document by id) when the doc exists" do
     before(:each) do
       @r = @db.save({'lemons' => 'from texas', 'and' => 'spain'})

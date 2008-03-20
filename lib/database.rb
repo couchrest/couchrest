@@ -10,19 +10,15 @@ class CouchRest
     end
     
     def documents
-      view "_all_docs"
+      CouchRest.get "#{@root}/_all_docs"      
     end
   
     def temp_view func
-      # CouchRest.post "#{@root}/_temp_view", func
-      # headers: {"Content-Type": "text/javascript"},
-      # ripping from CouchRest because leaky abstraction.
-      # payload = JSON.unparse doc if doc
       JSON.parse(RestClient.post("#{@root}/_temp_view", func, {"Content-Type" => "text/javascript"}))
     end
   
     def view name
-      CouchRest.get "#{@root}/#{name}"      
+      CouchRest.get "#{@root}/_view/#{name}"      
     end
   
     def get id
