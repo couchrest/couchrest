@@ -16,6 +16,20 @@ describe CouchRest::Database do
     end
   end
     
+  describe "query with _temp_view in Javascript" do
+    before(:each) do
+      @db.bulk_save([
+          {"wild" => "and random"},
+          {"mild" => "yet local"},
+          {"another" => ["set","of","keys"]}
+        ])
+    end
+    it "should return the result of the temporary function" do
+      rs = @db.temp_view("function(doc){for(var w in doc){ if(!w.match(/^_/))map(w,doc[w])}}")
+      rs['rows'].select{|r|r['key'] == 'wild' && r['value'] == 'and random'}.length.should == 1
+    end
+  end
+
   describe "GET (document by id) when the doc exists" do
     before(:each) do
       @r = @db.save({'lemons' => 'from texas', 'and' => 'spain'})
@@ -120,9 +134,18 @@ describe CouchRest::Database do
     before(:each) do
       @db.save({'_id' => 'my-doc', 'will-exist' => 'here'})
       @doc = @db.get('my-doc')
+      @docid = "http://example.com/stuff.cgi?things=and%20stuff"
+      @db.save({'_id' => @docid, 'now' => 'save'})
     end
     it "should start with the document" do
       @doc['will-exist'].should == 'here'
+      @db.get(@docid)['now'].should == 'save'
+    end
+    it "should save with url id" do
+      doc = @db.get(@docid)
+      doc['yaml'] = ['json', 'word.']
+      @db.save doc
+      @db.get(@docid)['yaml'].should == ['json', 'word.']
     end
     it "should update the document" do
       @doc['them-keys'] = 'huge'
