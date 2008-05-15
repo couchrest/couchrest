@@ -70,7 +70,7 @@ describe CouchRest::Database do
           {"mild" => "yet local"},
           {"another" => ["set","of","keys"]}
         ])
-      rs['results'].each do |r|
+      rs['new_revs'].each do |r|
         @db.get(r['id'])
       end
     end
@@ -80,33 +80,25 @@ describe CouchRest::Database do
           {"_id" => "twoB", "mild" => "yet local"},
           {"another" => ["set","of","keys"]}
         ])
-      rs['results'].each do |r|
+      rs['new_revs'].each do |r|
         @db.get(r['id'])
       end
     end
-    it "should with one bad id should save the ones it can" do
+    it "in the case of an id conflict should not insert anything" do
       @r = @db.save({'lemons' => 'from texas', 'and' => 'how', "_id" => "oneB"})
       
+      lambda do
       rs = @db.bulk_save([
           {"_id" => "oneB", "wild" => "and random"},
           {"_id" => "twoB", "mild" => "yet local"},
           {"another" => ["set","of","keys"]}
         ])
-        
-      # should save the new document
-      newid = @db.documents['rows'].reject do |d|
-        ['oneB','twoB'].include?(d['id'])
-      end.first['id']
-      newdoc = @db.get(newid)
-      newdoc["another"][2].should == 'keys'
+      end.should raise_error(RestClient::Request::RequestFailed)
+    
+      lambda do
+        @db.get('twoB')        
+      end.should raise_error(RestClient::Request::RequestFailed)
 
-      # should save the ok id
-      @db.get('twoB')['mild'].should == "yet local"
-
-      # should confict on the duplicate id
-      oneB = @db.get('oneB')
-      oneB['wild'].should be_nil
-      oneB['lemons'].should == 'from texas'
     end
   end
   

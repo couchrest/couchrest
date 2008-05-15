@@ -37,7 +37,7 @@ class CouchRest
     end
     
     def bulk_save docs
-      CouchRest.post "#{@root}/_bulk_docs", docs
+      CouchRest.post "#{@root}/_bulk_docs", {:docs => docs}
     end
     
     def delete doc

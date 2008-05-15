@@ -23,7 +23,7 @@ describe CouchRest do
       @cr.databases.should be_an_instance_of(Array)
     end
     it "should get info" do
-      @cr.info.should == {"couchdb"=>"Welcome", "version"=>"0.0.0"}
+      @cr.info["couchdb"].should == "Welcome"
       @cr.info.class.should == Hash   
     end
   end
