@@ -13,8 +13,16 @@ class CouchRest
       CouchRest.get "#{@root}/_all_docs"      
     end
   
-    def temp_view func
-      JSON.parse(RestClient.post("#{@root}/_temp_view", func, {"Content-Type" => "text/javascript"}))
+    def temp_view map, reduce = nil
+      if reduce
+        funcs = {
+          :map => map,
+          :reduce => reduce
+        }
+      else
+        funcs = map
+      end
+      JSON.parse(RestClient.post("#{@root}/_temp_view", JSON.unparse(funcs), {"Content-Type" => "text/javascript"}))
     end
   
     def view name

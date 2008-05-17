@@ -16,7 +16,7 @@ describe CouchRest::Database do
     end
   end
     
-  describe "query with _temp_view in Javascript" do
+  describe "map query with _temp_view in Javascript" do
     before(:each) do
       @db.bulk_save([
           {"wild" => "and random"},
@@ -27,6 +27,20 @@ describe CouchRest::Database do
     it "should return the result of the temporary function" do
       rs = @db.temp_view("function(doc){for(var w in doc){ if(!w.match(/^_/))map(w,doc[w])}}")
       rs['rows'].select{|r|r['key'] == 'wild' && r['value'] == 'and random'}.length.should == 1
+    end
+  end
+
+  describe "map/reduce query with _temp_view in Javascript" do
+    before(:each) do
+      @db.bulk_save([
+          {"beverage" => "beer", :count => 4},
+          {"beverage" => "beer", :count => 2},
+          {"beverage" => "tea", :count => 3}
+        ])
+    end
+    it "should return the result of the temporary function" do
+      rs = @db.temp_view("function(doc){map(doc.beverage, doc.count)}", "function(beverage,counts){return sum(counts)}")
+      rs['result'].should == 9
     end
   end
 
@@ -98,7 +112,6 @@ describe CouchRest::Database do
       lambda do
         @db.get('twoB')        
       end.should raise_error(RestClient::Request::RequestFailed)
-
     end
   end
   
