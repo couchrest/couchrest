@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../lib/couch_rest'
 
 describe CouchRest::Database do
   before(:each) do
-    @cr = CouchRest.new("http://local.grabb.it:5984")
+    @cr = CouchRest.new("http://localhost:5984")
     begin
       @db = @cr.create_db('couchrest-test')
     rescue RestClient::Request::RequestFailed
