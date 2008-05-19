@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../lib/couch_rest'
 describe CouchRest do
 
   before(:each) do
-    @cr = CouchRest.new("http://local.grabb.it:5984")
+    @cr = CouchRest.new("http://localhost:5984")
     @db = @cr.database('couchrest-test')
     begin
       @db.delete! 
