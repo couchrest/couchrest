@@ -15,8 +15,7 @@ class CouchRest
   
     def temp_view map, reduce = nil, type = 'application/json'
       funcs = {
-        :map => map,
-        :type => type
+        :map => map
       }      
       funcs[:reduce] = reduce if reduce
       JSON.parse(RestClient.post("#{@root}/_temp_view", JSON.unparse(funcs), {"Content-Type" => type}))
