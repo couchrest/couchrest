@@ -25,7 +25,7 @@ describe CouchRest::Database do
         ])
     end
     it "should return the result of the temporary function" do
-      rs = @db.temp_view("function(doc){for(var w in doc){ if(!w.match(/^_/))emit(w,doc[w])}}")
+      rs = @db.temp_view(:map => "function(doc){for(var w in doc){ if(!w.match(/^_/))emit(w,doc[w])}}")
       rs['rows'].select{|r|r['key'] == 'wild' && r['value'] == 'and random'}.length.should == 1
     end
   end
@@ -39,11 +39,11 @@ describe CouchRest::Database do
         ])
     end
     it "should return the result of the temporary function" do
-      rs = @db.temp_view("function(doc){emit(doc.beverage, doc.count)}", "function(beverage,counts){return sum(counts)}")
+      rs = @db.temp_view(:map => "function(doc){emit(doc.beverage, doc.count)}", :reduce =>  "function(beverage,counts){return sum(counts)}")
       rs['result'].should == 9
     end
   end
-
+  
   describe "select from an existing view" do
     before(:each) do
       r = @db.save({

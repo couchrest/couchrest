@@ -13,11 +13,7 @@ class CouchRest
       CouchRest.get "#{@root}/_all_docs"      
     end
   
-    def temp_view map, reduce = nil, type = 'application/json'
-      funcs = {
-        :map => map
-      }      
-      funcs[:reduce] = reduce if reduce
+    def temp_view funcs, type = 'application/json'
       JSON.parse(RestClient.post("#{@root}/_temp_view", JSON.unparse(funcs), {"Content-Type" => type}))
     end
   
