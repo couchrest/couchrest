@@ -25,7 +25,7 @@ describe CouchRest::Database do
         ])
     end
     it "should return the result of the temporary function" do
-      rs = @db.temp_view("function(doc){for(var w in doc){ if(!w.match(/^_/))map(w,doc[w])}}")
+      rs = @db.temp_view("function(doc){for(var w in doc){ if(!w.match(/^_/))emit(w,doc[w])}}")
       rs['rows'].select{|r|r['key'] == 'wild' && r['value'] == 'and random'}.length.should == 1
     end
   end
@@ -39,14 +39,21 @@ describe CouchRest::Database do
         ])
     end
     it "should return the result of the temporary function" do
-      rs = @db.temp_view("function(doc){map(doc.beverage, doc.count)}", "function(beverage,counts){return sum(counts)}")
+      rs = @db.temp_view("function(doc){emit(doc.beverage, doc.count)}", "function(beverage,counts){return sum(counts)}")
       rs['result'].should == 9
     end
   end
 
   describe "select from an existing view" do
     before(:each) do
-      r = @db.save({"_id" => "_design/first", "views" => {"test" => "function(doc){for(var w in doc){ if(!w.match(/^_/))map(w,doc[w])}}"}})
+      r = @db.save({
+        "_id" => "_design/first", 
+        :views => {
+          :test => {
+            :map => "function(doc){for(var w in doc){ if(!w.match(/^_/))emit(w,doc[w])}}"
+            }
+          }
+        })
       @db.bulk_save([
           {"wild" => "and random"},
           {"mild" => "yet local"},
@@ -54,7 +61,7 @@ describe CouchRest::Database do
         ])
     end
     it "should have the view" do
-      @db.get('_design/first')['views']['test'].should == "function(doc){for(var w in doc){ if(!w.match(/^_/))map(w,doc[w])}}"
+      @db.get('_design/first')['views']['test']['map'].should include("for(var w in doc)")
     end
     it "should list from the view" do
       rs = @db.view('first/test')

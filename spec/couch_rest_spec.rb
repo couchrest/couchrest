@@ -18,6 +18,12 @@ describe CouchRest do
     end
   end
 
+  describe "tested against the current CouchDB svn revision" do
+    it "should be up to date" do
+      @cr.info["version"].should == "0.7.3a658733"
+    end
+  end
+
   describe "getting info" do
     it "should list databases" do
       @cr.databases.should be_an_instance_of(Array)
