@@ -20,7 +20,9 @@ describe CouchRest do
 
   describe "tested against the current CouchDB svn revision" do
     it "should be up to date" do
-      @cr.info["version"].should == "0.7.3a658733"
+      v = @cr.info["version"]
+      vi = v.split(/a/).pop.to_i
+      vi.should be_between 658733, 659600
     end
   end
 
