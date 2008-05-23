@@ -28,7 +28,7 @@ describe RestClient do
 			@request = RestClient::Request.new(:method => :put, :url => 'http://some/resource', :payload => 'payload')
 
 			@uri = mock("uri")
-			@uri.stub!(:path).and_return('/resource')
+			@uri.stub!(:request_uri).and_return('/resource')
 			@uri.stub!(:host).and_return('some')
 			@uri.stub!(:port).and_return(80)
 		end
@@ -96,6 +96,19 @@ describe RestClient do
 			http.should_receive(:request).with('req', '')
 			@request.should_receive(:process_result)
 			@request.transmit(@uri, 'req', nil)
+		end
+
+		it "passes non-hash payloads straight through" do
+			@request.process_payload("x").should == "x"
+		end
+
+		it "converts a hash payload to urlencoded data" do
+			@request.process_payload(:a => 'b c').should == "a=b%20c"
+		end
+
+		it "set urlencoded content_type header on hash payloads" do
+			@request.process_payload(:a => 1)
+			@request.headers[:content_type].should == 'application/x-www-form-urlencoded'
 		end
 
 		it "sets up the credentials prior to the request" do

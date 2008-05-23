@@ -42,8 +42,8 @@ module RestClient
 		def initialize(args)
 			@method = args[:method] or raise ArgumentError, "must pass :method"
 			@url = args[:url] or raise ArgumentError, "must pass :url"
-			@payload = args[:payload]
 			@headers = args[:headers] || {}
+			@payload = process_payload(args[:payload])
 			@user = args[:user]
 			@password = args[:password]
 		end
@@ -57,8 +57,7 @@ module RestClient
 
 		def execute_inner
 			uri = parse_url(url)
-			uri_path = uri.respond_to?(:request_uri) ? uri.request_uri : uri.path
-			transmit uri, net_http_class(method).new(uri_path, make_headers(headers)), payload
+			transmit uri, net_http_class(method).new(uri.request_uri, make_headers(headers)), payload
 		end
 
 		def make_headers(user_headers)
@@ -80,13 +79,22 @@ module RestClient
 		end
 
 		# A redirect was encountered; caught by execute to retry with the new url.
-		class Redirect < Exception; end
+		class Redirect < RuntimeError; end
 
 		# Request failed with an unhandled http error code.
-		class RequestFailed < Exception; end
+		class RequestFailed < RuntimeError; end
 
 		# Authorization is required to access the resource specified.
-		class Unauthorized < Exception; end
+		class Unauthorized < RuntimeError; end
+
+		def process_payload(p=nil)
+			unless p.is_a?(Hash)
+				p
+			else
+				@headers[:content_type] = 'application/x-www-form-urlencoded'
+				p.keys.map { |k| "#{k}=#{URI.escape(p[k].to_s)}" }.join("&")
+			end
+		end
 
 		def transmit(uri, req, payload)
 			setup_credentials(req)
