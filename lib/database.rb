@@ -13,19 +13,13 @@ class CouchRest
       CouchRest.get "#{@root}/_all_docs"      
     end
   
-    def temp_view funcs, type = 'application/json'
-      JSON.parse(RestClient.post("#{@root}/_temp_view", JSON.unparse(funcs), {"Content-Type" => type}))
+    def temp_view funcs, params = nil
+      url = CouchRest.paramify_url "#{@root}/_temp_view", params
+      JSON.parse(RestClient.post(url, JSON.unparse(funcs), {"Content-Type" => 'application/json'}))
     end
   
     def view name, params = nil
-      url = "#{@root}/_view/#{name}"
-      if params
-        query = params.collect do |k,v|
-          v = JSON.unparse(v) if %w{key startkey endkey}.include?(k.to_s)
-          "#{k}=#{CGI.escape(v.to_s)}"
-        end.join("&")
-        url = "#{url}?#{query}"
-      end
+      url = CouchRest.paramify_url "#{@root}/_view/#{name}", params
       CouchRest.get url
     end
   

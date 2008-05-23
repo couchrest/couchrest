@@ -53,6 +53,17 @@ class CouchRest
     def delete uri
       JSON.parse(RestClient.delete(uri))
     end
+    
+    def paramify_url url, params = nil
+      if params
+        query = params.collect do |k,v|
+          v = JSON.unparse(v) if %w{key startkey endkey}.include?(k.to_s)
+          "#{k}=#{CGI.escape(v.to_s)}"
+        end.join("&")
+        url = "#{url}?#{query}"
+      end
+      url
+    end
   end
   
 end

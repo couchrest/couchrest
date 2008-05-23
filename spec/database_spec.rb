@@ -23,10 +23,23 @@ describe CouchRest::Database do
           {"mild" => "yet local"},
           {"another" => ["set","of","keys"]}
         ])
+      @temp_view = {:map => "function(doc){for(var w in doc){ if(!w.match(/^_/))emit(w,doc[w])}}"}
     end
     it "should return the result of the temporary function" do
-      rs = @db.temp_view(:map => "function(doc){for(var w in doc){ if(!w.match(/^_/))emit(w,doc[w])}}")
+      rs = @db.temp_view(@temp_view)
       rs['rows'].select{|r|r['key'] == 'wild' && r['value'] == 'and random'}.length.should == 1
+    end
+    it "should work with a range" do
+      rs = @db.temp_view(@temp_view,{:startkey => "b", :endkey => "z"})
+      rs['rows'].length.should == 2
+    end
+    it "should work with a key" do
+      rs = @db.temp_view(@temp_view,{:key => "wild"})
+      rs['rows'].length.should == 1
+    end
+    it "should work with a count" do
+      rs = @db.temp_view(@temp_view,{:count => 1})
+      rs['rows'].length.should == 1
     end
   end
 
