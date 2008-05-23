@@ -67,6 +67,18 @@ describe CouchRest::Database do
       rs = @db.view('first/test')
       rs['rows'].select{|r|r['key'] == 'wild' && r['value'] == 'and random'}.length.should == 1
     end
+    it "should work with a range" do
+      rs = @db.view('first/test',{:startkey => "b", :endkey => "z"})
+      rs['rows'].length.should == 2
+    end
+    it "should work with a key" do
+      rs = @db.view('first/test',{:key => "wild"})
+      rs['rows'].length.should == 1
+    end
+    it "should work with a count" do
+      rs = @db.view('first/test',{:count => 1})
+      rs['rows'].length.should == 1
+    end
   end
 
   describe "GET (document by id) when the doc exists" do

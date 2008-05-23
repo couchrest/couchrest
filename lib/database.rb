@@ -17,8 +17,16 @@ class CouchRest
       JSON.parse(RestClient.post("#{@root}/_temp_view", JSON.unparse(funcs), {"Content-Type" => type}))
     end
   
-    def view name
-      CouchRest.get "#{@root}/_view/#{name}"      
+    def view name, params = nil
+      url = "#{@root}/_view/#{name}"
+      if params
+        query = params.collect do |k,v|
+          v = JSON.unparse(v) if %w{key startkey endkey}.include?(k.to_s)
+          "#{k}=#{CGI.escape(v.to_s)}"
+        end.join("&")
+        url = "#{url}?#{query}"
+      end
+      CouchRest.get url
     end
   
     def get id
