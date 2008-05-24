@@ -39,7 +39,7 @@ class CouchRest
 
   class << self
     def put uri, doc = nil
-      payload = JSON.unparse doc if doc
+      payload = doc.to_json if doc
       JSON.parse(RestClient.put(uri, payload))
     end
   
@@ -48,7 +48,7 @@ class CouchRest
     end
     
     def post uri, doc = nil
-      payload = JSON.unparse doc if doc
+      payload = doc.to_json if doc
       JSON.parse(RestClient.post(uri, payload))
     end
     
@@ -59,7 +59,7 @@ class CouchRest
     def paramify_url url, params = nil
       if params
         query = params.collect do |k,v|
-          v = JSON.unparse(v) if %w{key startkey endkey}.include?(k.to_s)
+          v = v.to_json if %w{key startkey endkey}.include?(k.to_s)
           "#{k}=#{CGI.escape(v.to_s)}"
         end.join("&")
         url = "#{url}?#{query}"

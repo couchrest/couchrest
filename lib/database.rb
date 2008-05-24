@@ -15,7 +15,7 @@ class CouchRest
   
     def temp_view funcs, params = nil
       url = CouchRest.paramify_url "#{@root}/_temp_view", params
-      JSON.parse(RestClient.post(url, JSON.unparse(funcs), {"Content-Type" => 'application/json'}))
+      JSON.parse(RestClient.post(url, funcs.to_json, {"Content-Type" => 'application/json'}))
     end
   
     def view name, params = nil

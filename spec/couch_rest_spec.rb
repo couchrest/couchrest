@@ -22,7 +22,7 @@ describe CouchRest do
     it "should be up to date" do
       v = @cr.info["version"]
       vi = v.split(/a/).pop.to_i
-      vi.should be_between 658733, 659600
+      vi.should be_between(658733, 659864)
     end
   end
 
