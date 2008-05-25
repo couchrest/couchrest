@@ -237,12 +237,20 @@ describe CouchRest::Database do
     ds['rows'].should be_an_instance_of(Array)
     ds['rows'][0]['id'].should_not be_nil
     ds['total_rows'].should == 5
-    # should I  use a View class?
-    # ds.should be_an_instance_of(CouchRest::View)
-    
-    # ds.rows = []
-    # ds.rows.include?(...)
-    # ds.total_rows
+  end
+  
+  it "should list documents with keys and such" do
+    9.times do |i|
+      @db.save({'_id' => "doc#{i}",'another' => 'doc', 'will-exist' => 'here'})
+    end
+    ds = @db.documents
+    ds['rows'].should be_an_instance_of(Array)
+    ds['rows'][0]['id'].should == "doc0"
+    ds['total_rows'].should == 9
+    ds = @db.documents(:startkey => 'doc0', :endkey => 'doc3')
+    ds['rows'].length.should == 4
+    ds = @db.documents(:key => 'doc0')
+    ds['rows'].length.should == 1
   end
   
   describe "deleting a database" do

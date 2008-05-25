@@ -9,8 +9,9 @@ class CouchRest
       @root = "#{host}/#{name}"
     end
     
-    def documents
-      CouchRest.get "#{@root}/_all_docs"      
+    def documents params = nil
+      url = CouchRest.paramify_url "#{@root}/_all_docs", params
+      CouchRest.get url  
     end
   
     def temp_view funcs, params = nil
