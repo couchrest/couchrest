@@ -57,6 +57,30 @@ describe CouchRest::Database do
     end
   end
   
+  describe "saving a view" do
+    before(:each) do
+      @view = {'test' => {'map' => 'function(doc) {
+        if (doc.word && !/\W/.test(doc.word)) {
+          emit(doc.word,null);
+        }
+      }'}}
+      @db.save({
+        "_id" => "_design/test",
+        :views => @view
+      })
+    end
+    it "should work properly" do
+      @db.bulk_save([
+        {"word" => "once"},
+        {"word" => "and again"}
+      ])
+      @db.view('test/test')['total_rows'].should == 1
+    end
+    it "should round trip" do
+      @db.get("_design/test")['views'].should == @view
+    end
+  end
+  
   describe "select from an existing view" do
     before(:each) do
       r = @db.save({
@@ -148,15 +172,13 @@ describe CouchRest::Database do
   end
   
   describe "POST (new document without an id)" do
-    it "should start without the document" do
-      @db.documents.should_not include({'_id' => 'my-doc'})
-      # this needs to be a loop over docs on content with the post
-      # or instead make it return something with a fancy <=> method
+    it "should start empty" do
+      @db.documents["total_rows"].should == 0
     end
     it "should create the document and return the id" do
       r = @db.save({'lemons' => 'from texas', 'and' => 'spain'})
-      # @db.documents.should include(r)
-      lambda{@db.save({'_id' => r['id']})}.should raise_error(RestClient::Request::RequestFailed)
+      r2 = @db.get(r['id'])
+      r2["lemons"].should == "from texas"
     end
   end
 
