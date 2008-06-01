@@ -58,31 +58,96 @@ end
 dbname = ARGV[1]
 puts "Running #{command} on #{dbname}."
 
-
 require File.expand_path(File.dirname(__FILE__)) + '/../couchrest'
+require File.expand_path(File.dirname(__FILE__)) + '/../vendor/jsmin/lib/jsmin'
+require 'fileutils'
+
+module Enumerable
+  def group_by
+    inject({}) do |groups, element|
+      (groups[yield(element)] ||= []) << element
+      groups
+    end
+  end if RUBY_VERSION < '1.9'
+end
 
 # connect to couchdb
 cr = CouchRest.new("http://localhost:5984")
 db = cr.database(dbname)
 
-__END__
+def readjs(file, libs=nil)
+  st = open(file).read
+  st.sub!(/\/\/include-lib/,libs) if libs
+  JSMin.minify(st)
+end
 
-
-#views to files
-
-ds = db.documents(:startkey => '_design/', :endkey => '_design/ZZ')
-ds['rows'].collect{|r|r['id']}.each do |id|
-  puts directory = id.split('/').last
-  db.get(id)['views'].each do |view,funcs|
-    next if /-map$/.match(view)
-    ['map', 'reduce'].each do |func|
-      next unless funcs[func]
-      mapfile = File.join("views",directory,"#{view}-#{func}.js")
-      puts mapfile
-      File.open(mapfile,'w') do |f|
-        f.write funcs[func]
+case command
+when "push" # files to views
+  views = {}
+  viewfiles = Dir.glob(File.join("views","**","*.js")) # todo support non-js views
+  libfiles = viewfiles.select{|f|/lib\.js/.match(f)}
+  libs = open(libfiles[0]).read if libfiles[0]
+  all = (viewfiles-libfiles).collect do |file|
+    fileparts = file.split('/')
+    filename = /(\w.*)-(\w.*)\.js/.match file.split('/').pop
+    design = fileparts[1]
+    view = filename[1]
+    func = filename[2]
+    path = file
+    [design,view,func,path]
+  end
+  designs = all.group_by{|f|f[0]}
+  designs.each do |design,parts|
+    puts "design #{design}"
+    dviews = {}
+    parts.group_by{|p|p[1]}.each do |view,fs|
+      fs.each do |f|
+        dviews["#{view}-reduce"] ||= {}
+        dviews["#{view}-reduce"][f[2]] = readjs(f.last,libs)        
+      end
+      dviews["#{view}-map"] = {:map => dviews["#{view}-reduce"]['map']}
+      dviews.delete("#{view}-reduce") unless dviews["#{view}-reduce"]["reduce"]
+    end
+    # save them to the db
+    begin
+      view = db.get("_design/#{design}")
+      db.delete(view)
+    rescue
+    end
+    db.save({
+      "_id" => "_design/#{design}",
+      :views => dviews
+    })
+  end
+  
+when "pull" # views to files
+  ds = db.documents(:startkey => '_design/', :endkey => '_design/ZZZZZZZZZ')
+  ds['rows'].collect{|r|r['id']}.each do |id|
+    puts directory = id.split('/').last
+    FileUtils.mkdir_p(File.join("views",directory))
+    views = db.get(id)['views']
+    
+    vgroups = views.keys.group_by{|k|k.sub(/\-(map|reduce)$/,'')}
+    vgroups.each do|g,vs|
+      mapname = vs.find {|v|views[v]["map"]}
+      if mapname
+        # save map
+        mapfunc = views[mapname]["map"]
+        mapfile = File.join("views",directory,"#{g}-map.js") # todo support non-js views
+        File.open(mapfile,'w') do |f|
+          f.write mapfunc
+        end
+      end
+      
+      reducename = vs.find {|v|views[v]["reduce"]}
+      if reducename
+        # save reduce
+        reducefunc = views[reducename]["reduce"]
+        reducefile = File.join("views",directory,"#{g}-reduce.js") # todo support non-js views
+        File.open(reducefile,'w') do |f|
+          f.write reducefunc
+        end
       end
     end
-
-  end
+  end  
 end
