@@ -1,0 +1,34 @@
+#!/usr/bin/env ruby
+
+require '../../couchrest'
+
+cr = CouchRest.new("http://localhost:5984")
+db = cr.database('word-count-example')
+
+word = ARGV[0]
+words = [word]
+wprobs = {}
+
+while word
+  $stdout.print ' ' if words.length > 1
+  $stdout.print word
+  $stdout.flush
+  
+  wprobs[word] ||= db.view('markov/chain-reduce', :startkey => [word,nil], :endkey => [word,{}],:group_level => 2)
+
+  # puts
+  # puts "search #{word} #{wprobs[word]['rows'].length}"
+  # wprobs[word]['rows'].sort_by{|r|r['value']}.each{|r|puts [r['value'],r['key']].inspect}
+
+  rows = wprobs[word]['rows'].select{|r|(r['key'][1]!='')}.sort_by{|r|r['value']}
+  row = rows[(-1*[rows.length,5].min)..-1].sort_by{rand}[0]
+  word = row ? row['key'][1] : nil
+  words << word
+end
+
+$stdout.print '.'
+$stdout.flush
+puts
+
+# `say #{words.join(' ')}`
+

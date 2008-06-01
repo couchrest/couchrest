@@ -2,16 +2,18 @@ require File.dirname(__FILE__) + '/../../couchrest'
 
 couch = CouchRest.new("http://localhost:5984")
 db = couch.database('word-count-example')
-# db.delete! rescue nil
-# db = couch.create_db('word-count-example')
+db.delete! rescue nil
+db = couch.create_db('word-count-example')
 
 %w{america.txt da-vinci.txt outline-of-science.txt ulysses.txt}.each do |book|
+# %w{}.each do |book|
   title = book.split('.')[0]
   puts title
   File.open(File.join(File.dirname(__FILE__),book),'r') do |file|
     lines = []
     chunk = 0
     while line = file.gets
+      puts chunk
       lines << line
       if lines.length > 10
         db.save({

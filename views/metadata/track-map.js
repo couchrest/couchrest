@@ -1,0 +1,2 @@
+
+function(doc){doc.playlist&&doc.playlist.track&&doc.playlist.track.forEach(function(t){if(t.creator||t.title){if(t.location){t.location.forEach(function(url){emit([t.creator||null,t.title||null],url);});}else{emit([t.creator||null,t.title||null],null);}}});};
