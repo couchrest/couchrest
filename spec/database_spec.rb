@@ -53,7 +53,8 @@ describe CouchRest::Database do
     end
     it "should return the result of the temporary function" do
       rs = @db.temp_view(:map => "function(doc){emit(doc.beverage, doc.count)}", :reduce =>  "function(beverage,counts){return sum(counts)}")
-      rs['result'].should == 9
+      # rs.should == 'x'
+      rs['rows'][0]['value'].should == 9
     end
   end
   

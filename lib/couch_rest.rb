@@ -1,13 +1,7 @@
-require File.dirname(__FILE__) + '/../deps/rest-client/lib/rest_client'
+require File.dirname(__FILE__) + '/../vendor/rest-client/lib/rest_client'
 require "rubygems"
 require 'json'
-# gem "json"
-# begin
-#   require "json/ext"
-# rescue LoadError
-#   $stderr.puts "C version of json (fjson) could not be loaded, using pure ruby one"
-#   require "json/pure"
-# end
+
 
 require File.dirname(__FILE__) + '/database'
 

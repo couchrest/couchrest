@@ -22,7 +22,8 @@ describe CouchRest do
     it "should be up to date" do
       v = @cr.info["version"]
       vi = v.split(/a/).pop.to_i
-      vi.should be_between(658733, 660751)
+      vi.should be >= 661484 # versions older than this will likely fail many specs
+      vi.should be <= 661484 # versions newer than this haven't been tried
     end
   end
 
