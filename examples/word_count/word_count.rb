@@ -13,7 +13,6 @@ db = couch.create_db('word-count-example')
     lines = []
     chunk = 0
     while line = file.gets
-      puts chunk
       lines << line
       if lines.length > 10
         db.save({
@@ -22,6 +21,7 @@ db = couch.create_db('word-count-example')
           :text => lines.join('')
         })
         chunk += 1
+        puts chunk
         lines = []
       end
     end
@@ -50,6 +50,6 @@ end
 #   }
 # })
 
-puts "The books have been stored in your CouchDB. To initiate the MapReduce process, visit http://localhost:5984/_utils/ in your browser and click 'word-count-example', then select view 'words' or 'count'. The process could take about 15 minutes on an average MacBook."
-
+# puts "The books have been stored in your CouchDB. To initiate the MapReduce process, visit http://localhost:5984/_utils/ in your browser and click 'word-count-example', then select view 'words' or 'count'. The process could take about 15 minutes on an average MacBook."
+# 
 
