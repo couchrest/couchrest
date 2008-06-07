@@ -190,7 +190,10 @@ describe CouchRest::Database do
         "_id" => "mydocwithattachment",
         "field" => ["some value"],
         "_attachments" => {
-          "test.html" => @attach
+          "test.html" => {
+            "type" => "text/html",
+            "data" => @attach
+          }
         }
       }
       @db.save(@doc)
@@ -211,7 +214,10 @@ describe CouchRest::Database do
       @doc = {
         "field" => ["some other value"],
         "_attachments" => {
-          "http://example.com/stuff.cgi?things=and%20stuff" => @attach
+          "http://example.com/stuff.cgi?things=and%20stuff" => {
+            "type" => "text/html",
+            "data" => @attach
+          }
         }
       }
       @docid = @db.save(@doc)['id']

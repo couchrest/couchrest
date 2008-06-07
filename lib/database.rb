@@ -66,8 +66,8 @@ class CouchRest
       result = {}
       attachments.each do |k,v|
         result[k] = {
-          "type" => "base64",
-          "data" => base64(v)
+          "type" => v['type'],
+          "data" => base64(v['data'])
         }
       end
       result
