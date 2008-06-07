@@ -63,14 +63,10 @@ class CouchRest
     end
     private
     def encode_attachments attachments
-      result = {}
       attachments.each do |k,v|
-        result[k] = {
-          "type" => v['type'],
-          "data" => base64(v['data'])
-        }
+        v['data'] = base64(v['data'])
       end
-      result
+      attachments
     end
     def base64 data
       Base64.encode64(data).gsub(/\s/,'')
