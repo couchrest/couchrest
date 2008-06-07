@@ -23,7 +23,7 @@ describe CouchRest do
       v = @cr.info["version"]
       vi = v.split(/a/).pop.to_i
       vi.should be >= 661484 # versions older than this will likely fail many specs
-      vi.should be <= 661484 # versions newer than this haven't been tried
+      vi.should be <= 663797 # versions newer than this haven't been tried
     end
   end
 

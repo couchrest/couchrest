@@ -98,26 +98,30 @@ when "push" # files to views
   end
   designs = all.group_by{|f|f[0]}
   designs.each do |design,parts|
-    puts "design #{design}"
+    # puts "replace _design/#{design}? (enter to proceed, 'n' to skip)"
+    # rep = $stdin.gets.chomp
+    # next if rep == 'n'
     dviews = {}
     parts.group_by{|p|p[1]}.each do |view,fs|
       fs.each do |f|
         dviews["#{view}-reduce"] ||= {}
         dviews["#{view}-reduce"][f[2]] = readjs(f.last,libs)        
       end
-      dviews["#{view}-map"] = {:map => dviews["#{view}-reduce"]['map']}
+      dviews["#{view}-map"] = {'map' => dviews["#{view}-reduce"]['map']}
       dviews.delete("#{view}-reduce") unless dviews["#{view}-reduce"]["reduce"]
     end
     # save them to the db
-    begin
-      view = db.get("_design/#{design}")
-      db.delete(view)
-    rescue
+    view = db.get("_design/#{design}") rescue nil
+    if (view && view['views'] == dviews)
+      puts "no change to _design/#{design}. skipping..."
+    else
+      puts "replacing _design/#{design}"
+      db.delete(view) rescue nil
+      db.save({
+        "_id" => "_design/#{design}",
+        :views => dviews
+      })   
     end
-    db.save({
-      "_id" => "_design/#{design}",
-      :views => dviews
-    })
   end
   
 when "pull" # views to files

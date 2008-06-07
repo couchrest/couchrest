@@ -183,6 +183,49 @@ describe CouchRest::Database do
     end
   end
 
+  describe "PUT document with attachment" do
+    before(:each) do
+      @attach = "<html><head><title>My Doc</title></head><body><p>Has words.</p></body></html>"
+      @doc = {
+        "_id" => "mydocwithattachment",
+        "field" => ["some value"],
+        "_attachments" => {
+          "test.html" => @attach
+        }
+      }
+      @db.save(@doc)
+    end
+    it "should save and be indicated" do
+      doc = @db.get("mydocwithattachment")
+      doc['_attachments']['test.html']['length'].should == @attach.length
+    end
+    it "should be there" do
+      attachment = @db.fetch_attachment("mydocwithattachment","test.html")
+      attachment.should == @attach
+    end
+  end
+
+  describe "POST document with attachment (with funky name)" do
+    before(:each) do
+      @attach = "<html><head><title>My Funky Doc</title></head><body><p>Has words.</p></body></html>"
+      @doc = {
+        "field" => ["some other value"],
+        "_attachments" => {
+          "http://example.com/stuff.cgi?things=and%20stuff" => @attach
+        }
+      }
+      @docid = @db.save(@doc)['id']
+    end
+    it "should save and be indicated" do
+      doc = @db.get(@docid)
+      doc['_attachments']['http://example.com/stuff.cgi?things=and%20stuff']['length'].should == @attach.length
+    end
+    it "should be there" do
+      attachment = @db.fetch_attachment(@docid,"http://example.com/stuff.cgi?things=and%20stuff")
+      attachment.should == @attach
+    end
+  end
+
   describe "PUT (new document with url id)" do
     it "should create the document" do
       @docid = "http://example.com/stuff.cgi?things=and%20stuff"

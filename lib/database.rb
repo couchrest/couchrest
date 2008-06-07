@@ -1,4 +1,5 @@
 require 'cgi'
+require "base64"
 
 class CouchRest
   class Database
@@ -25,12 +26,21 @@ class CouchRest
     end
   
     def get id
-      slug = CGI.escape(id)
+      slug = CGI.escape(id) 
       CouchRest.get "#{@root}/#{slug}"
     end
     
-    # PUT or POST depending on precense of _id attribute
+    def fetch_attachment doc, name
+      doc = CGI.escape(doc)
+      name = CGI.escape(name)
+      RestClient.get "#{@root}/#{doc}/#{name}"
+    end
+    
+    # PUT or POST depending on presence of _id attribute
     def save doc
+      if doc['_attachments']
+        doc['_attachments'] = encode_attachments(doc['_attachments'])
+      end
       if doc['_id']
         slug = CGI.escape(doc['_id'])
         CouchRest.put "#{@root}/#{slug}", doc
@@ -50,6 +60,20 @@ class CouchRest
     
     def delete!
       CouchRest.delete @root
+    end
+    private
+    def encode_attachments attachments
+      result = {}
+      attachments.each do |k,v|
+        result[k] = {
+          "type" => "base64",
+          "data" => base64(v)
+        }
+      end
+      result
+    end
+    def base64 data
+      Base64.encode64(data).gsub(/\s/,'')
     end
   end
 end

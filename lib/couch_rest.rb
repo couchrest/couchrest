@@ -7,7 +7,7 @@ require File.dirname(__FILE__) + '/database'
 
 class CouchRest
   attr_accessor :uri
-  def initialize server
+  def initialize server = 'http://localhost:5984'
     @uri = server
   end
   
@@ -38,7 +38,7 @@ class CouchRest
     end
   
     def get uri
-      JSON.parse(RestClient.get(uri))
+      JSON.parse(RestClient.get(uri), :max_nesting => false)
     end
     
     def post uri, doc = nil
