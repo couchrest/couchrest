@@ -208,6 +208,41 @@ describe CouchRest::Database do
     end
   end
 
+  describe "PUT document with multiple attachments" do
+    before(:each) do
+      @attach = "<html><head><title>My Doc</title></head><body><p>Has words.</p></body></html>"
+      @attach2 = "<html><head><title>Other Doc</title></head><body><p>Has more words.</p></body></html>"
+      @doc = {
+        "_id" => "mydocwithattachment",
+        "field" => ["some value"],
+        "_attachments" => {
+          "test.html" => {
+            "type" => "text/html",
+            "data" => @attach
+          },
+          "other.html" => {
+            "type" => "text/html",
+            "data" => @attach2
+          }
+        }
+      }
+      @db.save(@doc)
+    end
+    it "should save and be indicated" do
+      doc = @db.get("mydocwithattachment")
+      doc['_attachments']['test.html']['length'].should == @attach.length
+      doc['_attachments']['other.html']['length'].should == @attach2.length
+    end
+    it "should be there" do
+      attachment = @db.fetch_attachment("mydocwithattachment","test.html")
+      attachment.should == @attach
+    end
+    it "should be there" do
+      attachment = @db.fetch_attachment("mydocwithattachment","other.html")
+      attachment.should == @attach2
+    end
+  end
+
   describe "POST document with attachment (with funky name)" do
     before(:each) do
       @attach = "<html><head><title>My Funky Doc</title></head><body><p>Has words.</p></body></html>"
@@ -273,6 +308,12 @@ describe CouchRest::Database do
       doc['yaml'] = ['json', 'word.']
       @db.save doc
       @db.get(@docid)['yaml'].should == ['json', 'word.']
+    end
+    it "should fail to resave without the rev" do
+      @doc['them-keys'] = 'huge'
+      @doc['_rev'] = 'wrong'
+      # @db.save(@doc)
+      lambda {@db.save(@doc)}.should raise_error
     end
     it "should update the document" do
       @doc['them-keys'] = 'huge'
