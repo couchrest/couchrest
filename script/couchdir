@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+
+dirname = ARGV[0].sub(/\/$/,'')
+dbname = ARGV[1]
+puts "Shoving #{dirname} into #{dbname}."
+
+require File.expand_path(File.dirname(__FILE__)) + '/../couchrest'
+require 'fileutils'
+
+cr = CouchRest.new("http://localhost:5984")
+@db = cr.database(dbname)
+
+@content_types = {
+  "html"       => "text/html",
+  "htm"        => "text/html",
+  "png"        => "image/png",
+  "css"        => "text/css"
+}
+
+files = Dir.glob(File.join(dirname,"**","*"))
+attachments = {}
+files.each do |filename|
+  content = open(filename).read
+  aname = filename.split('/')
+  aname.shift
+  aname = aname.join('/')
+  attachments[aname] = {
+    "data" => content,
+    "content_type" => @content_types[aname.split('.').last]
+  }
+end
+
+puts attachments.keys.inspect
+
+doc = @db.get(dirname) rescue nil
+
+if doc
+  doc["_attachments"] = attachments
+else
+  doc = {
+    "_id" => dirname,
+    "_attachments" => attachments
+  }
+end
+
+
+@db.save(doc)
