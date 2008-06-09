@@ -56,7 +56,9 @@ PUSH
 end
 
 dbname = ARGV[1]
-puts "Running #{command} on #{dbname}."
+dirname = ARGV[2] || "views"
+
+puts "Running #{command} on #{dbname} from directory #{dirname}."
 
 require File.expand_path(File.dirname(__FILE__)) + '/../couchrest'
 require File.expand_path(File.dirname(__FILE__)) + '/../vendor/jsmin/lib/jsmin'
@@ -84,7 +86,7 @@ end
 case command
 when "push" # files to views
   views = {}
-  viewfiles = Dir.glob(File.join("views","**","*.js")) # todo support non-js views
+  viewfiles = Dir.glob(File.join(dirname,"**","*.js")) # todo support non-js views
   libfiles = viewfiles.select{|f|/lib\.js/.match(f)}
   libs = open(libfiles[0]).read if libfiles[0]
   all = (viewfiles-libfiles).collect do |file|
@@ -137,7 +139,7 @@ when "pull" # views to files
       if mapname
         # save map
         mapfunc = views[mapname]["map"]
-        mapfile = File.join("views",directory,"#{g}-map.js") # todo support non-js views
+        mapfile = File.join(dirname,directory,"#{g}-map.js") # todo support non-js views
         File.open(mapfile,'w') do |f|
           f.write mapfunc
         end
@@ -147,7 +149,7 @@ when "pull" # views to files
       if reducename
         # save reduce
         reducefunc = views[reducename]["reduce"]
-        reducefile = File.join("views",directory,"#{g}-reduce.js") # todo support non-js views
+        reducefile = File.join(dirname,directory,"#{g}-reduce.js") # todo support non-js views
         File.open(reducefile,'w') do |f|
           f.write reducefunc
         end
