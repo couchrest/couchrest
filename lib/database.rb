@@ -24,6 +24,12 @@ class CouchRest
       url = CouchRest.paramify_url "#{@root}/_view/#{name}", params
       CouchRest.get url
     end
+
+    # experimental
+    def search params = nil
+      url = CouchRest.paramify_url "#{@root}/_search", params
+      CouchRest.get url
+    end
   
     def get id
       slug = CGI.escape(id) 
