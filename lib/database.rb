@@ -64,6 +64,7 @@ class CouchRest
     private
     def encode_attachments attachments
       attachments.each do |k,v|
+        next if v['stub']
         v['data'] = base64(v['data'])
       end
       attachments
