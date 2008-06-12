@@ -21,9 +21,13 @@ describe CouchRest do
   describe "tested against the current CouchDB svn revision" do
     it "should be up to date" do
       v = @cr.info["version"]
-      vi = v.split(/a/).pop.to_i
-      vi.should be >= 661484 # versions older than this will likely fail many specs
-      vi.should be <= 663797 # versions newer than this haven't been tried
+      if /incubating/.match(v)
+        v.should include('0.8.0')
+      else
+        vi = v.split(/a/).pop.to_i
+        vi.should be >= 661484 # versions older than this will likely fail many specs
+        vi.should be <= 663797 # versions newer than this haven't been tried
+      end
     end
   end
 
