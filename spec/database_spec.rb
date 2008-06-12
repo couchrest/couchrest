@@ -207,6 +207,30 @@ describe CouchRest::Database do
       attachment.should == @attach
     end
   end
+  
+  describe "PUT document with attachment stub" do
+    before(:each) do
+      @attach = "<html><head><title>My Doc</title></head><body><p>Has words.</p></body></html>"
+      doc = {
+        '_id' => 'mydocwithattachment',
+        'field' => ['some_value'],
+        '_attachments' => {
+          'test.html' => {
+            'type' => 'text/html', 'data' => @attach
+          }
+        }
+      }
+      @db.save(doc)
+      doc = @db.get('mydocwithattachment')
+      doc['field'] << 'another value'
+      @db.save(doc)
+    end
+    
+    it 'should be there' do
+      attachment = @db.fetch_attachment('mydocwithattachment', 'test.html')
+      attachment.should == @attach
+    end
+  end
 
   describe "PUT document with multiple attachments" do
     before(:each) do
