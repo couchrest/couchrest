@@ -1,7 +1,15 @@
 #!/usr/bin/env ruby
 
+unless ARGV.length >= 2
+  puts "usage: couchdir path/to/directory db-name"
+  exit
+end
+
 dirname = ARGV[0].sub(/\/$/,'')
 dbname = ARGV[1]
+
+  
+
 puts "Shoving #{dirname} into #{dbname}."
 
 require File.expand_path(File.dirname(__FILE__)) + '/../couchrest'
@@ -34,6 +42,8 @@ puts attachments.keys.inspect
 
 doc = @db.get(dirname) rescue nil
 
+# puts "get: #{doc.inspect}"
+
 if doc
   doc["_attachments"] = attachments
 else
@@ -43,5 +53,6 @@ else
   }
 end
 
-
+# puts "saving: #{doc.inspect}"
 @db.save(doc)
+puts "saved"

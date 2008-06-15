@@ -40,6 +40,12 @@ describe CouchRest do
       @cr.info.class.should == Hash   
     end
   end
+  
+  describe "description" do
+    it "should restart" do
+      @cr.restart!
+    end
+  end
 
   describe "initializing a database" do
     it "should return a db" do

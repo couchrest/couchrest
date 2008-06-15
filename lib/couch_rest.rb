@@ -25,6 +25,11 @@ class CouchRest
     CouchRest.get "#{@uri}/"
   end
 
+  # restart the couchdb instance
+  def restart!
+    CouchRest.post "#{@uri}/_restart"
+  end
+  
   # create a database
   def create_db name
     CouchRest.put "#{@uri}/#{name}"
