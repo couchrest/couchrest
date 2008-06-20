@@ -64,7 +64,6 @@ puts "Running #{command} into #{prefix} on #{dbname} from directory #{dirname}."
 # __END__
 
 require File.expand_path(File.dirname(__FILE__)) + '/../couchrest'
-require File.expand_path(File.dirname(__FILE__)) + '/../vendor/jsmin/lib/jsmin'
 require 'fileutils'
 
 module Enumerable
@@ -79,12 +78,6 @@ end
 # connect to couchdb
 cr = CouchRest.new("http://localhost:5984")
 db = cr.database(dbname)
-
-def readjs(file, libs=nil)
-  st = open(file).read
-  st.sub!(/\/\/include-lib/,libs) if libs
-  JSMin.minify(st)
-end
 
 def readfile(file, libs=nil)
   st = open(file).read
