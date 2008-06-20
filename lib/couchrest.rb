@@ -2,7 +2,6 @@ require "rubygems"
 require 'json'
 require 'rest_client'
 
-
 require File.dirname(__FILE__) + '/database'
 
 class CouchRest
@@ -65,8 +64,5 @@ class CouchRest
       end
       url
     end
-  end
-  
+  end  
 end
-
-

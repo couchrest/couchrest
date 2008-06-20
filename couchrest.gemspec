@@ -10,7 +10,6 @@ Gem::Specification.new do |s|
   s.authors = ["J. Chris Anderson"]
   s.files = %w{lib/couchrest.rb lib/database.rb Rakefile README script/couchdir script/couchview spec/couchrest_spec.rb spec/database_spec.rb}
   s.require_path = "lib"
-  s.test_files = %{spec/couchrest_spec.rb spec/database_spec.rb}
   s.add_dependency("json", [">= 1.1.2"])
   s.add_dependency("rest-client", [">= 0.4"])
 end
