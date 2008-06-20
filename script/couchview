@@ -61,7 +61,6 @@ dirname = ARGV[2] || "views"
 puts "Running #{command} on #{dbname} from directory #{dirname}."
 
 require File.expand_path(File.dirname(__FILE__)) + '/../couchrest'
-require File.expand_path(File.dirname(__FILE__)) + '/../vendor/jsmin/lib/jsmin'
 require 'fileutils'
 
 module Enumerable
@@ -80,7 +79,7 @@ db = cr.database(dbname)
 def readjs(file, libs=nil)
   st = open(file).read
   st.sub!(/\/\/include-lib/,libs) if libs
-  JSMin.minify(st)
+  st
 end
 
 case command
