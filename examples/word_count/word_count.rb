@@ -5,8 +5,20 @@ db = couch.database('word-count-example')
 db.delete! rescue nil
 db = couch.create_db('word-count-example')
 
-%w{america.txt da-vinci.txt outline-of-science.txt ulysses.txt}.each do |book|
-# %w{}.each do |book|
+books = {
+  'outline-of-science.txt' => 'http://www.gutenberg.org/files/20417/20417.txt',
+  'ulysses.txt' => 'http://www.gutenberg.org/dirs/etext03/ulyss12.txt',
+  'america.txt' => 'http://www.gutenberg.org/files/16960/16960.txt',
+  'da-vinci.txt' => 'http://www.gutenberg.org/dirs/etext04/7ldv110.txt'
+}
+
+books.each do |file, url|
+  pathfile = File.join(File.dirname(__FILE__),file)
+  `curl #{url} > #{pathfile}` unless File.exists?(pathfile)  
+end
+
+
+books.keys.each do |book|
   title = book.split('.')[0]
   puts title
   File.open(File.join(File.dirname(__FILE__),book),'r') do |file|

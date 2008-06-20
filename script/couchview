@@ -6,7 +6,7 @@ command = ARGV[0]
 
 if !commands.include?(command)
   puts <<-USAGE
-Usage: script/views (pull|push) my-database-name
+Usage: couchview (pull|push) my-database-name
 For help on pull and push run script/views (pull|push) without a database name.
 USAGE
   exit
@@ -16,7 +16,7 @@ if ARGV.length == 1
   case command
   when "pull"
     puts <<-PULL
-script/views pull my-database-name
+couchview pull my-database-name
 
 I will automagically create a "views" directory in your current working directory if none exists.
 Then I copy the design documents and views into a directory structure like:
@@ -29,7 +29,7 @@ If your view names don't end in "map" or "reduce" I'll add those suffixes as a p
     PULL
   when "push"
     puts <<-PUSH
-script/views push my-database-name
+couchview push my-database-name
 
 I'll push all the files in your views directory to the specified database. Because CouchDB caches the results of view calculation by function content, there's no performance penalty for duplicating the map function twice, which I'll do if you have a reduce function. This makes it possible to browse the results of just the map, which can be useful for both queries and debugging.
 
