@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../vendor/rest-client/lib/rest_client'
 require "rubygems"
 require 'json'
+require 'rest_client'
 
 
 require File.dirname(__FILE__) + '/database'

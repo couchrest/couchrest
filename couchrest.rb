@@ -1,2 +1,2 @@
-require File.dirname(__FILE__) + '/lib/couch_rest'
+require File.dirname(__FILE__) + '/lib/couchrest'
 require File.dirname(__FILE__) + '/lib/database'

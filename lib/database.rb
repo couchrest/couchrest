@@ -1,5 +1,6 @@
 require 'cgi'
 require "base64"
+require File.dirname(__FILE__) + '/couchrest'
 
 class CouchRest
   class Database
