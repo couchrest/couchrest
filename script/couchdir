@@ -40,7 +40,11 @@ end
 
 puts attachments.keys.inspect
 
-doc = @db.get(dirname) rescue nil
+begin
+  doc = @db.get(dirname) 
+rescue RestClient::Request::RequestFailed
+  doc = nil
+end
 
 # puts "get: #{doc.inspect}"
 

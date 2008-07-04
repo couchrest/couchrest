@@ -1,10 +1,10 @@
-require File.dirname(__FILE__) + '/../lib/couchrest'
+require File.dirname(__FILE__) + '/spec_helper'
 
 describe CouchRest::Database do
   before(:each) do
-    @cr = CouchRest.new("http://localhost:5984")
+    @cr = CouchRest.new(COUCHHOST)
     begin
-      @db = @cr.create_db('couchrest-test')
+      @db = @cr.create_db(TESTDB)
     rescue RestClient::Request::RequestFailed
     end
   end

@@ -116,7 +116,11 @@ when "push" # files to views
       end
     end
     # save them to the db
-    control = db.get("#{prefix}/#{cntrl}") rescue nil
+    begin
+      control = db.get("#{prefix}/#{cntrl}") 
+    rescue RestClient::Request::RequestFailed
+      control = nil
+    end
     if (control && control['actions'] == actions)
       puts "no change to #{prefix}/#{cntrl}. skipping..."
     else
