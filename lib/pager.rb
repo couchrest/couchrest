@@ -16,6 +16,13 @@ module Enumerable
       grouped
     end
   end unless [].respond_to?(:group_by)
+  
+  def group_by_fast
+    inject({}) do |grouped, element|
+      (grouped[yield(element)] ||= []) << element
+      grouped
+    end
+  end
 end
 
 class CouchRest
