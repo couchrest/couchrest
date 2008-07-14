@@ -34,7 +34,6 @@ class CouchRest
     
     def all_docs(count=100, &block)
       startkey = nil
-      keepgoing = true
       oldend = nil
       
       while docrows = request_all_docs(count+1, startkey)        
