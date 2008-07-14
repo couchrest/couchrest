@@ -4,14 +4,12 @@ describe CouchRest::Database do
   before(:each) do
     @cr = CouchRest.new(COUCHHOST)
     begin
-      @db = @cr.create_db(TESTDB)
+      @db = @cr.database(TESTDB)
+      @db.delete!
     rescue RestClient::Request::RequestFailed
     end
-  end
-  
-  after(:each) do
     begin
-      @db.delete!
+      @db = @cr.create_db(TESTDB)
     rescue RestClient::Request::RequestFailed
     end
   end

@@ -25,6 +25,39 @@ describe CouchRest::Pager do
     @pager.db.should == @db
   end
   
+  describe "paging all docs" do
+    before(:all) do
+      @docs = []
+      100.times do |i|
+        @docs << ({:number => (i % 10)})
+      end
+      @db.bulk_save(@docs)
+    end
+    it "should yield total_docs / count times" do
+      n = 0
+      @pager.all_docs(10) do |doc|
+        n += 1
+      end
+      n.should == 10
+    end
+    it "should yield each docrow group without duplicate docs" do
+      docids = {}
+      @pager.all_docs(10) do |docrows|
+        docrows.each do |row|
+          docids[row['id']].should be_nil
+          docids[row['id']] = true
+        end
+      end      
+      docids.keys.length.should == 100
+    end
+    it "should yield each docrow group" do
+      @pager.all_docs(10) do |docrows|
+        doc = @db.get(docrows[0]['id'])
+        doc['number'].class.should == Fixnum
+      end      
+    end
+  end
+  
   describe "Pager with a view and docs" do
     before(:all) do
       @docs = []

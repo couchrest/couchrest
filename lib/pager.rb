@@ -32,6 +32,22 @@ class CouchRest
       @db = db
     end
     
+    def all_docs(count=100, &block)
+      startkey = nil
+      keepgoing = true
+      oldend = nil
+      
+      while docrows = request_all_docs(count+1, startkey)        
+        startkey = docrows.last['key']
+        docrows.pop if docrows.length > count
+        if oldend == startkey
+          break
+        end
+        yield(docrows)
+        oldend = startkey
+      end
+    end
+    
     def key_reduce(view, count, firstkey = nil, lastkey = nil, &block)
       # start with no keys
       startkey = firstkey
@@ -79,6 +95,17 @@ class CouchRest
         
         # lastprocessedkey = rows.last['key']
       end
+    end
+
+    private
+    
+    def request_all_docs count, startkey = nil
+      opts = {}
+      opts[:count] = count if count
+      opts[:startkey] = startkey if startkey      
+      results = @db.documents(opts)
+      rows = results['rows']
+      rows unless rows.length == 0
     end
 
     def request_view view, count = nil, startkey = nil, endkey = nil
