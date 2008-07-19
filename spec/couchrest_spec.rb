@@ -6,16 +6,13 @@ describe CouchRest do
     @cr = CouchRest.new(COUCHHOST)
     begin
       @db = @cr.database(TESTDB)
-      @db.delete!
-      
-    rescue RestClient::Request::RequestFailed
+      @db.delete! rescue nil      
     end
   end
 
   after(:each) do
     begin
-      @db.delete!
-    rescue RestClient::Request::RequestFailed
+      @db.delete! rescue nil
     end
   end
 

@@ -3,14 +3,9 @@ require File.dirname(__FILE__) + '/spec_helper'
 describe CouchRest::Pager do
   before(:all) do
     @cr = CouchRest.new(COUCHHOST)
-    begin
-      @cr.database(TESTDB).delete!
-    rescue RestClient::Request::RequestFailed
-    end
-    begin
-      @db = @cr.create_db(TESTDB)
-    rescue RestClient::Request::RequestFailed
-    end
+    @db = @cr.database(TESTDB)
+    @db.delete! rescue nil
+    @db = @cr.create_db(TESTDB) rescue nil
     @pager = CouchRest::Pager.new(@db)
   end
   

@@ -3,15 +3,9 @@ require File.dirname(__FILE__) + '/spec_helper'
 describe CouchRest::Database do
   before(:each) do
     @cr = CouchRest.new(COUCHHOST)
-    begin
-      @db = @cr.database(TESTDB)
-      @db.delete!
-    rescue RestClient::Request::RequestFailed
-    end
-    begin
-      @db = @cr.create_db(TESTDB)
-    rescue RestClient::Request::RequestFailed
-    end
+    @db = @cr.database(TESTDB)
+    @db.delete! rescue nil
+    @db = @cr.create_db(TESTDB) rescue nil
   end
     
   describe "map query with _temp_view in Javascript" do
@@ -162,11 +156,11 @@ describe CouchRest::Database do
           {"_id" => "twoB", "mild" => "yet local"},
           {"another" => ["set","of","keys"]}
         ])
-      end.should raise_error(RestClient::Request::RequestFailed)
+      end.should raise_error(RestClient::RequestFailed)
     
       lambda do
         @db.get('twoB')        
-      end.should raise_error(RestClient::Request::RequestFailed)
+      end.should raise_error(RestClient::ResourceNotFound)
     end
   end
   
