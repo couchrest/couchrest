@@ -16,19 +16,6 @@ describe CouchRest do
     end
   end
 
-  describe "tested against the current CouchDB svn revision" do
-    it "should be up to date" do
-      v = @cr.info["version"]
-      if /incubating/.match(v)
-        v.should include('0.8.0')
-      else
-        vi = v.split(/a/).pop.to_i
-        vi.should be >= 661484 # versions older than this will likely fail many specs
-        vi.should be <= 663797 # versions newer than this haven't been tried
-      end
-    end
-  end
-
   describe "getting info" do
     it "should list databases" do
       @cr.databases.should be_an_instance_of(Array)
