@@ -112,11 +112,7 @@ when "push" # files to views
       dviews.delete("#{view}-reduce") unless dviews["#{view}-reduce"]["reduce"]
     end
     # save them to the db
-    begin
-      view = db.get("_design/#{design}") 
-    rescue RestClient::Request::RequestFailed
-      view = nil
-    end
+    view = db.get("_design/#{design}") rescue nil
     if (view && view['views'] == dviews)
       puts "no change to _design/#{design}. skipping..."
     else

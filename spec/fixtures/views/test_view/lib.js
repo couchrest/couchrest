@@ -1,0 +1,3 @@
+function justThisView() {
+  return "fixture";
+};

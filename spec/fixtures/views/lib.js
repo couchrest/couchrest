@@ -1,0 +1,3 @@
+function globalLib() {
+  return "fixture";
+};
