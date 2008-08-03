@@ -1,14 +1,3 @@
-# paginate though 'gcharts/mp3-trk-dom-map' view and save
-
-# get 1000 records
-# truncate so that the key of the last record is not included in the page
-#  that key will be the first of the next page
-# (if the last key equals the first key, up the page size)
-# group the results by key
-# yield the group
-
-require File.dirname(__FILE__) + '/couchrest'
-
 module Enumerable
   def group_by
     inject({}) do |grouped, element|

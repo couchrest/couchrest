@@ -1,6 +1,5 @@
 require 'digest/md5'
 
-
 class CouchRest
   class FileManager
     attr_reader :db
