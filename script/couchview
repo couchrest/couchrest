@@ -1,129 +1,131 @@
 #!/usr/bin/env ruby
 
-commands = %w{pull push}
+commands = %w{push generate}
 
 command = ARGV[0]
 
 if !commands.include?(command)
   puts <<-USAGE
-Usage: couchview (pull|push) my-database-name
-For help on pull and push run script/views (pull|push) without a database name.
+Couchview has two modes: push and generate. Run couchview push or couchview generate for usage documentation.  
 USAGE
   exit
 end
 
 if ARGV.length == 1
   case command
-  when "pull"
-    puts <<-PULL
-couchview pull my-database-name
+  when "generate"
+    puts <<-GEN
 
-I will automagically create a "views" directory in your current working directory if none exists.
-Then I copy the design documents and views into a directory structure like:
-
-./views/my-design-doc/view-name-map.js
-./views/my-design-doc/view-name-reduce.js
-
-If your view names don't end in "map" or "reduce" I'll add those suffixes as a pull. On push I'll put them in new locations corresponding to these new names (overwriting the old design documents). I'm opinionated, but if these conventions don't work for you, the source code is right here.
     
-    PULL
+GEN
   when "push"
     puts <<-PUSH
-couchview push my-database-name
+== Pushing views with Couchview ==
 
-I'll push all the files in your views directory to the specified database. Because CouchDB caches the results of view calculation by function content, there's no performance penalty for duplicating the map function twice, which I'll do if you have a reduce function. This makes it possible to browse the results of just the map, which can be useful for both queries and debugging.
+Usage: couchview push directory dbname
 
-./views/my-design-doc/view-name-map.js
-./views/my-design-doc/view-name-reduce.js
+Couchview expects a specific filesystem layout for your CouchDB views (see
+example below). It also supports advanced features like inlining of library
+code (so you can keep DRY) as well as avoiding unnecessary document
+modification.
 
-  Pushed to =>
+Couchview also solves a problem with CouchDB's view API, which only provides
+access to the final reduce side of any views which have both a map and a
+reduce function defined. The intermediate map results are often useful for
+development and production. CouchDB is smart enough to reuse map indexes for
+functions duplicated across views within the same design document.
 
-  http://localhost:5984/my-database-name/_design/my-design-doc
+For views with a reduce function defined, Couchview creates both a reduce view
+and a map-only view, so that you can browse and query the map side as well as
+the reduction, with no performance penalty.
+
+== Example ==
+
+couchview push foo-project/bar-views baz-database
+
+This will push the views defined in foo-project/bar-views into a database
+called baz-database. Couchview expects the views to be defined in files with
+names like:
+
+foo-project/bar-views/my-design/viewname-map.js
+foo-project/bar-views/my-design/viewname-reduce.js
+foo-project/bar-views/my-design/noreduce-map.js
+
+Pushed to => http://localhost:5984/baz-database/_design/my-design
+
+And the design document:  
     {
       "views" : {
-        "view-name-map" : {
+        "viewname-map" : {
           "map" : "### contents of view-name-map.js ###"
         },
-        "view-name-reduce" : {
+        "viewname-reduce" : {
           "map" : "### contents of view-name-map.js ###",
           "reduce" : "### contents of view-name-reduce.js ###"
         },
+        "noreduce-map" : {
+          "map" : "### contents of noreduce-map.js ###"
+        }
       }
     }
+
+Couchview will create a design document for each subdirectory of the views
+directory specified on the command line.
+
+== Library Inlining == 
+
+Couchview can optionally inline library code into your views so you only have
+to maintain it in one place. It looks for any files named lib.* in your
+design-doc directory (for doc specific libs) and in the parent views directory
+(for project global libs). These libraries are only inserted into views which
+include the text
+
+//include-lib
+
+or
+
+#include-lib
+
+Couchview is a result of scratching my own itch. I'd be happy to make it more
+general, so please contact me at jchris@grabb.it if you'd like to see anything
+added or changed.
 PUSH
   end
   exit
 end
+
+require 'rubygems'
+require 'couchrest'
+
+if command == 'push'
+  dirname = ARGV[1]
+  dbname = ARGV[2]
+  puts "Pushing views from directory #{dirname} to database #{dbname}"
+  fm = CouchRest::FileManager.new(dbname)
+  # fm.loud = true
+  fm.push_views(dirname)
+elsif command == 'pull'
+end
+
+
+__END__
+
+
+
+
 
 dbname = ARGV[1]
 dirname = ARGV[2] || "views"
 
 puts "Running #{command} on #{dbname} from directory #{dirname}."
 
-require File.expand_path(File.dirname(__FILE__)) + '/../couchrest'
-require 'fileutils'
-
-module Enumerable
-  def group_by
-    inject({}) do |groups, element|
-      (groups[yield(element)] ||= []) << element
-      groups
-    end
-  end if RUBY_VERSION < '1.9'
-end
-
-# connect to couchdb
-cr = CouchRest.new("http://localhost:5984")
-db = cr.database(dbname)
-
-def readjs(file, libs=nil)
-  st = open(file).read
-  st.sub!(/\/\/include-lib/,libs) if libs
-  st
-end
+require 'rubygems'
+require 'couchrest'
 
 case command
 when "push" # files to views
-  views = {}
-  viewfiles = Dir.glob(File.join(dirname,"**","*.js")) # todo support non-js views
-  libfiles = viewfiles.select{|f|/lib\.js/.match(f)}
-  libs = open(libfiles[0]).read if libfiles[0]
-  all = (viewfiles-libfiles).collect do |file|
-    fileparts = file.split('/')
-    filename = /(\w.*)-(\w.*)\.js/.match file.split('/').pop
-    design = fileparts[1]
-    view = filename[1]
-    func = filename[2]
-    path = file
-    [design,view,func,path]
-  end
-  designs = all.group_by{|f|f[0]}
-  designs.each do |design,parts|
-    # puts "replace _design/#{design}? (enter to proceed, 'n' to skip)"
-    # rep = $stdin.gets.chomp
-    # next if rep == 'n'
-    dviews = {}
-    parts.group_by{|p|p[1]}.each do |view,fs|
-      fs.each do |f|
-        dviews["#{view}-reduce"] ||= {}
-        dviews["#{view}-reduce"][f[2]] = readjs(f.last,libs)        
-      end
-      dviews["#{view}-map"] = {'map' => dviews["#{view}-reduce"]['map']}
-      dviews.delete("#{view}-reduce") unless dviews["#{view}-reduce"]["reduce"]
-    end
-    # save them to the db
-    view = db.get("_design/#{design}") rescue nil
-    if (view && view['views'] == dviews)
-      puts "no change to _design/#{design}. skipping..."
-    else
-      puts "replacing _design/#{design}"
-      db.delete(view) rescue nil
-      db.save({
-        "_id" => "_design/#{design}",
-        :views => dviews
-      })   
-    end
-  end
+  
+  
   
 when "pull" # views to files
   ds = db.documents(:startkey => '_design/', :endkey => '_design/ZZZZZZZZZ')

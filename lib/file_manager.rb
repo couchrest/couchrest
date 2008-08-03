@@ -1,13 +1,4 @@
-require 'rubygems'
-require 'couchrest'
 require 'digest/md5'
-
-# todo = ARGV
-# todo = ["views", "public", "controllers"] if ARGV.include? "all"
-# 
-# 
-# PROJECT_ROOT = "#{File.dirname(__FILE__)}/.." unless defined?(PROJECT_ROOT)
-# DBNAME = JSON.load( open("#{PROJECT_ROOT}/config.json").read )["db"]
 
 
 class CouchRest
@@ -16,11 +7,11 @@ class CouchRest
     
     LANGS = {"rb" => "ruby", "js" => "javascript"}
     MIMES = {
-      "html"       => "text/html",
-      "htm"        => "text/html",
-      "png"        => "image/png",
-      "css"        => "text/css",
-      "js"         => "test/javascript"
+      "html"  => "text/html",
+      "htm"   => "text/html",
+      "png"   => "image/png",
+      "css"   => "text/css",
+      "js"    => "test/javascript"
     }    
     def initialize(dbname, host="http://localhost:5984")
       @db = CouchRest.new(host).database(dbname)
@@ -166,7 +157,7 @@ class CouchRest
     
     def read(file, libs=nil)
       st = open(file).read
-      st.sub!(/\/\/include-lib/,libs) if libs
+      st.sub!(/(\/\/|#)include-lib/,libs) if libs
       st
     end
     

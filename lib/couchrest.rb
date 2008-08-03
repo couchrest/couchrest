@@ -1,10 +1,3 @@
-require "rubygems"
-require 'json'
-require 'rest_client'
-
-require File.dirname(__FILE__) + '/database'
-require File.dirname(__FILE__) + '/pager'
-
 class CouchRest
   attr_accessor :uri
   def initialize server = 'http://localhost:5984'
