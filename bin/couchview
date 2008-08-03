@@ -15,8 +15,10 @@ if ARGV.length == 1
   case command
   when "generate"
     puts <<-GEN
+Usage: couchview generate directory design1 design2 design3 ...
 
-    
+Couchview will create directories and example views for the design documents you specify.  
+  
 GEN
   when "push"
     puts <<-PUSH
@@ -100,61 +102,10 @@ require 'couchrest'
 if command == 'push'
   dirname = ARGV[1]
   dbname = ARGV[2]
-  puts "Pushing views from directory #{dirname} to database #{dbname}"
   fm = CouchRest::FileManager.new(dbname)
-  # fm.loud = true
+  fm.loud = true
+  puts "Pushing views from directory #{dirname} to database #{fm.db}"
   fm.push_views(dirname)
-elsif command == 'pull'
-end
-
-
-__END__
-
-
-
-
-
-dbname = ARGV[1]
-dirname = ARGV[2] || "views"
-
-puts "Running #{command} on #{dbname} from directory #{dirname}."
-
-require 'rubygems'
-require 'couchrest'
-
-case command
-when "push" # files to views
-  
-  
-  
-when "pull" # views to files
-  ds = db.documents(:startkey => '_design/', :endkey => '_design/ZZZZZZZZZ')
-  ds['rows'].collect{|r|r['id']}.each do |id|
-    puts directory = id.split('/').last
-    FileUtils.mkdir_p(File.join("views",directory))
-    views = db.get(id)['views']
-    
-    vgroups = views.keys.group_by{|k|k.sub(/\-(map|reduce)$/,'')}
-    vgroups.each do|g,vs|
-      mapname = vs.find {|v|views[v]["map"]}
-      if mapname
-        # save map
-        mapfunc = views[mapname]["map"]
-        mapfile = File.join(dirname,directory,"#{g}-map.js") # todo support non-js views
-        File.open(mapfile,'w') do |f|
-          f.write mapfunc
-        end
-      end
-      
-      reducename = vs.find {|v|views[v]["reduce"]}
-      if reducename
-        # save reduce
-        reducefunc = views[reducename]["reduce"]
-        reducefile = File.join(dirname,directory,"#{g}-reduce.js") # todo support non-js views
-        File.open(reducefile,'w') do |f|
-          f.write reducefunc
-        end
-      end
-    end
-  end  
+elsif command == 'generate'
+  puts "Under construction ;)"
 end

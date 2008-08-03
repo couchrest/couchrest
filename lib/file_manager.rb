@@ -3,6 +3,7 @@ require 'digest/md5'
 class CouchRest
   class FileManager
     attr_reader :db
+    attr_accessor :loud
     
     LANGS = {"rb" => "ruby", "js" => "javascript"}
     MIMES = {
@@ -41,16 +42,18 @@ class CouchRest
       doc = @db.get(docid) rescue nil
 
       unless doc
-        # puts "creating public"
+        say "creating #{docid}"
         @db.save({"_id" => docid, "_attachments" => @attachments, "signatures" => @signatures})
         return
       end
 
       # remove deleted docs
-      to_be_removed = doc["signatures"].keys.select{|d| !couch["public"].collect{|p| p.keys.first}.include?(d) }
+      to_be_removed = doc["signatures"].keys.select do |d| 
+        !pushfiles.collect{|p| p.keys.first}.include?(d) 
+      end
 
       to_be_removed.each do |p|
-        # puts "deleting #{p}"
+        say "deleting #{p}"
         doc["signatures"].delete(p)
         doc["_attachments"].delete(p)
       end
@@ -58,9 +61,9 @@ class CouchRest
       # update existing docs:
       doc["signatures"].each do |path, sig|
         if (@signatures[path] == sig)
-          # puts "no change to #{path}. skipping..."
+          say "no change to #{path}. skipping..."
         else
-          # puts "replacing #{path}"
+          say "replacing #{path}"
           doc["signatures"][path] = md5(@attachments[path]["data"])
           doc["_attachments"][path].delete("stub")
           doc["_attachments"][path].delete("length")    
@@ -71,10 +74,10 @@ class CouchRest
       end
 
       # add in new files
-      new_files = couch["public"].select{|d| !doc["signatures"].keys.include?( d.keys.first) } 
+      new_files = pushfiles.select{|d| !doc["signatures"].keys.include?( d.keys.first) } 
 
       new_files.each do |f|
-        # puts "creating #{f}"
+        say "creating #{f}"
         path = f.keys.first
         content = f.values.first
         doc["signatures"][path] = md5(content)
@@ -88,15 +91,16 @@ class CouchRest
       begin
         @db.save(doc)
       rescue Exception => e
-        # puts e.message
+        say e.message
       end
     end
     
     def push_views(view_dir)
       designs = {}
 
-      Dir["#{view_dir}/**/*.*"].collect do |design_doc|
+      Dir["#{view_dir}/**/*.*"].each do |design_doc|
         design_doc_parts = design_doc.split('/')
+        next if /^lib\..*$/.match design_doc_parts.last
         pre_normalized_view_name = design_doc_parts.last.split("-")
         view_name = pre_normalized_view_name[0..pre_normalized_view_name.length-2].join("-")
 
@@ -150,6 +154,10 @@ class CouchRest
     
     private
     
+    def say words
+      puts words if @loud
+    end
+    
     def md5 string
       Digest::MD5.hexdigest(string)
     end
@@ -165,14 +173,15 @@ class CouchRest
 
       if existing
         updated = fields.merge({"_id" => id, "_rev" => existing["_rev"]})
+        if existing != updated
+          say "replacing #{id}"
+          db.save(updated)
+        else
+          say "skipping #{id}"
+        end
       else
-        # puts "saving #{id}"
+        say "creating #{id}"
         db.save(fields.merge({"_id" => id}))
-      end
-
-      if existing != updated
-        # puts "replacing #{id}"
-        db.save(updated)
       end
 
     end

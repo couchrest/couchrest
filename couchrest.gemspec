@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name = "couchrest"
-  s.version = "0.8.4"
-  s.date = "2008-06-20"
+  s.version = "0.8.9"
+  s.date = "2008-08-03"
   s.summary = "Lean and RESTful interface to CouchDB."
   s.email = "jchris@grabb.it"
   s.homepage = "http://github.com/jchris/couchrest"
@@ -9,13 +9,17 @@ Gem::Specification.new do |s|
   s.has_rdoc = false
   s.authors = ["J. Chris Anderson"]
   s.files = %w{
-    lib/couchrest.rb lib/database.rb lib/pager.rb lib/file_manager.rb 
+    lib/couchrest.rb
+    lib/couch_rest.rb lib/database.rb lib/pager.rb lib/file_manager.rb 
     Rakefile README 
-    script/couchdir script/couchview 
+    bin/couchdir bin/couchview 
     spec/couchrest_spec.rb spec/database_spec.rb spec/pager_spec.rb  spec/file_manager_spec.rb
     spec/spec_helper.rb
     }
   s.require_path = "lib"
+  s.bindir = 'bin'
+  s.executables << 'couchview'
+  s.executables << 'couchdir'
   s.add_dependency("json", [">= 1.1.2"])
   s.add_dependency("rest-client", [">= 0.5"])
 end

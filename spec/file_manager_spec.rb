@@ -51,6 +51,10 @@ describe CouchRest::FileManager, "pushing views" do
     @design["views"]["only-map"]["map"].should include("globalLib")
     @design["views"]["only-map"]["map"].should include("justThisView")
   end
+  it "should not create extra design docs" do
+    docs = @db.documents(:startkey => '_design', :endkey => '_design/ZZZZZZ')
+    docs['total_rows'].should == 1
+  end
 end
 
 describe CouchRest::FileManager, "pushing a directory with id" do
