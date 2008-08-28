@@ -75,13 +75,27 @@ class CouchRest
           startkey = endkey
         end
 
-        grouped = rows.group_by{|r|r['key']}
-        grouped.each do |k, rs|
-          vs = rs.collect{|r|r['value']}
-          yield(k,vs)
-        end
+        # grouped = rows.group_by{|r|r['key']}
+        # grouped.each do |k, rs|
+        #   vs = rs.collect{|r|r['value']}
+        #   yield(k,vs)
+        # end
         
-        # lastprocessedkey = rows.last['key']
+        key = :begin
+        values = []
+
+        rows.each do |r|
+          if key != r['key']
+            # we're on a new key, yield the old first and then reset
+            yield(key, values) if key != :begin
+            key = r['key']
+            values = []
+          end
+          # keep accumulating
+          values << r['value']
+        end
+        yield(key, values)
+
       end
     end
 
