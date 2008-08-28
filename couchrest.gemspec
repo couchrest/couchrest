@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = "couchrest"
-  s.version = "0.9.0"
+  s.version = "0.9.1"
   s.date = "2008-08-03"
   s.summary = "Lean and RESTful interface to CouchDB."
   s.email = "jchris@grabb.it"
