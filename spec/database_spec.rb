@@ -137,6 +137,7 @@ describe CouchRest::Database do
         @db.get(r['id'])
       end
     end
+    
     it "should add them with uniq ids" do
       rs = @db.bulk_save([
           {"_id" => "oneB", "wild" => "and random"},
@@ -147,6 +148,7 @@ describe CouchRest::Database do
         @db.get(r['id'])
       end
     end
+    
     it "in the case of an id conflict should not insert anything" do
       @r = @db.save({'lemons' => 'from texas', 'and' => 'how', "_id" => "oneB"})
       
@@ -159,8 +161,21 @@ describe CouchRest::Database do
       end.should raise_error(RestClient::RequestFailed)
     
       lambda do
-        @db.get('twoB')        
+        @db.get('twoB')
       end.should raise_error(RestClient::ResourceNotFound)
+    end
+    it "should raise an error that is useful for recovery" do
+      @r = @db.save({"_id" => "taken", "field" => "stuff"})
+      begin
+        rs = @db.bulk_save([
+            {"_id" => "taken", "wild" => "and random"},
+            {"_id" => "free", "mild" => "yet local"},
+            {"another" => ["set","of","keys"]}
+          ])
+      rescue RestClient::RequestFailed => e
+        # soon CouchDB will provide _which_ docs conflicted
+        JSON.parse(e.response.body)['error'].should == 'conflict'
+      end
     end
   end
   

@@ -14,6 +14,7 @@ response = @db.save({:key => 'value', 'another key' => 'another value'})
 doc = @db.get(response['id'])
 puts doc.inspect
 
+Please note that @cr.database('a-db-name') does not go over the wire at all. So it won't raise an error if the database does not exist. If you need to ensure that a database exists, call: @cr.create_db(dbname) rescue nilkey
 
 Bulk Save:
 
