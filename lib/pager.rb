@@ -1,19 +1,3 @@
-module Enumerable
-  def group_by
-    inject({}) do |grouped, element|
-      (grouped[yield(element)] ||= []) << element
-      grouped
-    end
-  end unless [].respond_to?(:group_by)
-  
-  def group_by_fast
-    inject({}) do |grouped, element|
-      (grouped[yield(element)] ||= []) << element
-      grouped
-    end
-  end
-end
-
 class CouchRest
   class Pager
     attr_accessor :db
@@ -74,12 +58,6 @@ class CouchRest
           end   
           startkey = endkey
         end
-
-        # grouped = rows.group_by{|r|r['key']}
-        # grouped.each do |k, rs|
-        #   vs = rs.collect{|r|r['value']}
-        #   yield(k,vs)
-        # end
         
         key = :begin
         values = []
