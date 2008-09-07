@@ -138,6 +138,16 @@ describe CouchRest::Database do
       end
     end
     
+    it "should use uuids when ids aren't provided" do
+      @db.server.stub!(:next_uuid).and_return('asdf6sgadkfhgsdfusdf')
+      
+      docs = [{'key' => 'value'}, {'_id' => 'totally-uniq'}]
+      id_docs = [{'key' => 'value', '_id' => 'asdf6sgadkfhgsdfusdf'}, {'_id' => 'totally-uniq'}]
+      CouchRest.should_receive(:post).with("http://localhost:5984/couchrest-test/_bulk_docs", {:docs => id_docs})
+      
+      @db.bulk_save(docs)
+    end
+    
     it "should add them with uniq ids" do
       rs = @db.bulk_save([
           {"_id" => "oneB", "wild" => "and random"},
@@ -179,7 +189,7 @@ describe CouchRest::Database do
     end
   end
   
-  describe "POST (new document without an id)" do
+  describe "new document without an id" do
     it "should start empty" do
       @db.documents["total_rows"].should == 0
     end
@@ -188,6 +198,11 @@ describe CouchRest::Database do
       r2 = @db.get(r['id'])
       r2["lemons"].should == "from texas"
     end
+    it "should use PUT with UUIDs" do
+      CouchRest.should_receive(:put)
+      r = @db.save({'just' => ['another document']})      
+    end
+    
   end
 
   describe "PUT document with attachment" do

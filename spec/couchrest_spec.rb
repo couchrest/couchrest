@@ -26,10 +26,12 @@ describe CouchRest do
     end
   end
   
-  describe "description" do
-    it "should restart" do
-      @cr.restart!
-    end
+  it "should restart" do
+    @cr.restart!
+  end
+
+  it "should provide one-time access to uuids" do
+    @cr.next_uuid.should_not be_nil
   end
 
   describe "initializing a database" do

@@ -3,10 +3,11 @@ require "base64"
 
 class CouchRest
   class Database
-    attr_accessor :host, :name
-    def initialize host, name
+    attr_accessor :server, :host, :name
+    def initialize server, name
       @name = name
-      @host = host
+      @server = server
+      @host = server.uri
       @root = "#{host}/#{name}"
     end
     
@@ -62,13 +63,18 @@ class CouchRest
       end
       if doc['_id']
         slug = CGI.escape(doc['_id'])
-        CouchRest.put "#{@root}/#{slug}", doc
       else
-        CouchRest.post "#{@root}", doc
+        slug = doc['_id'] = @server.next_uuid
       end
+      CouchRest.put "#{@root}/#{slug}", doc
     end
     
     def bulk_save docs
+      ids, noids = docs.partition{|d|d['_id']}
+      uuid_count = [noids.length, @server.uuid_batch_count].max
+      noids.each do |doc|
+        doc['_id'] = @server.next_uuid(uuid_count)
+      end
       CouchRest.post "#{@root}/_bulk_docs", {:docs => docs}
     end
     
@@ -80,7 +86,9 @@ class CouchRest
     def delete!
       CouchRest.delete @root
     end
+
     private
+
     def encode_attachments attachments
       attachments.each do |k,v|
         next if v['stub']
@@ -88,6 +96,7 @@ class CouchRest
       end
       attachments
     end
+
     def base64 data
       Base64.encode64(data).gsub(/\s/,'')
     end

@@ -1,7 +1,8 @@
 class CouchRest
-  attr_accessor :uri
-  def initialize server = 'http://localhost:5984'
+  attr_accessor :uri, :uuid_batch_count
+  def initialize server = 'http://localhost:5984', uuid_batch_count = 1000
     @uri = server
+    @uuid_batch_count = uuid_batch_count
   end
   
   # ensure that a database exists
@@ -29,13 +30,13 @@ class CouchRest
   end
   
   def database name
-    CouchRest::Database.new(@uri, name)
+    CouchRest::Database.new(self, name)
   end
   
   # creates the database if it doesn't exist
   def database! name
     create_db(path) rescue nil
-    CouchRest::Database.new(@uri, name)
+    database name
   end
   
   # get the welcome message
@@ -43,15 +44,23 @@ class CouchRest
     CouchRest.get "#{@uri}/"
   end
 
-  # restart the couchdb instance
-  def restart!
-    CouchRest.post "#{@uri}/_restart"
-  end
-  
   # create a database
   def create_db name
     CouchRest.put "#{@uri}/#{name}"
     database name
+  end
+
+  # restart the couchdb instance
+  def restart!
+    CouchRest.post "#{@uri}/_restart"
+  end
+
+  def next_uuid count = @uuid_batch_count
+    @uuids ||= []
+    if @uuids.empty?
+      @uuids = CouchRest.post("#{@uri}/_uuids?count=#{count}")["uuids"]
+    end
+    @uuids.pop
   end
 
   class << self
