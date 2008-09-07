@@ -40,7 +40,19 @@ describe CouchRest do
     end
   end
 
-  describe "ensuring a db exists" do
+  describe "easy initializing a database adapter" do
+    it "should be possible without an explicit CouchRest instantiation" do
+      db = CouchRest.database "http://localhost:5984/couchrest-test"
+      db.should be_an_instance_of(CouchRest::Database)
+      db.host.should == "http://localhost:5984"
+    end
+    it "should not create the database automatically" do
+      db = CouchRest.database "http://localhost:5984/couchrest-test"
+      lambda{db.info}.should raise_error(RestClient::ResourceNotFound)      
+    end
+  end
+
+  describe "ensuring the db exists" do
     it "should be super easy" do
       db = CouchRest.database! "http://localhost:5984/couchrest-test-2"
       db.info["db_name"].should == 'couchrest-test-2'
