@@ -3,7 +3,8 @@ require "base64"
 
 class CouchRest
   class Database
-    attr_accessor :server, :host, :name
+    attr_reader :server, :host, :name, :root
+     
     def initialize server, name
       @name = name
       @server = server
