@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.files = %w{
     lib/couchrest.rb
     lib/couch_rest.rb lib/database.rb lib/pager.rb lib/file_manager.rb 
-    Rakefile README 
+    Rakefile README.markdown 
     bin/couchdir bin/couchview 
     spec/couchrest_spec.rb spec/database_spec.rb spec/pager_spec.rb  spec/file_manager_spec.rb
     spec/spec_helper.rb
