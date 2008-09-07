@@ -10,10 +10,10 @@ Gem::Specification.new do |s|
   s.authors = ["J. Chris Anderson", "Greg Borenstein"]
   s.files = %w{
     lib/couchrest.rb
-    lib/couch_rest.rb lib/database.rb lib/pager.rb lib/file_manager.rb 
+    lib/couch_rest.rb lib/database.rb lib/pager.rb lib/file_manager.rb lib/streamer.rb
     Rakefile README.markdown 
     bin/couchdir bin/couchview 
-    spec/couchrest_spec.rb spec/database_spec.rb spec/pager_spec.rb  spec/file_manager_spec.rb
+    spec/couchrest_spec.rb spec/database_spec.rb spec/pager_spec.rb  spec/file_manager_spec.rb spec/streamer_spec.rb
     spec/spec_helper.rb
     }
   s.require_path = "lib"
