@@ -6,7 +6,7 @@ CouchRest's lighweight is designed to make a simple base for application and fra
 
 ### Easy Install
 
-`sudo gem install jchris-couchdb -s http://gems.github.com`
+`sudo gem install jchris-couchrest -s http://gems.github.com`
 
 ### Relax, it's RESTful
 
