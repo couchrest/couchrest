@@ -14,6 +14,10 @@ class CouchRest
       @root
     end
     
+    def info
+      CouchRest.get @root
+    end
+    
     def documents params = nil
       url = CouchRest.paramify_url "#{@root}/_all_docs", params
       CouchRest.get url  

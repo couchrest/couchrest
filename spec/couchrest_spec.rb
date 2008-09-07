@@ -40,6 +40,13 @@ describe CouchRest do
     end
   end
 
+  describe "ensuring a db exists" do
+    it "should be super easy" do
+      db = CouchRest.database! "http://localhost:5984/couchrest-test-2"
+      db.info["db_name"].should == 'couchrest-test-2'
+    end
+  end
+
   describe "successfully creating a database" do
     it "should start without a database" do
       @cr.databases.should_not include(TESTDB)

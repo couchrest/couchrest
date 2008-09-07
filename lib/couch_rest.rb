@@ -4,12 +4,29 @@ class CouchRest
     @uri = server
   end
   
+  # ensure that a database exists
+  # creates it if it isn't already there
+  # returns it after it's been created
+  def self.database! url
+    uri = URI.parse url
+    path = uri.path
+    uri.path = ''
+    cr = CouchRest.new(uri.to_s)
+    cr.create_db(path) rescue nil
+    cr.database!(path)
+  end
+  
   # list all databases on the server
   def databases
     CouchRest.get "#{@uri}/_all_dbs"
   end
   
   def database name
+    CouchRest::Database.new(@uri, name)
+  end
+  
+  # creates the database if it doesn't exist
+  def database! name
     CouchRest::Database.new(@uri, name)
   end
   
