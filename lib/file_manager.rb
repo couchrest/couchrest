@@ -151,6 +151,40 @@ class CouchRest
       designs
     end
     
+    def pull_views(view_dir)
+      prefix = "_design"
+      ds = db.documents(:startkey => '#{prefix}/', :endkey => '#{prefix}/ZZZZZZZZZ')
+      ds['rows'].collect{|r|r['id']}.each do |id|
+        puts directory = id.split('/').last
+        FileUtils.mkdir_p(File.join(view_dir,directory))
+        views = db.get(id)['views']
+
+        vgroups = views.keys.group_by{|k|k.sub(/\-(map|reduce)$/,'')}
+        vgroups.each do|g,vs|
+          mapname = vs.find {|v|views[v]["map"]}
+          if mapname
+            # save map
+            mapfunc = views[mapname]["map"]
+            mapfile = File.join(view_dir, directory, "#{g}-map.js") # todo support non-js views
+            File.open(mapfile,'w') do |f|
+              f.write mapfunc
+            end
+          end
+
+          reducename = vs.find {|v|views[v]["reduce"]}
+          if reducename
+            # save reduce
+            reducefunc = views[reducename]["reduce"]
+            reducefile = File.join(view_dir, directory, "#{g}-reduce.js") # todo support non-js views
+            File.open(reducefile,'w') do |f|
+              f.write reducefunc
+            end
+          end
+        end
+      end  
+      
+    end
+    
     
     private
     

@@ -63,7 +63,7 @@ puts "Running #{command} into #{prefix} on #{dbname} from directory #{dirname}."
 
 # __END__
 
-require File.expand_path(File.dirname(__FILE__)) + '/../couchrest'
+require File.expand_path(File.dirname(__FILE__)) + '/../lib/couchrest'
 require 'fileutils'
 
 module Enumerable
@@ -76,91 +76,10 @@ module Enumerable
 end
 
 # connect to couchdb
-cr = CouchRest.new("http://localhost:5984")
-db = cr.database(dbname)
-
-def readfile(file, libs=nil)
-  st = open(file).read
-end
-
-
+cr = CouchRest::FileManager.new(dbname, "http://localhost:5984")
 case command
-when "push" # files to views
-  views = {}
-  viewfiles = Dir.glob(File.join(dirname,"**","*.*")) # todo support non-js views
-  libfiles = viewfiles.select{|f|/lib\.\w+/.match(f)}
-  libs = open(libfiles[0]).read if libfiles[0]
-  all = (viewfiles-libfiles).collect do |file|
-    fileparts = file.split('/')
-    filename = fileparts[0]
-    puts filename
-    controller = fileparts[1]
-    action = fileparts[2].sub(/\.\w+/,'')
-    path = file
-    [controller,action,path]
-  end
-  # puts all.inspect
-# end
-# __END__
-
-  controllers = all.group_by{|f|f[0]}
-  controllers.each do |cntrl,parts|
-    # puts "replace _design/#{design}? (enter to proceed, 'n' to skip)"
-    # rep = $stdin.gets.chomp
-    # next if rep == 'n'
-    actions = {}
-    parts.group_by{|p|p[1]}.each do |action,fs|
-      fs.each do |f|
-        # actions[action] ||= {}
-        actions[action] = readfile(f.last)        
-      end
-    end
-    # save them to the db
-    begin
-      control = db.get("#{prefix}/#{cntrl}") 
-    rescue RestClient::Request::RequestFailed
-      control = nil
-    end
-    if (control && control['actions'] == actions)
-      puts "no change to #{prefix}/#{cntrl}. skipping..."
-    else
-      puts "replacing #{prefix}/#{cntrl}"
-      db.delete(control) rescue nil
-      db.save({
-        "_id" => "#{prefix}/#{cntrl}",
-        :actions => actions
-      })   
-    end
-  end
-  
-when "pull" # views to files
-  ds = db.documents(:startkey => '#{prefix}/', :endkey => '#{prefix}/ZZZZZZZZZ')
-  ds['rows'].collect{|r|r['id']}.each do |id|
-    puts directory = id.split('/').last
-    FileUtils.mkdir_p(File.join("views",directory))
-    views = db.get(id)['views']
-    
-    vgroups = views.keys.group_by{|k|k.sub(/\-(map|reduce)$/,'')}
-    vgroups.each do|g,vs|
-      mapname = vs.find {|v|views[v]["map"]}
-      if mapname
-        # save map
-        mapfunc = views[mapname]["map"]
-        mapfile = File.join(dirname,directory,"#{g}-map.js") # todo support non-js views
-        File.open(mapfile,'w') do |f|
-          f.write mapfunc
-        end
-      end
-      
-      reducename = vs.find {|v|views[v]["reduce"]}
-      if reducename
-        # save reduce
-        reducefunc = views[reducename]["reduce"]
-        reducefile = File.join(dirname,directory,"#{g}-reduce.js") # todo support non-js views
-        File.open(reducefile,'w') do |f|
-          f.write reducefunc
-        end
-      end
-    end
-  end  
+when "pull"
+  cr.pull_views(dirname)
+when "push"
+  cr.push_views(dirname)
 end

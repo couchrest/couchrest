@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
   s.bindir = 'bin'
   s.executables << 'couchview'
   s.executables << 'couchdir'
+  s.executables << 'couchcontrol'
   s.add_dependency("json", [">= 1.1.2"])
   s.add_dependency("rest-client", [">= 0.5"])
 end
