@@ -36,9 +36,6 @@ unless (["push", "generate"].include?(options[:command]) && options[:directory] 
   exit
 end
 
-# DEBUG
-puts options.inspect
-
 # The options hash now contains the resolved defaults 
 # and the overrides from the command line.
 
