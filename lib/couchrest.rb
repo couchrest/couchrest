@@ -29,7 +29,6 @@ module CouchRest
   autoload :Pager,        'couchrest/helper/pager'
   autoload :FileManager,  'couchrest/helper/file_manager'
   autoload :Streamer,     'couchrest/helper/streamer'
-  autoload :Commands,     'couchrest/commands '
   
   # The CouchRest module methods handle the basic JSON serialization 
   # and deserialization, as well as query parameters. The module also includes

@@ -1,8 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require 'rubygems'
-require 'couchrest'
+require File.dirname(__FILE__) + "/../lib/couch_rest/commands"
 
 # Set defaults
 options = {
