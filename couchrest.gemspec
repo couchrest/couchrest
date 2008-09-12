@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.extra_rdoc_files = ["README.rdoc", "LICENSE", "THANKS"]
-  s.date = "Thu Sep 11 00:00:00 -0400 2008"
+  s.date = "Thu Sep 11 00:00:00 -0700 2008"
   s.executables = ["couchview", "couchdir"]
   s.authors = ["J. Chris Anderson"]
   s.required_rubygems_version = ">= 0"
@@ -58,7 +58,7 @@ Gem::Specification.new do |s|
  "utils/remap.rb",
  "utils/subset.rb"]
   s.has_rdoc = "true"
-  s.specification_version = "2"
+  s.specification_version = 2
   s.loaded = "false"
   s.email = "jchris@grabb.it"
   s.name = "couchrest"

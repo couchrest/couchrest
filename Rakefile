@@ -40,10 +40,12 @@ namespace :github do # thanks merb!
           dep, *ver = d.to_s.split(" ")
           result <<  "  s.add_dependency #{dep.inspect}, [#{ /\(([^\,]*)/ . match(ver.join(" "))[1].inspect}]\n"
         end
-      else
+      else        
         case value
         when Array
           value =  name != "files" ? value.inspect : value.inspect.split(",").join(",\n")
+        when Fixnum
+          # leave as-is
         when String
           value = value.to_i if integer_fields.include?(name)
           value = value.inspect
