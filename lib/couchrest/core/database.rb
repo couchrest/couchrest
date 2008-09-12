@@ -1,7 +1,7 @@
 require 'cgi'
 require "base64"
 
-class CouchRest
+module CouchRest
   class Database
     attr_reader :server, :host, :name, :root
      

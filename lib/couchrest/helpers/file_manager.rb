@@ -1,6 +1,6 @@
 require 'digest/md5'
 
-class CouchRest
+module CouchRest
   class FileManager
     attr_reader :db
     attr_accessor :loud

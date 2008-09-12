@@ -1,4 +1,4 @@
-class CouchRest
+module CouchRest
   class Streamer
     attr_accessor :db
     def initialize db
