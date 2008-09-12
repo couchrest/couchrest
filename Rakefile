@@ -19,8 +19,8 @@ spec = Gem::Specification.new do |s|
   s.bindir = 'bin'
   s.executables << 'couchview'
   s.executables << 'couchdir'
-  s.add_dependency("json", [">= 1.1.2"])
-  s.add_dependency("rest-client", [">= 0.5"])
+  s.add_dependency("json", ">= 1.1.2")
+  s.add_dependency("rest-client", ">= 0.5")
 end
 
 namespace :github do # thanks merb!
@@ -36,8 +36,9 @@ namespace :github do # thanks merb!
       next if skip_fields.include?(name) || value.nil? || value == "" || (value.respond_to?(:empty?) && value.empty?)
       if name == "dependencies"
         value.each do |d|
+          puts d.to_s
           dep, *ver = d.to_s.split(" ")
-          result <<  "  s.add_dependency #{dep.inspect}, #{ver.join(" ").inspect.gsub(/[()]/, "")}\n"
+          result <<  "  s.add_dependency #{dep.inspect}, [#{ /\(([^\,]*)/ . match(ver.join(" "))[1].inspect}]\n"
         end
       else
         case value

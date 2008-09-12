@@ -69,7 +69,7 @@ Gem::Specification.new do |s|
   s.platform = "ruby"
   s.summary = "Lean and RESTful interface to CouchDB."
   s.description = "CouchRest provides a simple interface on top of CouchDB's RESTful HTTP API, as well as including some utility scripts for managing views and attachments."
-  s.add_dependency "json", ">= 1.1.2, runtime"
-  s.add_dependency "rest-client", ">= 0.5, runtime"
+  s.add_dependency "json", [">= 1.1.2"]
+  s.add_dependency "rest-client", [">= 0.5"]
   s.require_paths = ["lib"]
 end
