@@ -10,10 +10,11 @@ Gem::Specification.new do |s|
   s.authors = ["J. Chris Anderson", "Greg Borenstein"]
   s.files = %w{
     lib/couchrest.rb
-    lib/couch_rest.rb lib/database.rb lib/pager.rb lib/file_manager.rb lib/streamer.rb
-    lib/couch_rest/commands.rb
-    lib/couch_rest/commands/generate.rb lib/couch_rest/commands/push.rb
-    Rakefile README.markdown 
+    lib/couchrest/commands/generate.rb lib/couchrest/commands/push.rb
+    lib/couchrest/core/database.rb lib/couchrest/core/server.rb
+    lib/couchrest/helper/file_manager.rb lib/couchrest/helper/pager.rb lib/couchrest/helper/streamer.rb
+    lib/couchrest/monkeypatches.rb
+    Rakefile README.rdoc
     bin/couchdir bin/couchview 
     spec/couchrest_spec.rb spec/database_spec.rb spec/pager_spec.rb  spec/file_manager_spec.rb spec/streamer_spec.rb
     spec/spec_helper.rb
