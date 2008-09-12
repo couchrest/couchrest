@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
+require 'couchrest'
+
 %w(generate push).each do |file|
   require File.dirname(__FILE__) + "/../lib/couchrest/commands/#{file}"
 end
