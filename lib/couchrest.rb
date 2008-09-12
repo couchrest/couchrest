@@ -6,8 +6,8 @@ $:.unshift File.expand_path(File.dirname(__FILE__))
 
 
 require 'monkeypatches'
-require 'lib/server'
-require 'lib/database'
+require 'couchrest/server'
+require 'couchrest/database'
 
 
 module CouchRest
