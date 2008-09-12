@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require File.dirname(__FILE__) + "/../lib/couch_rest/commands"
+require File.dirname(__FILE__) + "/../lib/couchrest"
 
 # Set defaults
 options = {
@@ -35,12 +35,6 @@ unless (["push", "generate"].include?(options[:command]) && options[:directory] 
   puts(opts)
   exit
 end
-
-# The options hash now contains the resolved defaults 
-# and the overrides from the command line.
-
-# Call your class and send it the options here
-# cr = CouchRest::FileManager.new(options[:database_name])
 
 case options[:command]
 when "push"
