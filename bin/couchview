@@ -36,12 +36,6 @@ unless (["push", "generate"].include?(options[:command]) && options[:directory] 
   exit
 end
 
-# The options hash now contains the resolved defaults 
-# and the overrides from the command line.
-
-# Call your class and send it the options here
-# cr = CouchRest::FileManager.new(options[:database_name])
-
 case options[:command]
 when "push"
   CouchRest::Commands::Push.run(options)
