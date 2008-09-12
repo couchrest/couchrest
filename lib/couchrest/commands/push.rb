@@ -1,4 +1,4 @@
-class CouchRest
+module CouchRest
 
   module Commands
 

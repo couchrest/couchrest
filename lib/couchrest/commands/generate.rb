@@ -1,6 +1,6 @@
 require 'fileutils'
 
-class CouchRest
+module CouchRest
   module Commands
     module Generate
 
