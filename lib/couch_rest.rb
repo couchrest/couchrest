@@ -35,7 +35,7 @@ class CouchRest
   
   # creates the database if it doesn't exist
   def database! name
-    create_db(path) rescue nil
+    create_db(name) rescue nil
     database name
   end
   
