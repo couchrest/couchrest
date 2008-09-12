@@ -6,25 +6,6 @@ module CouchRest
       @uuid_batch_count = uuid_batch_count
     end
   
-    # ensure that a database exists
-    # creates it if it isn't already there
-    # returns it after it's been created
-    def self.database! url
-      uri = URI.parse url
-      path = uri.path
-      uri.path = ''
-      cr = CouchRest.new(uri.to_s)
-      cr.database!(path)
-    end
-  
-    def self.database url
-      uri = URI.parse url
-      path = uri.path
-      uri.path = ''
-      cr = CouchRest.new(uri.to_s)
-      cr.database(path)
-    end
-  
     # list all databases on the server
     def databases
       CouchRest.get "#{@uri}/_all_dbs"

@@ -17,11 +17,33 @@ module CouchRest
   autoload :Streamer,     'couchrest/helper/streamer'
   
   # The CouchRest module methods handle the basic JSON serialization 
-  # and deserialization, as well as query parameters.
+  # and deserialization, as well as query parameters. The module also includes
+  # some helpers for tasks like instantiating a new Database or Server instance.
   class << self
-    
+
+    # todo, make this parse the url and instantiate a Server or Database instance
+    # depending on the specificity.
     def new(*opts)
       Server.new(*opts)
+    end
+    
+    # ensure that a database exists
+    # creates it if it isn't already there
+    # returns it after it's been created
+    def database! url
+      uri = URI.parse url
+      path = uri.path
+      uri.path = ''
+      cr = CouchRest.new(uri.to_s)
+      cr.database!(path)
+    end
+  
+    def database url
+      uri = URI.parse url
+      path = uri.path
+      uri.path = ''
+      cr = CouchRest.new(uri.to_s)
+      cr.database(path)
     end
     
     def put uri, doc = nil
