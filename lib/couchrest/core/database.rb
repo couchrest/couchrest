@@ -64,17 +64,23 @@ module CouchRest
       end
       if doc['_id']
         slug = CGI.escape(doc['_id'])
+        CouchRest.put "#{@root}/#{slug}", doc
       else
-        slug = doc['_id'] = @server.next_uuid
+        begin
+          slug = doc['_id'] = @server.next_uuid
+          CouchRest.put "#{@root}/#{slug}", doc
+        rescue #old version of couchdb
+          CouchRest.post @root, doc
+        end
       end
-      CouchRest.put "#{@root}/#{slug}", doc
     end
     
     def bulk_save docs
       ids, noids = docs.partition{|d|d['_id']}
       uuid_count = [noids.length, @server.uuid_batch_count].max
       noids.each do |doc|
-        doc['_id'] = @server.next_uuid(uuid_count)
+        nextid = @server.next_uuid(uuid_count) rescue nil
+        doc['_id'] = nextid if nextid
       end
       CouchRest.post "#{@root}/_bulk_docs", {:docs => docs}
     end
