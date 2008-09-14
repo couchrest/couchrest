@@ -41,6 +41,37 @@ module CouchRest
       Server.new(*opts)
     end
     
+    def parse url
+      case url
+      when /^http:\/\/(.*)\/(.*)\/(.*)/
+        host = $1
+        db = $2
+        docid = $3
+      when /^http:\/\/(.*)\/(.*)/
+        host = $1
+        db = $2
+      when /^http:\/\/(.*)/
+        host = $1
+      when /(.*)\/(.*)\/(.*)/
+        host = $1
+        db = $2
+        docid = $3
+      when /(.*)\/(.*)/
+        host = $1
+        db = $2
+      else
+        db = url
+      end
+
+      db = nil if db && db.empty?
+
+      {
+        :host => host || "localhost:5984",
+        :database => db,
+        :doc => docid
+      }
+    end
+
     # ensure that a database exists
     # creates it if it isn't already there
     # returns it after it's been created
