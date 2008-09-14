@@ -90,6 +90,49 @@ describe CouchRest do
       db[:host].should == "localhost:5555"
       db[:doc].should == "my-doc"
     end
+
+    it "should parse a host and db" do
+      db = CouchRest.parse "127.0.0.1/my-db"
+      db[:database].should == "my-db"
+      db[:host].should == "127.0.0.1"
+    end
+    it "should parse a host and db with http" do
+      db = CouchRest.parse "http://127.0.0.1/my-db"
+      db[:database].should == "my-db"
+      db[:host].should == "127.0.0.1"
+    end
+    it "should parse a host with a port and db" do
+      db = CouchRest.parse "127.0.0.1:5555/my-db"
+      db[:database].should == "my-db"
+      db[:host].should == "127.0.0.1:5555"
+    end
+    it "should parse a host with a port and db with http" do
+      db = CouchRest.parse "http://127.0.0.1:5555/my-db"
+      db[:database].should == "my-db"
+      db[:host].should == "127.0.0.1:5555"
+    end
+    it "should parse just a host" do
+      db = CouchRest.parse "http://127.0.0.1:5555/"
+      db[:database].should be_nil
+      db[:host].should == "127.0.0.1:5555"
+    end
+    it "should parse just a host no slash" do
+      db = CouchRest.parse "http://127.0.0.1:5555"
+      db[:host].should == "127.0.0.1:5555"
+      db[:database].should be_nil
+    end
+    it "should get docid" do
+      db = CouchRest.parse "127.0.0.1:5555/my-db/my-doc"
+      db[:database].should == "my-db"
+      db[:host].should == "127.0.0.1:5555"
+      db[:doc].should == "my-doc"
+    end
+    it "should get docid with http" do
+      db = CouchRest.parse "http://127.0.0.1:5555/my-db/my-doc"
+      db[:database].should == "my-db"
+      db[:host].should == "127.0.0.1:5555"
+      db[:doc].should == "my-doc"
+    end
   end
 
   describe "easy initializing a database adapter" do
