@@ -206,7 +206,7 @@ module CouchRest
       existing = @db.get(id) rescue nil
 
       if existing
-        updated = fields.merge({"_id" => id, "_rev" => existing["_rev"]})
+        updated = existing.merge(fields)
         if existing != updated
           say "replacing #{id}"
           db.save(updated)
