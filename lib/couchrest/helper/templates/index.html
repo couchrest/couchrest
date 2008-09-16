@@ -16,7 +16,7 @@
       var dbname = document.location.href.split('/')[3];
       var design = unescape(document.location.href.split('/')[4]).split('/')[1];
       var DB = $.couch.db(dbname);
-      DB.view(design+"/example-map",{success: function(json) {
+      DB.view(design+"/example",{success: function(json) {
         $("#view").html(json.rows.map(function(row) {
           return '<li>'+row.key+'</li>';
         }).join(''));

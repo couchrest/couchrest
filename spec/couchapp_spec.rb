@@ -50,6 +50,20 @@ describe "couchapp" do
       doc['_attachments']['index.html']["content_type"].should == 'text/html'
     end
   end
+
+  describe "push . #{TESTDB}" do
+    before(:all) do
+      @cr = CouchRest.new(COUCHHOST)
+      @db = @cr.database(TESTDB)
+      @db.delete! rescue nil
+      @db = @cr.create_db(TESTDB) rescue nil
+      `#{@run} generate my-app`
+    end
+    it "should create the design document" do
+      `cd #{@fixdir}/my-app && #{@couchapp} push . #{TESTDB}`
+      lambda{@db.get("_design/my-app")}.should_not raise_error
+    end
+  end
   
   describe "push my-app my-design #{TESTDB}" do
     before(:all) do

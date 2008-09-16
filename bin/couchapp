@@ -30,11 +30,14 @@ when /generate/
   
 when /push/
   dirname = ARGV.shift
+  current = Dir.getwd 
+  dir = File.expand_path(File.join(current, dirname))
+  dirapp = File.split(dir).last
   if ARGV.length == 2
     appname = ARGV.shift
     dbstring = ARGV.shift
   elsif ARGV.length == 1
-    appname = dirname
+    appname = dirapp
     dbstring = ARGV.shift    
   else
     puts opts
@@ -43,7 +46,7 @@ when /push/
   end
   dbspec = CouchRest.parse(dbstring)
   fm = CouchRest::FileManager.new(dbspec[:database], dbspec[:host])
-  fm.push_app(dirname, appname)
+  fm.push_app(dir, appname)
 when /pull/
 
 else
