@@ -185,8 +185,67 @@ module CouchRest
       
     end
     
+    def push_app(appdir, appname)
+      libs = []
+      viewdir = File.join(appdir,"views")
+      attachdir = File.join(appdir,"attachments")
+      views, lang = read_design_views(viewdir)
+      docid = "_design/#{appname}"
+      design = @db.get(docid) rescue {}
+      design['_id'] = docid
+      design['views'] = views
+      design['language'] = lang
+      @db.save(design)
+      # puts views.inspect
+    end
+    
+    # Generate an application in the given directory.
+    # This is a class method because it doesn't depend on 
+    # specifying a database.
+    def self.generate_app(app_dir)
+      FileUtils.mkdir_p(app_dir)
+      FileUtils.mkdir_p(File.join(app_dir,"attachments"))      
+      FileUtils.mkdir_p(File.join(app_dir,"views"))
+      
+      index_template = File.join(File.expand_path(File.dirname(__FILE__)), 'templates','index.html')
+      index_dest = File.join(app_dir,"attachments","index.html")
+      FileUtils.cp(index_template, index_dest)
+      
+      map_template = File.join(File.expand_path(File.dirname(__FILE__)), 'templates','example-map.js')
+      map_dest = File.join(app_dir,"views","example-map.js")
+      FileUtils.cp(map_template, map_dest)
+      
+      rereduce_template = File.join(File.expand_path(File.dirname(__FILE__)), 'templates','example-reduce.js')
+      rereduce_dest = File.join(app_dir,"views","example-reduce.js")
+      FileUtils.cp(rereduce_template, rereduce_dest)
+    end
     
     private
+    
+    def read_design_views(viewdir)
+      libs = []
+      language = nil
+      views = {}
+      Dir["#{viewdir}/*.*"].each do |viewfile|
+        view_parts = viewfile.split('/')
+        viewfile_name = view_parts.last
+        # example-map.js
+        viewfile_name_parts = viewfile_name.split('.')
+        viewfile_ext = viewfile_name_parts.last
+        view_name_parts = viewfile_name_parts.first.split('-')
+        func_type = view_name_parts.pop
+        view_name = view_name_parts.join('-')
+        contents = File.open(viewfile).read
+        if /^lib\..*$/.match viewfile_name
+          libs.push(contents)
+        else
+          views[view_name] ||= {}
+          language = LANGS[viewfile_ext]
+          views[view_name][func_type] = contents.sub(/(\/\/|#)include-lib/,libs.join("\n"))
+        end
+      end
+      [views, language]
+    end
     
     def say words
       puts words if @loud
