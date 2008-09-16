@@ -5,7 +5,7 @@ require 'spec/rake/spectask'
 
 spec = Gem::Specification.new do |s|
   s.name = "couchrest"
-  s.version = "0.9.6"
+  s.version = "0.9.7"
   s.date = "2008-09-11"
   s.summary = "Lean and RESTful interface to CouchDB."
   s.email = "jchris@grabb.it"
