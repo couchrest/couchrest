@@ -36,7 +36,6 @@ namespace :github do # thanks merb!
       next if skip_fields.include?(name) || value.nil? || value == "" || (value.respond_to?(:empty?) && value.empty?)
       if name == "dependencies"
         value.each do |d|
-          puts d.to_s
           dep, *ver = d.to_s.split(" ")
           result <<  "  s.add_dependency #{dep.inspect}, [#{ /\(([^\,]*)/ . match(ver.join(" "))[1].inspect}]\n"
         end
