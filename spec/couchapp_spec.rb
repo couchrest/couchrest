@@ -39,6 +39,16 @@ describe "couchapp" do
       `#{@run} push my-app #{TESTDB}`
       lambda{@db.get("_design/my-app")}.should_not raise_error
     end
+    it "should create the views" do
+      `#{@run} push my-app #{TESTDB}`
+      doc = @db.get("_design/my-app")
+      doc['views']['example']['map'].should match(/function/)
+    end
+    it "should create the index" do
+      `#{@run} push my-app #{TESTDB}`
+      doc = @db.get("_design/my-app")
+      doc['_attachments']['index.html']["content_type"].should == 'text/html'
+    end
   end
   
   describe "push my-app my-design #{TESTDB}" do
@@ -50,7 +60,8 @@ describe "couchapp" do
       `#{@run} generate my-app`
     end
     it "should create the design document" do
-      
+      `#{@run} push my-app my-design #{TESTDB}`
+      lambda{@db.get("_design/my-design")}.should_not raise_error
     end
   end
 end

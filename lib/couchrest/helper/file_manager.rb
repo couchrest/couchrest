@@ -47,10 +47,12 @@ module CouchRest
         return
       end
 
+      doc["signatures"] ||= {}
+      doc["_attachments"] ||= {}
       # remove deleted docs
       to_be_removed = doc["signatures"].keys.select do |d| 
         !pushfiles.collect{|p| p.keys.first}.include?(d) 
-      end
+      end 
 
       to_be_removed.each do |p|
         say "deleting #{p}"
@@ -69,7 +71,6 @@ module CouchRest
           doc["_attachments"][path].delete("length")    
           doc["_attachments"][path]["data"] = @attachments[path]["data"]
           doc["_attachments"][path].merge!({"data" => @attachments[path]["data"]} )
-
         end
       end
 
@@ -190,12 +191,14 @@ module CouchRest
       viewdir = File.join(appdir,"views")
       attachdir = File.join(appdir,"attachments")
       views, lang = read_design_views(viewdir)
+      # attachments = read_attachments(attachdir)
       docid = "_design/#{appname}"
       design = @db.get(docid) rescue {}
       design['_id'] = docid
       design['views'] = views
       design['language'] = lang
       @db.save(design)
+      push_directory(attachdir, docid)
       # puts views.inspect
     end
     

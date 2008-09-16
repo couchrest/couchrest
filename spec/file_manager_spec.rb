@@ -67,6 +67,14 @@ describe CouchRest::FileManager, "pushing an app" do
   it "should create a design document" do
     lambda{@db.get("_design/couchapp")}.should_not raise_error
   end
+  it "should create the views" do
+    doc = @db.get("_design/couchapp")
+    doc['views']['example']['map'].should match(/function/)
+  end
+  it "should create the index" do
+    doc = @db.get("_design/couchapp")
+    doc['_attachments']['index.html']["content_type"].should == 'text/html'
+  end
 end
 
 
