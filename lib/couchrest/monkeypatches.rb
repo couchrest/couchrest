@@ -2,17 +2,21 @@
 # this file must be loaded after the JSON gem
 
 class Time
-  # this date format sorts lexicographically
-  # and is compatible with Javascript's new Date(time_string) constructor
-  # note that sorting will break if you store times from multiple timezones
-  # I like to add a ENV['TZ'] = 'UTC' to my apps
+  # This date format sorts lexicographically
+  # and is compatible with Javascript's new Date(time_string) constructor.
+  # Note this this format stores all dates in UTC so that collation 
+  # order is preserved. (There's no longer a need to set ENV['TZ'] = 'UTC' 
+  # in your application.)
 
   def to_json(options = nil)
-    %("#{strftime("%Y/%m/%d %H:%M:%S %z")}")
+    u = self.utc
+    %("#{u.strftime("%Y/%m/%d %H:%M:%S +0000")}")
   end
 
-  # this works to decode the outputted time format
-  # copied from ActiveSupport
+  # Decodes the JSON time format to a UTC time.
+  # Based on Time.parse from ActiveSupport. ActiveSupport's version
+  # is more complete, returning a time in your current timezone, 
+  # rather than keeping the time in UTC. YMMV.
   # def self.parse string, fallback=nil
   #   d = DateTime.parse(string).new_offset
   #   self.utc(d.year, d.month, d.day, d.hour, d.min, d.sec)
