@@ -76,19 +76,15 @@ module CouchRest
     # creates it if it isn't already there
     # returns it after it's been created
     def database! url
-      uri = URI.parse url
-      path = uri.path
-      uri.path = ''
-      cr = CouchRest.new(uri.to_s)
-      cr.database!(path)
+      parsed = parse url
+      cr = CouchRest.new(parsed[:host])
+      cr.database!(parsed[:database])
     end
   
     def database url
-      uri = URI.parse url
-      path = uri.path
-      uri.path = ''
-      cr = CouchRest.new(uri.to_s)
-      cr.database(path)
+      parsed = parse url
+      cr = CouchRest.new(parsed[:host])
+      cr.database(parsed[:database])
     end
     
     def put uri, doc = nil
