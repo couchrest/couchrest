@@ -1,3 +1,7 @@
+require 'rubygems'
+gem 'extlib'
+require 'extlib'
+
 module CouchRest
   module Model
     class << self
@@ -8,8 +12,11 @@ module CouchRest
     module InstanceMethods
       attr_accessor :doc
       
-      def initialize doc = {}
-        self.doc = doc
+      def initialize keys = {}
+        self.doc = {}
+        keys.each do |k,v|
+          doc[k.to_s] = v
+        end
         unless doc['_id'] && doc['_rev']
           init_doc
         end
@@ -27,7 +34,32 @@ module CouchRest
         doc['_rev']
       end
       
+      def new_record?
+        !doc['_rev']
+      end
+      
       def save
+        if new_record?
+          create
+        else
+          update
+        end
+      end
+
+      protected
+      
+      def create
+        set_uniq_id if respond_to?(:set_uniq_id) # hack
+        save_doc
+      end
+      
+      def update
+        save_doc
+      end
+      
+      private
+      
+      def save_doc
         result = database.save doc
         if result['ok']
           doc['_id'] = result['id']
@@ -35,8 +67,6 @@ module CouchRest
         end
         result['ok']
       end
-      
-      private
       
       def init_doc
         doc['type'] = self.class.to_s
@@ -53,19 +83,126 @@ module CouchRest
         @database || CouchRest::Model.default_database
       end
       
-      def uniq_id method
-        before_create do |model|
-          model.doc['_id'] = model.send(method)
+      def get id
+        doc = database.get id
+        new(doc)
+      end
+      
+      def key_accessor *keys
+        key_writer *keys
+        key_reader *keys
+      end
+      
+      def key_writer *keys
+        keys.each do |method|
+          key = method.to_s
+          define_method "#{method}=" do |value|
+            doc[key] = value
+          end
         end
       end
+      
+      def key_reader *keys
+        keys.each do |method|
+          key = method.to_s
+          define_method method do
+            doc[key]
+          end
+        end
+      end
+      
+      def timestamps!
+        before(:create) do
+          doc['updated_at'] = doc['created_at'] = Time.now
+        end                  
+        before(:update) do   
+          doc['updated_at'] = Time.now
+        end
+      end
+      
+      def uniq_id method
+        define_method :set_uniq_id do
+          doc['_id'] ||= self.send(method)
+        end
+      end
+      
     end # module ClassMethods
+
+    module MagicViews
+      def view_by *keys
+        type = self.to_s
+        doc_keys = keys.collect{|k|"doc['#{k}']"}
+        key_protection = doc_keys.join(' && ')
+        key_emit = doc_keys.length == 1 ? "#{doc_keys.first}" : "[#{doc_keys.join(', ')}]"
+        map_function = <<-JAVASCRIPT
+        function(doc) {
+          if (doc.type == '#{type}' && #{key_protection}) {
+            emit(#{key_emit}, null);
+          }
+        }
+        JAVASCRIPT
+
+        method_name = "by_#{keys.join('_and_')}"
+        
+        @@design_doc ||= default_design_doc
+        @@design_doc['views'][method_name] = {
+          'map' => map_function
+        }
+        @@design_doc_fresh = false
+        self.meta_class.instance_eval do
+          define_method method_name do
+            unless @@design_doc_fresh
+              refresh_design_doc
+            end
+            @@design_doc
+          end
+        end
+      end
+      
+      private
+      
+      def design_doc_id
+        "_design/#{self.to_s}"
+      end
+      
+      def default_design_doc
+        {
+          "_id" => design_doc_id,
+          "language" => "javascript",
+          "views" => {}
+        }
+      end
+      
+      
+      def refresh_design_doc
+        saved = database.get(design_doc_id) rescue nil
+        if saved
+          # merge the new views in and save if it needs to be saved
+        else
+          database.save(@@design_doc)
+        end
+        @@design_doc_fresh = true
+      end
+      
+    end # module MagicViews
+    
+    module Callbacks
+      def self.included(model)
+        model.class_eval <<-EOS, __FILE__, __LINE__
+          include Extlib::Hook
+          register_instance_hooks :save #, :create, :update, :destroy
+        EOS
+      end
+    end # module Callbacks
     
     # bookkeeping section
     
     # load the code into the model class
-    def self.included(klass)
-      klass.extend ClassMethods
-      klass.send(:include, InstanceMethods)
+    def self.included(model)
+      model.send(:include, InstanceMethods)
+      model.extend ClassMethods
+      model.extend MagicViews
+      model.send(:include, Callbacks)
     end
     
     
