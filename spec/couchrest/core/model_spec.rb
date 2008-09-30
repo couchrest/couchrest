@@ -236,7 +236,13 @@ describe CouchRest::Model do
     end
     it "should sort correctly" do
       articles = Article.by_user_id_and_date
-      # articles.should == 'x'
+      articles.collect{|a|a.doc['user_id']}.should == ['aaron', 'aaron', 'quentin', 'quentin']
+      articles[1].title.should == 'not junk'
+    end
+    it "should be queryable with couchrest options" do
+      articles = Article.by_user_id_and_date :count => 1, :startkey => 'quentin'
+      articles.length.should == 1
+      articles[0].title.should == "even more interesting"
     end
   end
 end

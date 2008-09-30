@@ -148,18 +148,18 @@ module CouchRest
         @@design_doc_fresh = false
         
         self.meta_class.instance_eval do
-          define_method method_name do |args|
-            args ||= {}
+          define_method method_name do |*args|
+            opts = args[0] || {}
             unless @@design_doc_fresh
               refresh_design_doc
             end
-            raw = args.delete(:raw)
+            raw = opts.delete(:raw)
             view_name = "#{type}/#{method_name}"
 
             if raw
-              fetch_view(view_name)
+              fetch_view(view_name, opts)
             else
-              view = fetch_view(view_name)
+              view = fetch_view(view_name, opts)
               # TODO this can be optimized once the include-docs patch is applied
               view['rows'].collect{|r|new(database.get(r['id']))}
             end
@@ -169,10 +169,10 @@ module CouchRest
       
       private
       
-      def fetch_view view_name
+      def fetch_view view_name, opts
         retryable = true
         begin
-          database.view(view_name)
+          database.view(view_name, opts)
         # the design doc could have been deleted by a rouge process
         rescue RestClient::ResourceNotFound => e
           if retryable
