@@ -1,6 +1,7 @@
 module CouchRest
   module Model
     class << self
+      # this is the CouchRest::Database that model classes will use unless they override it with <tt>use_database</tt>
       attr_accessor :default_database
     end
     
@@ -18,22 +19,27 @@ module CouchRest
         end
       end
       
+      # returns the database used by this model's class
       def database
         self.class.database
       end
       
+      # alias for doc['_id']
       def id
         doc['_id']
       end
-      
+
+      # alias for doc['_rev']      
       def rev
         doc['_rev']
       end
       
+      # returns true if the doc has never been saved
       def new_record?
         !doc['_rev']
       end
       
+      # save the doc to the db using create or update
       def save
         if new_record?
           create
@@ -71,24 +77,29 @@ module CouchRest
     
     # these show up as class methods on models that include CouchRest::Model
     module ClassMethods
+      # override the CouchRest::Model-wide default_database
       def use_database db
         @database = db
       end
       
+      # returns the CouchRest::Database instance that this class uses
       def database
         @database || CouchRest::Model.default_database
       end
       
+      # load a document from the database
       def get id
         doc = database.get id
         new(doc)
       end
       
+      # Defines methods for reading and writing from fields in the document. Uses key_writer and key_reader internally.
       def key_accessor *keys
         key_writer *keys
         key_reader *keys
       end
       
+      # For each argument key, define a method <tt>key=</tt> that sets the corresponding field on the CouchDB document.
       def key_writer *keys
         keys.each do |method|
           key = method.to_s
@@ -97,7 +108,8 @@ module CouchRest
           end
         end
       end
-      
+
+      # For each argument key, define a method <tt>key</tt> that reads the corresponding field on the CouchDB document.      
       def key_reader *keys
         keys.each do |method|
           key = method.to_s
@@ -107,6 +119,7 @@ module CouchRest
         end
       end
       
+      # Automatically set <tt>updated_at</tt> and <tt>created_at</tt> fields on the document whenever saving occurs. CouchRest uses a pretty decent time format by default. See Time#to_json
       def timestamps!
         before(:create) do
           doc['updated_at'] = doc['created_at'] = Time.now
@@ -116,6 +129,7 @@ module CouchRest
         end
       end
       
+      # Name a method that will be called before the document is first saved, which returns a string to be used for the document's <tt>_id</tt>. Because CouchDB enforces a constraint that each id must be unique, this can be used to enforce eg: uniq usernames. Note that this id must be globally unique across all document types which share a database, so if you'd like to scope uniqueness to this class, you should use the class name as part of the unique id.
       def unique_id method
         define_method :set_unique_id do
           doc['_id'] ||= self.send(method)
@@ -125,6 +139,23 @@ module CouchRest
     end # module ClassMethods
 
     module MagicViews
+      
+      # Define a CouchDB view. The name of the view will be the concatenation of <tt>by</tt> and the keys joined by <tt>_and_</tt>
+      # 
+      # ==== Example: basic view
+      #   class Post
+      #     view_by :date
+      #   end
+      # 
+      # This will create a view defined by this Javascript function:
+      # 
+      #   function(doc) {
+      #     if (doc.type == 'Post' && doc.date) {
+      #       emit(doc.date, null);
+      #     }
+      #   }
+      # 
+      # It can be queried by calling <tt>Post.by_date</tt> which accepts all valid options for CouchRest::Database#view
       def view_by *keys
         opts = keys.pop if keys.last.is_a?(Hash)
         opts ||= {}

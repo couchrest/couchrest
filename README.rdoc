@@ -48,4 +48,9 @@ Creating and Querying Views:
       })
     puts @db.view('first/test')['rows'].inspect 
 
+== CouchRest::Model
 
+CouchRest::Model is a module designed along the lines of DataMapper::Resource. By 
+including it in your class, suddenly you get all sorts of magic sugar, so that
+working with CouchDB in your Rails or Merb app is no harder than working with the
+standard SQL alternatives. See the CouchRest::Model documentation for and example article class that illustrates usage.
