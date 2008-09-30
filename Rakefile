@@ -5,7 +5,7 @@ require 'spec/rake/spectask'
 
 spec = Gem::Specification.new do |s|
   s.name = "couchrest"
-  s.version = "0.9.8"
+  s.version = "0.9.9"
   s.date = "2008-09-11"
   s.summary = "Lean and RESTful interface to CouchDB."
   s.email = "jchris@grabb.it"
@@ -25,40 +25,38 @@ spec = Gem::Specification.new do |s|
   s.add_dependency("extlib", ">= 0.9.6")
 end
 
-namespace :github do # thanks merb!
-  desc "Update Github Gemspec"
-  task :update_gemspec do
-    skip_fields = %w(new_platform original_platform)
-    integer_fields = %w(specification_version)
+desc "Update Github Gemspec"
+task :gemspec do
+  skip_fields = %w(new_platform original_platform)
+  integer_fields = %w(specification_version)
 
-    result = "Gem::Specification.new do |s|\n"
-    spec.instance_variables.each do |ivar|
-      value = spec.instance_variable_get(ivar)
-      name  = ivar.split("@").last
-      next if skip_fields.include?(name) || value.nil? || value == "" || (value.respond_to?(:empty?) && value.empty?)
-      if name == "dependencies"
-        value.each do |d|
-          dep, *ver = d.to_s.split(" ")
-          result <<  "  s.add_dependency #{dep.inspect}, [#{ /\(([^\,]*)/ . match(ver.join(" "))[1].inspect}]\n"
-        end
-      else        
-        case value
-        when Array
-          value =  name != "files" ? value.inspect : value.inspect.split(",").join(",\n")
-        when Fixnum
-          # leave as-is
-        when String
-          value = value.to_i if integer_fields.include?(name)
-          value = value.inspect
-        else
-          value = value.to_s.inspect
-        end
-        result << "  s.#{name} = #{value}\n"
+  result = "Gem::Specification.new do |s|\n"
+  spec.instance_variables.each do |ivar|
+    value = spec.instance_variable_get(ivar)
+    name  = ivar.split("@").last
+    next if skip_fields.include?(name) || value.nil? || value == "" || (value.respond_to?(:empty?) && value.empty?)
+    if name == "dependencies"
+      value.each do |d|
+        dep, *ver = d.to_s.split(" ")
+        result <<  "  s.add_dependency #{dep.inspect}, [#{ /\(([^\,]*)/ . match(ver.join(" "))[1].inspect}]\n"
       end
+    else        
+      case value
+      when Array
+        value =  name != "files" ? value.inspect : value.inspect.split(",").join(",\n")
+      when Fixnum
+        # leave as-is
+      when String
+        value = value.to_i if integer_fields.include?(name)
+        value = value.inspect
+      else
+        value = value.to_s.inspect
+      end
+      result << "  s.#{name} = #{value}\n"
     end
-    result << "end"
-    File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w"){|f| f << result}
   end
+  result << "end"
+  File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w"){|f| f << result}
 end
 
 desc "Run all specs"
