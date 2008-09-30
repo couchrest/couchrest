@@ -1,4 +1,7 @@
+# = CouchRest::Model - ORM, the CouchDB way
 module CouchRest
+  # = CouchRest::Model - ORM, the CouchDB way
+  # 
   # CouchRest::Model provides an ORM-like interface for CouchDB documents. It avoids all usage of <tt>method_missing</tt>, and tries to strike a balance between usability and magic. See CouchRest::Model::MagicViews#view_by for documentation about the view-generation system. For the other class methods, inspiried by DataMapper and ActiveRecord, see CouchRest::Model::ClassMethods. The InstanceMethods are pretty basic.
   # 
   # ==== Example
@@ -222,6 +225,8 @@ module CouchRest
       # CouchRest::Database#view options can be applied at view definition time as defaults, and they will be curried and used at view query time. Or they can be overridden at query time.
       # 
       # Custom views can be queried with <tt>:reduce => true</tt> to return reduce results. The default for custom views is to query with <tt>:reduce => false</tt>.
+      # 
+      # Views are generated (on a per-model basis) lazily on first-access. This means that if you are deploying changes to a view, the views for that model won't be available until generation is complete. This can take some time with large databases. Strategies are in the works.
       # 
       # To understand the capabilities of this view system more compeletly, it is recommended that you read the RSpec file at <tt>spec/core/model.rb</tt>.
       def view_by *keys
