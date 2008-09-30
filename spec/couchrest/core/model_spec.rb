@@ -22,6 +22,7 @@ class Article
   key_writer :date
   
   view_by :date
+  view_by :user_id, :date
 end
 
 describe CouchRest::Model do
@@ -189,7 +190,8 @@ describe CouchRest::Model do
   describe "a model with simple views" do
     before(:all) do
       written_at = Time.now - 24 * 3600 * 7
-      ["this and that", "also interesting", "more fun", "some junk"].each do |title|
+      @titles = ["this and that", "also interesting", "more fun", "some junk"]
+      @titles.each do |title|
         a = Article.new(:title => title)
         a.date = written_at
         a.save
@@ -198,17 +200,43 @@ describe CouchRest::Model do
     end
     
     it "should create the design doc" do
-      Article.by_date
+      Article.by_date rescue nil
       doc = Article.database.get("_design/Article")
       doc['views']['by_date'].should_not be_nil
     end
     
-    it "should return the matching view result" do
+    it "should return the matching raw view result" do
       view = Article.by_date :raw => true
-      # view.should == 'x'
-      # view['rows'].should == 4
+      view['rows'].length.should == 4
     end
     
-    
+    it "should return the matching object" do
+      articles = Article.by_date
+      articles.collect{|a|a.title}.should == @titles
+    end
+  end
+  
+  describe "a model with a compound key view" do
+    before(:all) do
+      written_at = Time.now - 24 * 3600 * 7
+      @titles = ["uniq one", "even more interesting", "less fun", "not junk"]
+      @user_ids = ["quentin", "aaron"]
+      @titles.each_with_index do |title,i|
+        u = i % 2
+        a = Article.new(:title => title, :user_id => @user_ids[u])
+        a.date = written_at
+        a.save
+        written_at += 24 * 3600
+      end
+    end
+    it "should create the design doc" do
+      Article.by_user_id_and_date rescue nil
+      doc = Article.database.get("_design/Article")
+      doc['views']['by_date'].should_not be_nil
+    end
+    it "should sort correctly" do
+      articles = Article.by_user_id_and_date
+      # articles.should == 'x'
+    end
   end
 end

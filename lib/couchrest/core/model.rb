@@ -1,7 +1,3 @@
-require 'rubygems'
-gem 'extlib'
-require 'extlib'
-
 module CouchRest
   module Model
     class << self
@@ -148,18 +144,46 @@ module CouchRest
         @@design_doc['views'][method_name] = {
           'map' => map_function
         }
+
         @@design_doc_fresh = false
+        
         self.meta_class.instance_eval do
-          define_method method_name do
+          define_method method_name do |args|
+            args ||= {}
             unless @@design_doc_fresh
               refresh_design_doc
             end
-            @@design_doc
+            raw = args.delete(:raw)
+            view_name = "#{type}/#{method_name}"
+
+            if raw
+              fetch_view(view_name)
+            else
+              view = fetch_view(view_name)
+              # TODO this can be optimized once the include-docs patch is applied
+              view['rows'].collect{|r|new(database.get(r['id']))}
+            end
           end
         end
       end
       
       private
+      
+      def fetch_view view_name
+        retryable = true
+        begin
+          database.view(view_name)
+        # the design doc could have been deleted by a rouge process
+        rescue RestClient::ResourceNotFound => e
+          if retryable
+            refresh_design_doc
+            retryable = false
+            retry
+          else
+            raise e
+          end
+        end
+      end
       
       def design_doc_id
         "_design/#{self.to_s}"
@@ -173,11 +197,13 @@ module CouchRest
         }
       end
       
-      
       def refresh_design_doc
         saved = database.get(design_doc_id) rescue nil
         if saved
-          # merge the new views in and save if it needs to be saved
+          @@design_doc['views'].each do |name, view|
+            saved['views'][name] = view
+          end
+          database.save(saved)
         else
           database.save(@@design_doc)
         end
@@ -190,7 +216,7 @@ module CouchRest
       def self.included(model)
         model.class_eval <<-EOS, __FILE__, __LINE__
           include Extlib::Hook
-          register_instance_hooks :save #, :create, :update, :destroy
+          register_instance_hooks :save, :create, :update #, :destroy
         EOS
       end
     end # module Callbacks
