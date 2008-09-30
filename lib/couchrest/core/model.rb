@@ -127,15 +127,19 @@ module CouchRest
     module MagicViews
       def view_by *keys
         opts = keys.pop if keys.last.is_a?(Hash)
+        opts ||= {}
         type = self.to_s
 
         method_name = "by_#{keys.join('_and_')}"
         @@design_doc ||= default_design_doc
         
-        if opts && opts[:map]
+        if opts[:map]
           view = {}
-          view['map'] = opts[:map]
-          view['reduce'] = opts[:reduce] if opts[:reduce]
+          view['map'] = opts.delete(:map)
+          if opts[:reduce]
+            view['reduce'] = opts.delete(:reduce)
+            opts[:reduce] = false
+          end
           @@design_doc['views'][method_name] = view
         else
           doc_keys = keys.collect{|k|"doc['#{k}']"}
@@ -157,17 +161,18 @@ module CouchRest
         
         self.meta_class.instance_eval do
           define_method method_name do |*args|
-            opts = args[0] || {}
+            query = opts.merge(args[0] || {})
+            query[:raw] = true if query[:reduce]
             unless @@design_doc_fresh
               refresh_design_doc
             end
-            raw = opts.delete(:raw)
+            raw = query.delete(:raw)
             view_name = "#{type}/#{method_name}"
 
+            view = fetch_view(view_name, query)
             if raw
-              fetch_view(view_name, opts)
+              view
             else
-              view = fetch_view(view_name, opts)
               # TODO this can be optimized once the include-docs patch is applied
               view['rows'].collect{|r|new(database.get(r['id']))}
             end
@@ -238,7 +243,6 @@ module CouchRest
       model.extend MagicViews
       model.send(:include, Callbacks)
     end
-    
     
   end # module Model
 end # module CouchRest

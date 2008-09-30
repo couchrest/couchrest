@@ -9,7 +9,7 @@ class Article
   use_database CouchRest.database!('http://localhost:5984/couchrest-model-test')
   unique_id :slug
   
-  view_by :date
+  view_by :date, :descending => true
   view_by :user_id, :date
   
   view_by :tags,
@@ -28,7 +28,7 @@ class Article
 
   key_writer :date
   key_reader :slug, :created_at, :updated_at
-  key_accessor :title
+  key_accessor :title, :tags
 
   timestamps!
   
@@ -200,7 +200,7 @@ describe CouchRest::Model do
     end
   end
 
-  describe "a model with simple views" do
+  describe "a model with simple views and a default param" do
     before(:all) do
       written_at = Time.now - 24 * 3600 * 7
       @titles = ["this and that", "also interesting", "more fun", "some junk"]
@@ -223,8 +223,13 @@ describe CouchRest::Model do
       view['rows'].length.should == 4
     end
     
-    it "should return the matching object" do
+    it "should return the matching objects (with descending)" do
       articles = Article.by_date
+      articles.collect{|a|a.title}.should == @titles.reverse
+    end
+    
+    it "should allow you to override default args" do
+      articles = Article.by_date :descending => false
       articles.collect{|a|a.title}.should == @titles
     end
   end
@@ -267,12 +272,21 @@ describe CouchRest::Model do
         u = i % 2
         a = Article.new(:title => title, :tags => [@tags[u]])
         a.save
-        puts a.inspect
       end
     end
     it "should be available raw" do
-      view = Article.by_tags :raw => true, :group => true
-      view.should == 'x'
+      view = Article.by_tags :raw => true
+      view['rows'].length.should == 5
+    end
+
+    it "should be default to :reduce => false" do
+      ars = Article.by_tags
+      ars.first.tags.first.should == 'cool'
+    end
+    
+    it "should be raw when reduce is true" do
+      view = Article.by_tags :reduce => true, :group => true
+      view['rows'].find{|r|r['key'] == 'cool'}['value'].should == 3
     end
   end
 end
