@@ -5,6 +5,12 @@ module CouchRest
   class Database
     attr_reader :server, :host, :name, :root
      
+    # Create a CouchRest::Database adapter for the supplied CouchRest::Server and database name.
+    # 
+    # ==== Parameters
+    # server<CouchRest::Server>:: database host
+    # name<String>:: database name
+    #
     def initialize server, name
       @name = name
       @server = server
@@ -12,6 +18,7 @@ module CouchRest
       @root = "#{host}/#{name}"
     end
     
+    # returns the database's uri
     def to_s
       @root
     end

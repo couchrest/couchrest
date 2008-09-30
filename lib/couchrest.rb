@@ -24,6 +24,7 @@ $:.unshift File.dirname(__FILE__) unless
   
 require 'couchrest/monkeypatches'
 
+# = CouchDB, close to the metal
 module CouchRest
   autoload :Server,       'couchrest/core/server'
   autoload :Database,     'couchrest/core/database'

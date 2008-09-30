@@ -114,7 +114,7 @@ module CouchRest
       end
     end # module InstanceMethods
     
-    # these show up as class methods on models that include CouchRest::Model
+    # Class methods for models that include CouchRest::Model
     module ClassMethods
       # override the CouchRest::Model-wide default_database
       def use_database db

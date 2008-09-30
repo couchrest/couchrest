@@ -6,37 +6,39 @@ module CouchRest
       @uuid_batch_count = uuid_batch_count
     end
   
-    # list all databases on the server
+    # List all databases on the server
     def databases
       CouchRest.get "#{@uri}/_all_dbs"
     end
   
+    # Returns a CouchRest::Database for the given name
     def database name
       CouchRest::Database.new(self, name)
     end
   
-    # creates the database if it doesn't exist
+    # Creates the database if it doesn't exist
     def database! name
       create_db(name) rescue nil
       database name
     end
   
-    # get the welcome message
+    # GET the welcome message
     def info
       CouchRest.get "#{@uri}/"
     end
 
-    # create a database
+    # Create a database
     def create_db name
       CouchRest.put "#{@uri}/#{name}"
       database name
     end
 
-    # restart the couchdb instance
+    # Restart the CouchDB instance
     def restart!
       CouchRest.post "#{@uri}/_restart"
     end
 
+    # Retrive an unused UUID from CouchDB. Server instances manage caching a list of unused UUIDs.
     def next_uuid count = @uuid_batch_count
       @uuids ||= []
       if @uuids.empty?
