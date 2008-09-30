@@ -67,7 +67,7 @@ end
 
 desc "Print specdocs"
 Spec::Rake::SpecTask.new(:doc) do |t|
-	t.spec_opts = ["--format", "specdoc", "--dry-run"]
+	t.spec_opts = ["--format", "specdoc"]
 	t.spec_files = FileList['spec/*_spec.rb']
 end
 
@@ -80,8 +80,4 @@ Rake::RDocTask.new do |rdoc|
 end
 
 desc "Generate the gemspec"
-
-
-
-
 task :default => :spec
