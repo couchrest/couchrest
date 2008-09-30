@@ -155,7 +155,7 @@ module CouchRest
       #     }
       #   }
       # 
-      # It can be queried by calling <tt>Post.by_date</tt> which accepts all valid options for CouchRest::Database#view
+      # It can be queried by calling <tt>Post.by_date</tt> which accepts all valid options for CouchRest::Database#view. In addition, calling with the <tt>:raw => true</tt> option will return the view rows themselves. By default <tt>Post.by_date</tt> will return the documents included in the generated view.
       def view_by *keys
         opts = keys.pop if keys.last.is_a?(Hash)
         opts ||= {}
