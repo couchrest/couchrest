@@ -1,4 +1,43 @@
 module CouchRest
+  # CouchRest::Model provides an ORM-like interface for CouchDB documents. It avoids all usage of <tt>method_missing</tt>, and tries to strike a balance between usability and magic. See CouchRest::Model::MagicViews#view_by for documentation about the view-generation system. For the other class methods, inspiried by DataMapper and ActiveRecord, see CouchRest::Model::ClassMethods. The InstanceMethods are pretty basic.
+  # 
+  # ==== Example
+  # 
+  # This is an example class using CouchRest::Model. It is taken from the spec/couchrest/core/model_spec.rb file, which may be even more up to date than this example.
+  # 
+  #   class Article
+  #     include CouchRest::Model
+  #     use_database CouchRest.database!('http://localhost:5984/couchrest-model-test')
+  #     unique_id :slug
+  #
+  #     view_by :date, :descending => true
+  #     view_by :user_id, :date
+  #
+  #     view_by :tags,
+  #       :map => 
+  #         "function(doc) {
+  #           if (doc.type == 'Article' && doc.tags) {
+  #             doc.tags.forEach(function(tag){
+  #               emit(tag, 1);
+  #             });
+  #           }
+  #         }",
+  #       :reduce => 
+  #         "function(keys, values, rereduce) {
+  #           return sum(values);
+  #         }"  
+  #
+  #     key_writer :date
+  #     key_reader :slug, :created_at, :updated_at
+  #     key_accessor :title, :tags
+  #
+  #     timestamps!
+  #
+  #     before(:create, :generate_slug_from_title)  
+  #     def generate_slug_from_title
+  #       doc['slug'] = title.downcase.gsub(/[^a-z0-9]/,'-').squeeze('-').gsub(/^\-|\-$/,'')
+  #     end
+  #   end
   module Model
     class << self
       # this is the CouchRest::Database that model classes will use unless they override it with <tt>use_database</tt>
@@ -142,12 +181,35 @@ module CouchRest
       
       # Define a CouchDB view. The name of the view will be the concatenation of <tt>by</tt> and the keys joined by <tt>_and_</tt>
       # 
-      # ==== Example: basic view
+      # ==== Example views:
+      # 
       #   class Post
-      #     view_by :date
+      #     # view with default options
+      #     # query with Post.by_date
+      #     view_by :date, :descending => true
+      # 
+      #     # view with compound sort-keys
+      #     # query with Post.by_user_id_and_date
+      #     view_by :user_id, :date
+      # 
+      #     # view with custom map/reduce functions
+      #     # query with Post.by_tags :reduce => true
+      #     view_by :tags,                                                
+      #       :map =>                                                     
+      #         "function(doc) {                                          
+      #           if (doc.type == 'Post' && doc.tags) {                   
+      #             doc.tags.forEach(function(tag){                       
+      #               emit(doc.tag, 1);                                   
+      #             });                                                   
+      #           }                                                       
+      #         }",                                                       
+      #       :reduce =>                                                  
+      #         "function(keys, values, rereduce) {                       
+      #           return sum(values);                                     
+      #         }"                                                        
       #   end
       # 
-      # This will create a view defined by this Javascript function:
+      # <tt>view_by :date</tt> will create a view defined by this Javascript function:
       # 
       #   function(doc) {
       #     if (doc.type == 'Post' && doc.date) {
@@ -156,6 +218,12 @@ module CouchRest
       #   }
       # 
       # It can be queried by calling <tt>Post.by_date</tt> which accepts all valid options for CouchRest::Database#view. In addition, calling with the <tt>:raw => true</tt> option will return the view rows themselves. By default <tt>Post.by_date</tt> will return the documents included in the generated view.
+      # 
+      # CouchRest::Database#view options can be applied at view definition time as defaults, and they will be curried and used at view query time. Or they can be overridden at query time.
+      # 
+      # Custom views can be queried with <tt>:reduce => true</tt> to return reduce results. The default for custom views is to query with <tt>:reduce => false</tt>.
+      # 
+      # To understand the capabilities of this view system more compeletly, it is recommended that you read the RSpec file at <tt>spec/core/model.rb</tt>.
       def view_by *keys
         opts = keys.pop if keys.last.is_a?(Hash)
         opts ||= {}
