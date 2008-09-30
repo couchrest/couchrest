@@ -45,7 +45,7 @@ module CouchRest
       protected
       
       def create
-        set_uniq_id if respond_to?(:set_uniq_id) # hack
+        set_unique_id if respond_to?(:set_unique_id) # hack
         save_doc
       end
       
@@ -116,8 +116,8 @@ module CouchRest
         end
       end
       
-      def uniq_id method
-        define_method :set_uniq_id do
+      def unique_id method
+        define_method :set_unique_id do
           doc['_id'] ||= self.send(method)
         end
       end
@@ -126,25 +126,33 @@ module CouchRest
 
     module MagicViews
       def view_by *keys
+        opts = keys.pop if keys.last.is_a?(Hash)
         type = self.to_s
-        doc_keys = keys.collect{|k|"doc['#{k}']"}
-        key_protection = doc_keys.join(' && ')
-        key_emit = doc_keys.length == 1 ? "#{doc_keys.first}" : "[#{doc_keys.join(', ')}]"
-        map_function = <<-JAVASCRIPT
-        function(doc) {
-          if (doc.type == '#{type}' && #{key_protection}) {
-            emit(#{key_emit}, null);
-          }
-        }
-        JAVASCRIPT
 
         method_name = "by_#{keys.join('_and_')}"
-        
         @@design_doc ||= default_design_doc
-        @@design_doc['views'][method_name] = {
-          'map' => map_function
-        }
-
+        
+        if opts && opts[:map]
+          view = {}
+          view['map'] = opts[:map]
+          view['reduce'] = opts[:reduce] if opts[:reduce]
+          @@design_doc['views'][method_name] = view
+        else
+          doc_keys = keys.collect{|k|"doc['#{k}']"}
+          key_protection = doc_keys.join(' && ')
+          key_emit = doc_keys.length == 1 ? "#{doc_keys.first}" : "[#{doc_keys.join(', ')}]"
+          map_function = <<-JAVASCRIPT
+          function(doc) {
+            if (doc.type == '#{type}' && #{key_protection}) {
+              emit(#{key_emit}, null);
+            }
+          }
+          JAVASCRIPT
+          @@design_doc['views'][method_name] = {
+            'map' => map_function
+          }
+        end
+        
         @@design_doc_fresh = false
         
         self.meta_class.instance_eval do

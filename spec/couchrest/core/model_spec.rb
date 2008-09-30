@@ -7,22 +7,35 @@ end
 class Article
   include CouchRest::Model
   use_database CouchRest.database!('http://localhost:5984/couchrest-model-test')
-  uniq_id :slug
-  
-  key_accessor :title
-  key_reader :slug, :created_at, :updated_at
-  before(:create, :generate_slug_from_title)
-
-  timestamps!
-  
-  def generate_slug_from_title
-    doc['slug'] = title.downcase.gsub(/[^a-z0-9]/,'-').squeeze('-').gsub(/^\-|\-$/,'')
-  end
-
-  key_writer :date
+  unique_id :slug
   
   view_by :date
   view_by :user_id, :date
+  
+  view_by :tags,
+    :map => 
+      "function(doc) {
+        if (doc.type == 'Article' && doc.tags) {
+          doc.tags.forEach(function(tag){
+            emit(tag, 1);
+          });
+        }
+      }",
+    :reduce => 
+      "function(keys, values, rereduce) {
+        return sum(values);
+      }"  
+
+  key_writer :date
+  key_reader :slug, :created_at, :updated_at
+  key_accessor :title
+
+  timestamps!
+  
+  before(:create, :generate_slug_from_title)  
+  def generate_slug_from_title
+    doc['slug'] = title.downcase.gsub(/[^a-z0-9]/,'-').squeeze('-').gsub(/^\-|\-$/,'')
+  end
 end
 
 describe CouchRest::Model do
@@ -130,7 +143,7 @@ describe CouchRest::Model do
     end
   end
 
-  describe "saving a model with a uniq_id configured" do
+  describe "saving a model with a unique_id configured" do
     before(:each) do
       @art = Article.new
       @old = Article.database.get('this-is-the-title') rescue nil
@@ -243,6 +256,23 @@ describe CouchRest::Model do
       articles = Article.by_user_id_and_date :count => 1, :startkey => 'quentin'
       articles.length.should == 1
       articles[0].title.should == "even more interesting"
+    end
+  end
+  
+  describe "with a custom view" do
+    before(:all) do
+      @titles = ["very uniq one", "even less interesting", "some fun", "really junk", "crazy bob"]
+      @tags = ["cool", "lame"]
+      @titles.each_with_index do |title,i|
+        u = i % 2
+        a = Article.new(:title => title, :tags => [@tags[u]])
+        a.save
+        puts a.inspect
+      end
+    end
+    it "should be available raw" do
+      view = Article.by_tags :raw => true, :group => true
+      view.should == 'x'
     end
   end
 end
