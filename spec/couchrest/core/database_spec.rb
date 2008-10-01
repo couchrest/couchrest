@@ -205,6 +205,22 @@ describe CouchRest::Database do
     
   end
 
+  describe "PUT attachment from file" do
+    before(:each) do
+      filename = File.dirname(__FILE__) + '/../../fixtures/attachments/couchdb.png'
+      @file = File.open(filename)
+    end
+    after(:each) do
+      @file.close
+    end
+    it "should save the attachment to a new doc" do
+      r = @db.put_attachment({'_id' => 'attach-this'}, 'couchdb.png', image = @file.read, {:content_type => 'image/png'})
+      r['ok'].should == true
+      attachment = @db.fetch_attachment("attach-this","couchdb.png")
+      attachment.should == image
+    end
+  end
+
   describe "PUT document with attachment" do
     before(:each) do
       @attach = "<html><head><title>My Doc</title></head><body><p>Has words.</p></body></html>"

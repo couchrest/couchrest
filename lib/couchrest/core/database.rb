@@ -59,7 +59,18 @@ module CouchRest
       RestClient.get "#{@root}/#{doc}/#{name}"
     end
     
-    
+    # PUT an attachment directly to CouchDB
+    def put_attachment doc, name, file, options = {}
+      docid = CGI.escape(doc['_id'])
+      name = CGI.escape(name)
+      uri = if doc['_rev']
+        "#{@root}/#{docid}/#{name}?rev=#{doc['_rev']}"
+      else
+        "#{@root}/#{docid}/#{name}"
+      end
+        
+      JSON.parse(RestClient.put(uri, file, options))
+    end
     
     # Save a document to CouchDB. This will use the <tt>_id</tt> field from the document as the id for PUT, or request a new UUID from CouchDB, if no <tt>_id</tt> is present on the document. IDs are attached to documents on the client side because POST has the curious property of being automatically retried by proxies in the event of network segmentation and lost responses.
     def save doc
