@@ -2,7 +2,7 @@
 module CouchRest
   # = CouchRest::Model - ORM, the CouchDB way
   # 
-  # CouchRest::Model provides an ORM-like interface for CouchDB documents. It avoids all usage of <tt>method_missing</tt>, and tries to strike a balance between usability and magic. See CouchRest::Model::MagicViews#view_by for documentation about the view-generation system. For the other class methods, inspiried by DataMapper and ActiveRecord, see CouchRest::Model::ClassMethods. The InstanceMethods are pretty basic.
+  # CouchRest::Model provides an ORM-like interface for CouchDB documents. It avoids all usage of <tt>method_missing</tt>, and tries to strike a balance between usability and magic. See CouchRest::Model#view_by for documentation about the view-generation system.
   # 
   # ==== Example
   # 
