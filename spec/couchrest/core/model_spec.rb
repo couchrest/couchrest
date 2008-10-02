@@ -14,6 +14,15 @@ class WithTemplate < CouchRest::Model
   key_accessor :preset
 end
 
+class Question < CouchRest::Model
+  key_accessor :q, :a
+end
+
+class Course < CouchRest::Model
+  key_accessor :title
+  cast :questions, :as => [Question]
+end
+
 class Article < CouchRest::Model
   use_database CouchRest.database!('http://localhost:5984/couchrest-model-test')
   unique_id :slug
@@ -24,7 +33,7 @@ class Article < CouchRest::Model
   view_by :tags,
     :map => 
       "function(doc) {
-        if (doc.type == 'Article' && doc.tags) {
+        if (doc['couchrest-type'] == 'Article' && doc.tags) {
           doc.tags.forEach(function(tag){
             emit(tag, 1);
           });
@@ -135,6 +144,37 @@ describe CouchRest::Model do
     end
   end
 
+  describe "getting a model with a subobjects array" do
+    before(:all) do
+      course_doc = {
+        "title" => "Metaphysics 200",
+        "questions" => [
+          {
+            "q" => "Carve the ___ of reality at the ___.",
+            "a" => ["beast","joints"]
+          },{
+            "q" => "Who layed the smack down on Leibniz's Law?",
+            "a" => "Willard Van Orman Quine"
+          }
+        ]
+      }
+      r = Course.database.save course_doc
+      @course = Course.get r['id']
+    end
+    it "should load the course" do
+      @course.title.should == "Metaphysics 200"
+    end
+    it "should instantiate them as such" do
+      @course["questions"][0].a[0].should == "beast"
+    end
+  end
+
+  describe "getting a model with a subobject field" do
+    it "should instantiate it as such" do
+      
+    end
+  end
+
   describe "saving a model" do
     before(:all) do
       @obj = Basic.new
@@ -158,7 +198,7 @@ describe CouchRest::Model do
     end
     
     it "should set the type" do
-      @obj['type'].should == 'Basic'
+      @obj['couchrest-type'].should == 'Basic'
     end
   end
 

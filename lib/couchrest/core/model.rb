@@ -23,7 +23,7 @@ module CouchRest
   #     view_by :tags,
   #       :map => 
   #         "function(doc) {
-  #           if (doc.type == 'Article' && doc.tags) {
+  #           if (doc['couchrest-type'] == 'Article' && doc.tags) {
   #             doc.tags.forEach(function(tag){
   #               emit(tag, 1);
   #             });
@@ -50,16 +50,12 @@ module CouchRest
     # instantiates the hash by converting all the keys to strings.
     def initialize keys = {}
       super()
-      if self.class.default
-        self.class.default.each do |k,v|
-          self[k.to_s] = v
-        end
-      end
+      apply_defaults
       keys.each do |k,v|
         self[k.to_s] = v
       end
       unless self['_id'] && self['_rev']
-        init_doc
+        self['couchrest-type'] = self.class.to_s
       end
     end
 
@@ -86,7 +82,8 @@ module CouchRest
       end
 
       def cast field, opts = {}
-        
+        @casts ||= {}
+        @casts[field.to_s] = opts
       end
 
       # Defines methods for reading and writing from fields in the document.
@@ -178,7 +175,7 @@ module CouchRest
       #     view_by :tags,                                                
       #       :map =>                                                     
       #         "function(doc) {                                          
-      #           if (doc.type == 'Post' && doc.tags) {                   
+      #           if (doc['couchrest-type'] == 'Post' && doc.tags) {                   
       #             doc.tags.forEach(function(tag){                       
       #               emit(doc.tag, 1);                                   
       #             });                                                   
@@ -194,7 +191,7 @@ module CouchRest
       # function:
       #  
       #   function(doc) {
-      #     if (doc.type == 'Post' && doc.date) {
+      #     if (doc['couchrest-type'] == 'Post' && doc.date) {
       #       emit(doc.date, null);
       #     }
       #   }
@@ -243,7 +240,7 @@ module CouchRest
           key_emit = doc_keys.length == 1 ? "#{doc_keys.first}" : "[#{doc_keys.join(', ')}]"
           map_function = <<-JAVASCRIPT
           function(doc) {
-            if (doc.type == '#{type}' && #{key_protection}) {
+            if (doc['couchrest-type'] == '#{type}' && #{key_protection}) {
               emit(#{key_emit}, null);
             }
           }
@@ -391,8 +388,12 @@ module CouchRest
       result['ok']
     end
 
-    def init_doc
-      self['type'] = self.class.to_s
+    def apply_defaults
+      if self.class.default
+        self.class.default.each do |k,v|
+          self[k.to_s] = v
+        end
+      end
     end
 
     include ::Extlib::Hook
