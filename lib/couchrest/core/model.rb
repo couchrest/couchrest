@@ -294,6 +294,15 @@ module CouchRest
       end
     end
 
+    def destroy
+      result = database.delete self
+      if result['ok']
+        self['_rev'] = nil
+        self['_id'] = nil
+      end
+      result['ok']
+    end
+
     protected
     
     def create
@@ -321,7 +330,7 @@ module CouchRest
     end
     
     include ::Extlib::Hook
-    register_instance_hooks :save, :create, :update #, :destroy
+    register_instance_hooks :save, :create, :update, :destroy
     
   end # class Model
 end # module CouchRest

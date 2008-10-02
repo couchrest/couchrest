@@ -289,4 +289,25 @@ describe CouchRest::Model do
       view['rows'].find{|r|r['key'] == 'cool'}['value'].should == 3
     end
   end
+
+  describe "destroying an instance" do
+    before(:each) do
+      @obj = Basic.new
+      @obj.save.should == true
+    end
+    it "should return true" do
+      result = @obj.destroy
+      result.should == true
+    end
+    it "should be resavable" do
+      @obj.destroy
+      @obj.rev.should be_nil
+      @obj.id.should be_nil
+      @obj.save.should == true
+    end
+    it "should make it go away" do
+      @obj.destroy
+      lambda{Basic.get(@obj.id)}.should raise_error
+    end
+  end
 end
