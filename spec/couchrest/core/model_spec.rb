@@ -1,11 +1,10 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-class Basic
-  include CouchRest::Model
+class Basic < CouchRest::Model
+
 end
 
-class Article
-  include CouchRest::Model
+class Article < CouchRest::Model
   use_database CouchRest.database!('http://localhost:5984/couchrest-model-test')
   unique_id :slug
   
@@ -34,7 +33,7 @@ class Article
   
   before(:create, :generate_slug_from_title)  
   def generate_slug_from_title
-    doc['slug'] = title.downcase.gsub(/[^a-z0-9]/,'-').squeeze('-').gsub(/^\-|\-$/,'')
+    self['slug'] = title.downcase.gsub(/[^a-z0-9]/,'-').squeeze('-').gsub(/^\-|\-$/,'')
   end
 end
 
@@ -61,6 +60,7 @@ describe CouchRest::Model do
   describe "a new model" do
     it "should be a new_record" do
       @obj = Basic.new
+      @obj.rev.should be_nil
       @obj.should be_a_new_record
     end
   end
@@ -68,13 +68,13 @@ describe CouchRest::Model do
   describe "a model with key_accessors" do
     it "should allow reading keys" do
       @art = Article.new
-      @art.doc['title'] = 'My Article Title'
+      @art['title'] = 'My Article Title'
       @art.title.should == 'My Article Title'
     end
     it "should allow setting keys" do
       @art = Article.new
       @art.title = 'My Article Title'
-      @art.doc['title'].should == 'My Article Title'
+      @art['title'].should == 'My Article Title'
     end
   end
   
@@ -83,7 +83,7 @@ describe CouchRest::Model do
       @art = Article.new
       t = Time.now
       @art.date = t
-      @art.doc['date'].should == t
+      @art['date'].should == t
     end
     it "should not allow reading keys" do
       @art = Article.new
@@ -96,7 +96,7 @@ describe CouchRest::Model do
   describe "a model with key_readers" do
     it "should allow reading keys" do
       @art = Article.new
-      @art.doc['slug'] = 'my-slug'
+      @art['slug'] = 'my-slug'
       @art.slug.should == 'my-slug'
     end
     it "should not allow setting keys" do
@@ -129,7 +129,7 @@ describe CouchRest::Model do
     
     it "should be set for resaving" do
       rev = @obj.rev
-      @obj.doc['another-key'] = "some value"
+      @obj['another-key'] = "some value"
       @obj.save
       @obj.rev.should_not == rev
     end
@@ -139,7 +139,7 @@ describe CouchRest::Model do
     end
     
     it "should set the type" do
-      @obj.doc['type'].should == 'Basic'
+      @obj['type'].should == 'Basic'
     end
   end
 
@@ -254,7 +254,7 @@ describe CouchRest::Model do
     end
     it "should sort correctly" do
       articles = Article.by_user_id_and_date
-      articles.collect{|a|a.doc['user_id']}.should == ['aaron', 'aaron', 'quentin', 'quentin']
+      articles.collect{|a|a['user_id']}.should == ['aaron', 'aaron', 'quentin', 'quentin']
       articles[1].title.should == 'not junk'
     end
     it "should be queryable with couchrest options" do
