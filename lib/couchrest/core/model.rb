@@ -1,13 +1,18 @@
 # = CouchRest::Model - ORM, the CouchDB way
 module CouchRest
   # = CouchRest::Model - ORM, the CouchDB way
-  # 
-  # CouchRest::Model provides an ORM-like interface for CouchDB documents. It avoids all usage of <tt>method_missing</tt>, and tries to strike a balance between usability and magic. See CouchRest::Model#view_by for documentation about the view-generation system.
-  # 
+  #  
+  # CouchRest::Model provides an ORM-like interface for CouchDB documents. It
+  # avoids all usage of <tt>method_missing</tt>, and tries to strike a balance
+  # between usability and magic. See CouchRest::Model#view_by for
+  # documentation about the view-generation system.
+  #  
   # ==== Example
-  # 
-  # This is an example class using CouchRest::Model. It is taken from the spec/couchrest/core/model_spec.rb file, which may be even more up to date than this example.
-  # 
+  #  
+  # This is an example class using CouchRest::Model. It is taken from the
+  # spec/couchrest/core/model_spec.rb file, which may be even more up to date
+  # than this example.
+  #  
   #   class Article < CouchRest::Model
   #     use_database CouchRest.database!('http://localhost:5984/couchrest-model-test')
   #     unique_id :slug
@@ -54,7 +59,8 @@ module CouchRest
     end
   
     class << self
-      # this is the CouchRest::Database that model classes will use unless they override it with <tt>use_database</tt>
+      # this is the CouchRest::Database that model classes will use unless
+      # they override it with <tt>use_database</tt>
       attr_accessor :default_database
       
       # override the CouchRest::Model-wide default_database
@@ -73,13 +79,15 @@ module CouchRest
          new(doc)
        end
 
-       # Defines methods for reading and writing from fields in the document. Uses key_writer and key_reader internally.
+       # Defines methods for reading and writing from fields in the document.
+       # Uses key_writer and key_reader internally.
        def key_accessor *keys
          key_writer *keys
          key_reader *keys
        end
 
-       # For each argument key, define a method <tt>key=</tt> that sets the corresponding field on the CouchDB document.
+       # For each argument key, define a method <tt>key=</tt> that sets the
+       # corresponding field on the CouchDB document.
        def key_writer *keys
          keys.each do |method|
            key = method.to_s
@@ -89,7 +97,8 @@ module CouchRest
          end
        end
 
-       # For each argument key, define a method <tt>key</tt> that reads the corresponding field on the CouchDB document.      
+       # For each argument key, define a method <tt>key</tt> that reads the
+       # corresponding field on the CouchDB document.      
        def key_reader *keys
          keys.each do |method|
            key = method.to_s
@@ -99,7 +108,9 @@ module CouchRest
          end
        end
 
-       # Automatically set <tt>updated_at</tt> and <tt>created_at</tt> fields on the document whenever saving occurs. CouchRest uses a pretty decent time format by default. See Time#to_json
+       # Automatically set <tt>updated_at</tt> and <tt>created_at</tt> fields
+       # on the document whenever saving occurs. CouchRest uses a pretty
+       # decent time format by default. See Time#to_json
        def timestamps!
          before(:create) do
            self['updated_at'] = self['created_at'] = Time.now
@@ -109,26 +120,33 @@ module CouchRest
          end
        end
 
-       # Name a method that will be called before the document is first saved, which returns a string to be used for the document's <tt>_id</tt>. Because CouchDB enforces a constraint that each id must be unique, this can be used to enforce eg: uniq usernames. Note that this id must be globally unique across all document types which share a database, so if you'd like to scope uniqueness to this class, you should use the class name as part of the unique id.
+       # Name a method that will be called before the document is first saved,
+       # which returns a string to be used for the document's <tt>_id</tt>.
+       # Because CouchDB enforces a constraint that each id must be unique,
+       # this can be used to enforce eg: uniq usernames. Note that this id
+       # must be globally unique across all document types which share a
+       # database, so if you'd like to scope uniqueness to this class, you
+       # should use the class name as part of the unique id.
        def unique_id method
          define_method :set_unique_id do
            self['_id'] ||= self.send(method)
          end
        end
        
-       # Define a CouchDB view. The name of the view will be the concatenation of <tt>by</tt> and the keys joined by <tt>_and_</tt>
-       # 
+       # Define a CouchDB view. The name of the view will be the concatenation
+       # of <tt>by</tt> and the keys joined by <tt>_and_</tt>
+       #  
        # ==== Example views:
-       # 
+       #  
        #   class Post
        #     # view with default options
        #     # query with Post.by_date
        #     view_by :date, :descending => true
-       # 
+       #  
        #     # view with compound sort-keys
        #     # query with Post.by_user_id_and_date
        #     view_by :user_id, :date
-       # 
+       #  
        #     # view with custom map/reduce functions
        #     # query with Post.by_tags :reduce => true
        #     view_by :tags,                                                
@@ -145,24 +163,38 @@ module CouchRest
        #           return sum(values);                                     
        #         }"                                                        
        #   end
-       # 
-       # <tt>view_by :date</tt> will create a view defined by this Javascript function:
-       # 
+       #  
+       # <tt>view_by :date</tt> will create a view defined by this Javascript
+       # function:
+       #  
        #   function(doc) {
        #     if (doc.type == 'Post' && doc.date) {
        #       emit(doc.date, null);
        #     }
        #   }
-       # 
-       # It can be queried by calling <tt>Post.by_date</tt> which accepts all valid options for CouchRest::Database#view. In addition, calling with the <tt>:raw => true</tt> option will return the view rows themselves. By default <tt>Post.by_date</tt> will return the documents included in the generated view.
-       # 
-       # CouchRest::Database#view options can be applied at view definition time as defaults, and they will be curried and used at view query time. Or they can be overridden at query time.
-       # 
-       # Custom views can be queried with <tt>:reduce => true</tt> to return reduce results. The default for custom views is to query with <tt>:reduce => false</tt>.
-       # 
-       # Views are generated (on a per-model basis) lazily on first-access. This means that if you are deploying changes to a view, the views for that model won't be available until generation is complete. This can take some time with large databases. Strategies are in the works.
-       # 
-       # To understand the capabilities of this view system more compeletly, it is recommended that you read the RSpec file at <tt>spec/core/model.rb</tt>.
+       #  
+       # It can be queried by calling <tt>Post.by_date</tt> which accepts all
+       # valid options for CouchRest::Database#view. In addition, calling with
+       # the <tt>:raw => true</tt> option will return the view rows
+       # themselves. By default <tt>Post.by_date</tt> will return the
+       # documents included in the generated view.
+       #  
+       # CouchRest::Database#view options can be applied at view definition
+       # time as defaults, and they will be curried and used at view query
+       # time. Or they can be overridden at query time.
+       #  
+       # Custom views can be queried with <tt>:reduce => true</tt> to return
+       # reduce results. The default for custom views is to query with
+       # <tt>:reduce => false</tt>.
+       #  
+       # Views are generated (on a per-model basis) lazily on first-access.
+       # This means that if you are deploying changes to a view, the views for
+       # that model won't be available until generation is complete. This can
+       # take some time with large databases. Strategies are in the works.
+       #  
+       # To understand the capabilities of this view system more compeletly,
+       # it is recommended that you read the RSpec file at
+       # <tt>spec/core/model.rb</tt>.
        def view_by *keys
          opts = keys.pop if keys.last.is_a?(Hash)
          opts ||= {}
@@ -280,12 +312,14 @@ module CouchRest
       self['_rev']
     end
     
-    # returns true if the self has never been saved
+    # returns true if the document has never been saved
     def new_record?
       !rev
     end
     
-    # save the doc to the db using create or update
+    # Saves the document to the db using create or update. Also runs the :save
+    # callbacks. Sets the <tt>_id</tt> and <tt>_rev</tt> fields based on
+    # CouchDB's response.
     def save
       if new_record?
         create
@@ -294,6 +328,9 @@ module CouchRest
       end
     end
 
+    # Deletes the document from the database. Runs the :delete callbacks.
+    # Removes the <tt>_id</tt> and <tt>_rev</tt> fields, preparing the
+    # document to be saved to a new <tt>_id</tt>.
     def destroy
       result = database.delete self
       if result['ok']
@@ -305,11 +342,14 @@ module CouchRest
 
     protected
     
+    # Saves a document for the first time, after running the before(:create)
+    # callbacks, and applying the unique_id.
     def create
       set_unique_id if respond_to?(:set_unique_id) # hack
       save_doc
     end
     
+    # Saves the document and runs the :update callbacks.
     def update
       save_doc
     end
