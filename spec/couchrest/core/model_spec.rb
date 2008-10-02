@@ -1,7 +1,17 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 class Basic < CouchRest::Model
+end
 
+class WithTemplate < CouchRest::Model
+  unique_id do |model|
+    model['important-field']
+  end
+  set_default({
+    :preset => 'value',
+    'more-template' => [1,2,3]
+  })
+  key_accessor :preset
 end
 
 class Article < CouchRest::Model
@@ -105,6 +115,15 @@ describe CouchRest::Model do
     end
   end
   
+  describe "a model with template values" do
+    before(:all) do
+      @tmpl = WithTemplate.new
+    end
+    it "should have fields set when new" do
+      @tmpl.preset.should == 'value'
+    end
+  end
+  
   describe "getting a model" do
     before(:all) do
       @art = Article.new(:title => 'All About Getting')
@@ -181,6 +200,48 @@ describe CouchRest::Model do
       @art.title = 'This is the title'
       @art.save.should == true
       @art.id.should == 'this-is-the-title'
+    end
+  end
+
+  describe "saving a model with a unique_id lambda" do
+    before(:each) do
+      @templated = WithTemplate.new
+      @old = WithTemplate.get('very-important') rescue nil
+      @old.destroy if @old
+    end
+    
+    it "should require the field" do
+      lambda{@templated.save}.should raise_error
+      @templated['important-field'] = 'very-important'
+      @templated.save.should == true
+    end
+    
+    it "should save with the id" do
+      @templated['important-field'] = 'very-important'
+      @templated.save.should == true
+      t = WithTemplate.get('very-important')
+      t.should == @templated
+    end
+    
+    it "should not change the id on update" do
+      @templated['important-field'] = 'very-important'
+      @templated.save.should == true
+      @templated['important-field'] = 'not-important'
+      @templated.save.should == true
+      t = WithTemplate.get('very-important')
+      t.should == @templated
+    end
+    
+    it "should raise an error when the id is taken" do
+      @templated['important-field'] = 'very-important'
+      @templated.save.should == true
+      lambda{WithTemplate.new('important-field' => 'very-important').save}.should raise_error
+    end
+    
+    it "should set the id" do
+      @templated['important-field'] = 'very-important'
+      @templated.save.should == true
+      @templated.id.should == 'very-important'
     end
   end
 

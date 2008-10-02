@@ -50,6 +50,11 @@ module CouchRest
     # instantiates the hash by converting all the keys to strings.
     def initialize keys = {}
       super()
+      if self.class.default
+        self.class.default.each do |k,v|
+          self[k.to_s] = v
+        end
+      end
       keys.each do |k,v|
         self[k.to_s] = v
       end
@@ -62,6 +67,7 @@ module CouchRest
       # this is the CouchRest::Database that model classes will use unless
       # they override it with <tt>use_database</tt>
       attr_accessor :default_database
+      attr_accessor :template
       
       # override the CouchRest::Model-wide default_database
        def use_database db
@@ -107,6 +113,14 @@ module CouchRest
            end
          end
        end
+       
+       def default
+         @default
+       end
+       
+       def set_default hash
+         @default = hash
+       end
 
        # Automatically set <tt>updated_at</tt> and <tt>created_at</tt> fields
        # on the document whenever saving occurs. CouchRest uses a pretty
@@ -127,9 +141,17 @@ module CouchRest
        # must be globally unique across all document types which share a
        # database, so if you'd like to scope uniqueness to this class, you
        # should use the class name as part of the unique id.
-       def unique_id method
-         define_method :set_unique_id do
-           self['_id'] ||= self.send(method)
+       def unique_id method = nil, &block
+         if method
+           define_method :set_unique_id do
+             self['_id'] ||= self.send(method)
+           end
+         elsif block
+           define_method :set_unique_id do
+             uniqid = block.call(self)
+             raise ArgumentError, "unique_id block must not return nil" if uniqid.nil?
+             self['_id'] ||= uniqid
+           end
          end
        end
        
