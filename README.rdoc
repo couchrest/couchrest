@@ -1,8 +1,13 @@
 == CouchRest - CouchDB, close to the metal
 
-CouchRest is based on [CouchDB's couch.js test library](http://svn.apache.org/repos/asf/incubator/couchdb/trunk/share/www/script/couch.js), which I find to be concise, clear, and well designed. CouchRest lightly wraps CouchDB's HTTP API, managing JSON serialization, and remembering the URI-paths to CouchDB's API endpoints so you don't have to.
+CouchRest is based on [CouchDB's couch.js test
+library](http://svn.apache.org/repos/asf/incubator/couchdb/trunk/share/www/script/couch.js),
+which I find to be concise, clear, and well designed. CouchRest lightly wraps
+CouchDB's HTTP API, managing JSON serialization, and remembering the URI-paths
+to CouchDB's API endpoints so you don't have to.
 
-CouchRest's lighweight is designed to make a simple base for application and framework-specific object oriented APIs.
+CouchRest's lighweight is designed to make a simple base for application and
+framework-specific object oriented APIs.
 
 === Easy Install
 
@@ -10,11 +15,16 @@ CouchRest's lighweight is designed to make a simple base for application and fra
 
 === Relax, it's RESTful
 
-The core of Couchrest is Heroku’s excellent REST Client Ruby HTTP wrapper. REST Client takes all the nastyness of Net::HTTP and gives is a pretty face, while still giving you more control than Open-URI. I recommend it anytime you’re interfacing with a well-defined web service. 
+The core of Couchrest is Heroku’s excellent REST Client Ruby HTTP wrapper.
+REST Client takes all the nastyness of Net::HTTP and gives is a pretty face,
+while still giving you more control than Open-URI. I recommend it anytime
+you’re interfacing with a well-defined web service.
 
 === Running the Specs
 
-The most complete documentation is the spec/ directory. To validate your CouchRest install, from the project root directory run `rake`, or `autotest` (requires RSpec and optionally ZenTest for autotest support). 
+The most complete documentation is the spec/ directory. To validate your
+CouchRest install, from the project root directory run `rake`, or `autotest`
+(requires RSpec and optionally ZenTest for autotest support).
 
 === Examples
 
