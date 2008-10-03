@@ -86,12 +86,15 @@ module CouchRest
         self.class_database || CouchRest::Model.default_database
       end
 
-      # load a document from the database
+      # Load a document from the database by id
       def get id
         doc = database.get id
         new(doc)
       end
 
+      # Load all documents that have the "couchrest-type" field equal to the
+      # name of the current class. Take thes the standard set of
+      # CouchRest::Database#view options.
       def all opts = {}
         self.generated_design_doc ||= default_design_doc
         unless design_doc_fresh
