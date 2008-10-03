@@ -5,18 +5,18 @@ require 'digest/md5'
 # = CouchRest::Model - ORM, the CouchDB way
 module CouchRest
   # = CouchRest::Model - ORM, the CouchDB way
-  #  
+  #    
   # CouchRest::Model provides an ORM-like interface for CouchDB documents. It
   # avoids all usage of <tt>method_missing</tt>, and tries to strike a balance
   # between usability and magic. See CouchRest::Model#view_by for
   # documentation about the view-generation system.
-  #  
+  #    
   # ==== Example
-  #  
+  #    
   # This is an example class using CouchRest::Model. It is taken from the
   # spec/couchrest/core/model_spec.rb file, which may be even more up to date
   # than this example.
-  #  
+  #    
   #   class Article < CouchRest::Model
   #     use_database CouchRest.database!('http://localhost:5984/couchrest-model-test')
   #     unique_id :slug
@@ -49,6 +49,25 @@ module CouchRest
   #       self['slug'] = title.downcase.gsub(/[^a-z0-9]/,'-').squeeze('-').gsub(/^\-|\-$/,'')
   #     end
   #   end
+  #   
+  # ==== Examples of finding articles with these views: 
+  #   
+  # * All the articles by Barney published in the last 24 hours. Note that we
+  #   use <tt>{}</tt> as a special value that sorts after all strings,
+  #   numbers, and arrays.
+  #   
+  #     Article.by_user_id_and_date :startkey => ["barney", Time.now - 24 * 3600], :endkey => ["barney", {}]
+  #    
+  # * The most recent 20 articles. Remember that the <tt>view_by :date</tt>
+  #   has the default option <tt>:descending => true</tt>.
+  #  
+  #     Article.by_date :count => 20
+  #  
+  # * The raw CouchDB view reduce result for the custom <tt>:tags</tt> view.
+  #   In this case we'll get a count of the number of articles tagged "ruby".
+  #  
+  #     Article.by_tags :key => "ruby", :reduce => true
+  #  
   class Model < Hash
 
     # instantiates the hash by converting all the keys to strings.
