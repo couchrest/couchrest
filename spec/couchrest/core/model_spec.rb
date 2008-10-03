@@ -29,6 +29,7 @@ class Course < CouchRest::Model
   key_accessor :title
   cast :questions, :as => [Question]
   cast :professor, :as => Person
+  view_by :title
 end
 
 class Article < CouchRest::Model
@@ -174,6 +175,25 @@ describe CouchRest::Model do
     end
     it "should instantiate them as such" do
       @course["questions"][0].a[0].should == "beast"
+    end
+  end
+
+  describe "finding all instances of a model" do
+    before(:all) do
+      WithTemplate.new('important-field' => '1').save
+      WithTemplate.new('important-field' => '2').save
+      WithTemplate.new('important-field' => '3').save
+      WithTemplate.new('important-field' => '4').save
+    end
+    it "should make the design doc" do
+      WithTemplate.all
+      puts d = WithTemplate.design_doc.to_json
+      d.should == 'xs'
+    end
+    it "should find all" do
+      rs = WithTemplate.all :raw => true
+      rs.should == 'x'
+      rs.length.should == 4
     end
   end
 
@@ -353,6 +373,23 @@ describe CouchRest::Model do
     it "should allow you to override default args" do
       articles = Article.by_date :descending => false
       articles.collect{|a|a.title}.should == @titles
+    end
+  end
+  
+  describe "another model with a simple view" do
+    before(:all) do
+      Course.database.delete! rescue nil
+      @db = @cr.create_db(TESTDB) rescue nil
+      Course.new(:title => 'aaa').save
+      Course.new(:title => 'bbb').save
+    end
+    it "should make the design doc" do
+      doc = Course.design_doc
+      doc['views']['all']['map'].should include('Course')
+    end
+    it "should get them" do
+      rs = Course.by_title 
+      rs.length.should == 2
     end
   end
   

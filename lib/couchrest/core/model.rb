@@ -1,3 +1,5 @@
+require 'rubygems'
+require 'extlib'
 require 'digest/md5'
 
 # = CouchRest::Model - ORM, the CouchDB way
@@ -62,20 +64,26 @@ module CouchRest
       end
     end
 
-    class << self
-      # this is the CouchRest::Database that model classes will use unless
-      # they override it with <tt>use_database</tt>
-      attr_accessor :default_database
-      attr_accessor :template
+    # this is the CouchRest::Database that model classes will use unless
+    # they override it with <tt>use_database</tt>
+    cattr_accessor :default_database
 
+    class_inheritable_accessor :casts
+    class_inheritable_accessor :default_obj
+    class_inheritable_accessor :class_database
+    class_inheritable_accessor :generated_design_doc
+    class_inheritable_accessor :design_doc_slug_cache
+    class_inheritable_accessor :design_doc_fresh
+
+    class << self
       # override the CouchRest::Model-wide default_database
       def use_database db
-        @database = db
+        self.class_database = db
       end
 
       # returns the CouchRest::Database instance that this class uses
       def database
-        @database || CouchRest::Model.default_database
+        self.class_database || CouchRest::Model.default_database
       end
 
       # load a document from the database
@@ -84,18 +92,21 @@ module CouchRest
         new(doc)
       end
 
+      def all opts = {}
+        view_name = "#{design_doc_slug}/all"
+        raw = opts.delete(:raw)
+        view = fetch_view(view_name, opts)
+        process_view_results view, raw
+      end
+      
       # Cast a field as another class. The class must be happy to have the
       # field's primitive type as the argument to it's constucture. Classes
       # which inherit from CouchRest::Model are happy to act as sub-objects
       # for any fields that are stored in JSON as object (and therefore are
       # parsed from the JSON as Ruby Hashes).
       def cast field, opts = {}
-        @casts ||= {}
-        @casts[field.to_s] = opts
-      end
-
-      def casts
-        @casts
+        self.casts ||= {}
+        self.casts[field.to_s] = opts
       end
 
       # Defines methods for reading and writing from fields in the document.
@@ -128,11 +139,11 @@ module CouchRest
       end
 
       def default
-        @default
+        self.default_obj
       end
-
+      
       def set_default hash
-        @default = hash
+        self.default_obj = hash
       end
 
       # Automatically set <tt>updated_at</tt> and <tt>created_at</tt> fields
@@ -236,7 +247,7 @@ module CouchRest
         type = self.to_s
 
         method_name = "by_#{keys.join('_and_')}"
-        @@design_doc ||= default_design_doc
+        self.generated_design_doc ||= default_design_doc
 
         if opts[:map]
           view = {}
@@ -245,7 +256,7 @@ module CouchRest
             view['reduce'] = opts.delete(:reduce)
             opts[:reduce] = false
           end
-          @@design_doc['views'][method_name] = view
+          generated_design_doc['views'][method_name] = view
         else
           doc_keys = keys.collect{|k|"doc['#{k}']"}
           key_protection = doc_keys.join(' && ')
@@ -257,30 +268,24 @@ module CouchRest
             }
           }
           JAVASCRIPT
-          @@design_doc['views'][method_name] = {
+          generated_design_doc['views'][method_name] = {
             'map' => map_function
           }
         end
 
-        @@design_doc_fresh = false
+        self.design_doc_fresh = false
 
         self.meta_class.instance_eval do
           define_method method_name do |*args|
             query = opts.merge(args[0] || {})
             query[:raw] = true if query[:reduce]
-            unless @@design_doc_fresh
+            unless design_doc_fresh
               refresh_design_doc
             end
             raw = query.delete(:raw)
             view_name = "#{design_doc_slug}/#{method_name}"
-
             view = fetch_view(view_name, query)
-            if raw
-              view
-            else
-              # TODO this can be optimized once the include-docs patch is applied
-              view['rows'].collect{|r|new(database.get(r['id']))}
-            end
+            process_view_results view, raw
           end
         end
       end
@@ -291,6 +296,15 @@ module CouchRest
       end
 
       private
+
+      def process_view_results view, raw=false
+        if raw
+          view
+        else
+          # TODO this can be optimized once the include-docs patch is applied
+          view['rows'].collect{|r|new(database.get(r['id']))}
+        end
+      end
 
       def fetch_view view_name, opts
         retryable = true
@@ -309,19 +323,27 @@ module CouchRest
       end
 
       def design_doc_slug
-        return @design_doc_slug if @design_doc_slug && @@design_doc_fresh
+        return design_doc_slug_cache if design_doc_slug_cache && design_doc_fresh
         funcs = []
-        @@design_doc['views'].each do |name, view|
-          funcs << "#{name}/#{view}"
+        generated_design_doc['views'].each do |name, view|
+          funcs << "#{name}/#{view['map']}#{view['reduce']}"
         end
         md5 = Digest::MD5.hexdigest(funcs.sort.join(''))
-        @design_doc_slug = "#{self.to_s}-#{md5}"
+        self.design_doc_slug_cache = "#{self.to_s}-#{md5}"
       end
 
       def default_design_doc
         {
           "language" => "javascript",
-          "views" => {}
+          "views" => {
+            'all' => {
+              'map' => "function(doc) {
+                if (doc['couchrest-type'] == '#{self.to_s}') {
+                  emit(null,null);
+                }
+              }"
+            }
+          }
         }
       end
 
@@ -329,20 +351,18 @@ module CouchRest
         did = "_design/#{design_doc_slug}"
         saved = database.get(did) rescue nil
         if saved
-          @@design_doc['views'].each do |name, view|
+          generated_design_doc['views'].each do |name, view|
             saved['views'][name] = view
           end
           database.save(saved)
         else
-          @@design_doc['_id'] = did
-          database.save(@@design_doc)
+          generated_design_doc['_id'] = did
+          database.save(generated_design_doc)
         end
-        @@design_doc_fresh = true
+        self.design_doc_fresh = true
       end
 
     end # class << self
-
-
 
     # returns the database used by this model's class
     def database
