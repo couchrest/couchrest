@@ -1,3 +1,5 @@
+require 'digest/md5'
+
 # = CouchRest::Model - ORM, the CouchDB way
 module CouchRest
   # = CouchRest::Model - ORM, the CouchDB way
@@ -270,7 +272,7 @@ module CouchRest
               refresh_design_doc
             end
             raw = query.delete(:raw)
-            view_name = "#{type}/#{method_name}"
+            view_name = "#{design_doc_slug}/#{method_name}"
 
             view = fetch_view(view_name, query)
             if raw
@@ -281,6 +283,11 @@ module CouchRest
             end
           end
         end
+      end
+
+      # Fetch the generated design doc. Could raise an error if the generated views have not been queried yet.
+      def design_doc
+        database.get("_design/#{design_doc_slug}")
       end
 
       private
@@ -301,26 +308,33 @@ module CouchRest
         end
       end
 
-      def design_doc_id
-        "_design/#{self.to_s}"
+      def design_doc_slug
+        return @design_doc_slug if @design_doc_slug && @@design_doc_fresh
+        funcs = []
+        @@design_doc['views'].each do |name, view|
+          funcs << "#{name}/#{view}"
+        end
+        md5 = Digest::MD5.hexdigest(funcs.sort.join(''))
+        @design_doc_slug = "#{self.to_s}-#{md5}"
       end
 
       def default_design_doc
         {
-          "_id" => design_doc_id,
           "language" => "javascript",
           "views" => {}
         }
       end
 
       def refresh_design_doc
-        saved = database.get(design_doc_id) rescue nil
+        did = "_design/#{design_doc_slug}"
+        saved = database.get(did) rescue nil
         if saved
           @@design_doc['views'].each do |name, view|
             saved['views'][name] = view
           end
           database.save(saved)
         else
+          @@design_doc['_id'] = did
           database.save(@@design_doc)
         end
         @@design_doc_fresh = true
@@ -408,6 +422,7 @@ module CouchRest
 
     def cast_keys
       return unless self.class.casts
+      # TODO move the argument checking to the cast method for early crashes
       self.class.casts.each do |k,v|
         next unless self[k]
         target = v[:as]

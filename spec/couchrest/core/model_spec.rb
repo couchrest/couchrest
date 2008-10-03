@@ -336,7 +336,7 @@ describe CouchRest::Model do
     
     it "should create the design doc" do
       Article.by_date rescue nil
-      doc = Article.database.get("_design/Article")
+      doc = Article.design_doc
       doc['views']['by_date'].should_not be_nil
     end
     
@@ -371,7 +371,7 @@ describe CouchRest::Model do
     end
     it "should create the design doc" do
       Article.by_user_id_and_date rescue nil
-      doc = Article.database.get("_design/Article")
+      doc = Article.design_doc
       doc['views']['by_date'].should_not be_nil
     end
     it "should sort correctly" do
@@ -409,6 +409,24 @@ describe CouchRest::Model do
     it "should be raw when reduce is true" do
       view = Article.by_tags :reduce => true, :group => true
       view['rows'].find{|r|r['key'] == 'cool'}['value'].should == 3
+    end
+  end
+
+  describe "adding a view" do
+    before(:each) do
+      Article.by_date
+      @design_docs = Article.database.documents :startkey => "_design/", :endkey => "_design/\u9999"
+    end
+    it "should not create a design doc on view definition" do
+      Article.view_by :created_at
+      newdocs = Article.database.documents :startkey => "_design/", :endkey => "_design/\u9999"
+      newdocs["rows"].length.should == @design_docs["rows"].length
+    end
+    it "should create a new design document on view access" do
+      Article.view_by :created_at
+      Article.by_created_at
+      newdocs = Article.database.documents :startkey => "_design/", :endkey => "_design/\u9999"
+      newdocs["rows"].length.should == @design_docs["rows"].length + 1
     end
   end
 
