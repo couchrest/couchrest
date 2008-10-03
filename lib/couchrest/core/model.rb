@@ -450,14 +450,13 @@ module CouchRest
       self.class.casts.each do |k,v|
         next unless self[k]
         target = v[:as]
-        if target.is_a?(Array) && target[0].is_a?(Class)
+        if target.is_a?(Array)
+          klass = ::Extlib::Inflection.constantize(target[0])
           self[k] = self[k].collect do |value|
-            target[0].new(value)
+            klass.new(value)
           end
-        elsif target.is_a?(Class)
-          self[k] = target.new(self[k])
         else
-          raise ArgumentError, "Call like - cast :field, :as => MyClass - or - :as => [MyClass] if the field is an array."
+          self[k] = ::Extlib::Inflection.constantize(target).new(self[k])
         end
       end
     end

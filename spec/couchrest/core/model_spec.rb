@@ -27,8 +27,8 @@ end
 
 class Course < CouchRest::Model
   key_accessor :title
-  cast :questions, :as => [Question]
-  cast :professor, :as => Person
+  cast :questions, :as => ['Question']
+  cast :professor, :as => 'Person'
   view_by :title
 end
 
