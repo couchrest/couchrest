@@ -18,9 +18,17 @@ class Question < CouchRest::Model
   key_accessor :q, :a
 end
 
+class Person < CouchRest::Model
+  key_accessor :name
+  def last_name
+    name.last
+  end
+end
+
 class Course < CouchRest::Model
   key_accessor :title
   cast :questions, :as => [Question]
+  cast :professor, :as => Person
 end
 
 class Article < CouchRest::Model
@@ -170,8 +178,21 @@ describe CouchRest::Model do
   end
 
   describe "getting a model with a subobject field" do
-    it "should instantiate it as such" do
-      
+    before(:all) do
+      course_doc = {
+        "title" => "Metaphysics 410",
+        "professor" => {
+          "name" => ["Mark", "Hinchliff"]
+        }
+      }
+      r = Course.database.save course_doc
+      @course = Course.get r['id']
+    end
+    it "should load the course" do
+      @course["professor"]["name"][1].should == "Hinchliff"
+    end
+    it "should instantiate the professor as a person" do
+      @course['professor'].last_name.should == "Hinchliff"
     end
   end
 

@@ -54,6 +54,7 @@ module CouchRest
       keys.each do |k,v|
         self[k.to_s] = v
       end
+      cast_keys
       unless self['_id'] && self['_rev']
         self['couchrest-type'] = self.class.to_s
       end
@@ -81,9 +82,18 @@ module CouchRest
         new(doc)
       end
 
+      # Cast a field as another class. The class must be happy to have the
+      # field's primitive type as the argument to it's constucture. Classes
+      # which inherit from CouchRest::Model are happy to act as sub-objects
+      # for any fields that are stored in JSON as object (and therefore are
+      # parsed from the JSON as Ruby Hashes).
       def cast field, opts = {}
         @casts ||= {}
         @casts[field.to_s] = opts
+      end
+
+      def casts
+        @casts
       end
 
       # Defines methods for reading and writing from fields in the document.
@@ -392,6 +402,23 @@ module CouchRest
       if self.class.default
         self.class.default.each do |k,v|
           self[k.to_s] = v
+        end
+      end
+    end
+
+    def cast_keys
+      return unless self.class.casts
+      self.class.casts.each do |k,v|
+        next unless self[k]
+        target = v[:as]
+        if target.is_a?(Array) && target[0].is_a?(Class)
+          self[k] = self[k].collect do |value|
+            target[0].new(value)
+          end
+        elsif target.is_a?(Class)
+          self[k] = target.new(self[k])
+        else
+          raise ArgumentError, ":as => MyClass, :as => [MyClass]"
         end
       end
     end
