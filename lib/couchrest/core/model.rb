@@ -418,7 +418,7 @@ module CouchRest
         elsif target.is_a?(Class)
           self[k] = target.new(self[k])
         else
-          raise ArgumentError, ":as => MyClass, :as => [MyClass]"
+          raise ArgumentError, "Call like - cast :field, :as => MyClass - or - :as => [MyClass] if the field is an array."
         end
       end
     end
