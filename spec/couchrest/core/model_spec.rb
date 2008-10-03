@@ -133,6 +133,41 @@ describe CouchRest::Model do
     end
   end
   
+  describe "update attributes" do
+    before(:each) do
+      a = Article.get "big-bad-danger" rescue nil
+      a.destroy if a
+      @art = Article.new(:title => "big bad danger")
+      @art.save
+    end
+    it "should work for attribute= methods" do
+      @art['title'].should == "big bad danger"
+      @art.update_attributes('date' => Time.now, :title => "super danger")
+      @art['title'].should == "super danger"
+    end
+    
+    it "should flip out if an attribute= method is missing" do
+      lambda {
+        @art.update_attributes('slug' => "new-slug", :title => "super danger")        
+      }.should raise_error
+    end
+    
+    it "should not change other attributes if there is an error" do
+      lambda {
+        @art.update_attributes('slug' => "new-slug", :title => "super danger")        
+      }.should raise_error
+      @art['title'].should == "big bad danger"
+    end
+    
+    it "should save" do
+      @art['title'].should == "big bad danger"
+      @art.update_attributes('date' => Time.now, :title => "super danger")
+      loaded = Article.get @art.id
+      loaded['title'].should == "super danger"
+    end
+    
+  end
+  
   describe "a model with template values" do
     before(:all) do
       @tmpl = WithTemplate.new
@@ -326,7 +361,9 @@ describe CouchRest::Model do
   end
 
   describe "a model with timestamps" do
-    before(:all) do
+    before(:each) do
+      oldart = Article.get "saving-this" rescue nil
+      oldart.destroy if oldart
       @art = Article.new(:title => "Saving this")
       @art.save
     end

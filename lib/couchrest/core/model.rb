@@ -247,7 +247,7 @@ module CouchRest
       #  
       # To understand the capabilities of this view system more compeletly,
       # it is recommended that you read the RSpec file at
-      # <tt>spec/core/model.rb</tt>.
+      # <tt>spec/core/model_spec.rb</tt>.
       def view_by *keys
         opts = keys.pop if keys.last.is_a?(Hash)
         opts ||= {}
@@ -384,6 +384,19 @@ module CouchRest
     # alias for self['_rev']      
     def rev
       self['_rev']
+    end
+
+    # Takes a hash as argument, and applies the values by using writer methods
+    # for each key. Raises a NoMethodError if the corresponding methods are
+    # missing. In case of error, no attributes are changed.
+    def update_attributes hash
+      hash.each do |k, v|
+        raise NoMethodError, "#{k}= method not available, use key_accessor or key_writer :#{key}" unless self.respond_to?("#{k}=")
+      end      
+      hash.each do |k, v|
+        self.send("#{k}=",v)
+      end
+      save
     end
 
     # returns true if the document has never been saved
