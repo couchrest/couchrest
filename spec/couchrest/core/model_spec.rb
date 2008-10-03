@@ -234,7 +234,7 @@ describe CouchRest::Model do
     end
     
     it "should set the id" do
-      @obj.id.should be_an_instance_of String
+      @obj.id.should be_an_instance_of(String)
     end
     
     it "should set the type" do
