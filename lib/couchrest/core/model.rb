@@ -93,6 +93,10 @@ module CouchRest
       end
 
       def all opts = {}
+        self.generated_design_doc ||= default_design_doc
+        unless design_doc_fresh
+          refresh_design_doc
+        end
         view_name = "#{design_doc_slug}/all"
         raw = opts.delete(:raw)
         view = fetch_view(view_name, opts)

@@ -187,12 +187,11 @@ describe CouchRest::Model do
     end
     it "should make the design doc" do
       WithTemplate.all
-      puts d = WithTemplate.design_doc.to_json
-      d.should == 'xs'
+      d = WithTemplate.design_doc
+      d['views']['all']['map'].should include('WithTemplate')
     end
     it "should find all" do
-      rs = WithTemplate.all :raw => true
-      rs.should == 'x'
+      rs = WithTemplate.all 
       rs.length.should == 4
     end
   end
