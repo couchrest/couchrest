@@ -121,8 +121,7 @@ module CouchRest
         end
         view_name = "#{design_doc_slug}/all"
         raw = opts.delete(:raw)
-        view = fetch_view(view_name, opts)
-        process_view_results view, raw
+        fetch_view_with_docs(view_name, opts, raw)
       end
       
       # Cast a field as another class. The class must be happy to have the
@@ -310,8 +309,7 @@ module CouchRest
             end
             raw = query.delete(:raw)
             view_name = "#{design_doc_slug}/#{method_name}"
-            view = fetch_view(view_name, query)
-            process_view_results view, raw
+            fetch_view_with_docs(view_name, query, raw)
           end
         end
       end
@@ -323,12 +321,19 @@ module CouchRest
 
       private
 
-      def process_view_results view, raw=false
+      def fetch_view_with_docs name, opts, raw=false
         if raw
-          view
+          fetch_view name, opts
         else
-          # TODO this can be optimized once the include-docs patch is applied
-          view['rows'].collect{|r|new(database.get(r['id']))}
+          begin
+            view = fetch_view name, opts.merge({:include_docs => true})
+            view['rows'].collect{|r|new(r['doc'])}
+          rescue
+            # fallback for old versions of couchdb that don't 
+            # have include_docs support
+            view = fetch_view name, opts
+            view['rows'].collect{|r|new(database.get(r['id']))}
+          end
         end
       end
 

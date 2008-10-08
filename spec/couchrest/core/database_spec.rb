@@ -422,21 +422,32 @@ describe CouchRest::Database do
     ds['total_rows'].should == 5
   end
   
-  it "should list documents with keys and such" do
-    9.times do |i|
-      @db.save({'_id' => "doc#{i}",'another' => 'doc', 'will-exist' => 'here'})
+  describe "documents / _all_docs" do
+    before(:each) do
+      9.times do |i|
+        @db.save({'_id' => "doc#{i}",'another' => 'doc', 'will-exist' => 'here'})
+      end
     end
-    ds = @db.documents
-    ds['rows'].should be_an_instance_of(Array)
-    ds['rows'][0]['id'].should == "doc0"
-    ds['total_rows'].should == 9
-    ds = @db.documents(:startkey => 'doc0', :endkey => 'doc3')
-    ds['rows'].length.should == 4
-    ds = @db.documents(:key => 'doc0')
-    ds['rows'].length.should == 1
-    
-    rs = @db.documents :keys => ["doc0", "doc7"]
-    rs['rows'].length.should == 2
+    it "should list documents with keys and such" do
+      ds = @db.documents
+      ds['rows'].should be_an_instance_of(Array)
+      ds['rows'][0]['id'].should == "doc0"
+      ds['total_rows'].should == 9      
+    end
+    it "should take query params" do
+      ds = @db.documents(:startkey => 'doc0', :endkey => 'doc3')
+      ds['rows'].length.should == 4
+      ds = @db.documents(:key => 'doc0')
+      ds['rows'].length.should == 1
+    end
+    it "should work with multi-key" do
+      rs = @db.documents :keys => ["doc0", "doc7"]
+      rs['rows'].length.should == 2
+    end
+    it "should work with include_docs" do
+      ds = @db.documents(:startkey => 'doc0', :endkey => 'doc3', :include_docs => true)
+      ds['rows'][0]['doc']['another'].should == "doc"
+    end
   end
   
   describe "deleting a database" do
