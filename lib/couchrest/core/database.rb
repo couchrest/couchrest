@@ -29,21 +29,33 @@ module CouchRest
     end
     
     # Query the <tt>_all_docs</tt> view. Accepts all the same arguments as view.
-    def documents params = nil
+    def documents params = {}
+      keys = params.delete(:keys)
       url = CouchRest.paramify_url "#{@root}/_all_docs", params
-      CouchRest.get url  
+      if keys
+        CouchRest.post(url, {:keys => keys})
+      else
+        CouchRest.get url
+      end
     end
   
     # POST a temporary view function to CouchDB for querying. This is not recommended, as you don't get any performance benefit from CouchDB's materialized views. Can be quite slow on large databases.
-    def temp_view funcs, params = nil
+    def temp_view funcs, params = {}
+      keys = params.delete(:keys)
+      funcs = funcs.merge({:keys => keys}) if keys
       url = CouchRest.paramify_url "#{@root}/_temp_view", params
       JSON.parse(RestClient.post(url, funcs.to_json, {"Content-Type" => 'application/json'}))
     end
   
     # Query a CouchDB view as defined by a <tt>_design</tt> document. Accepts paramaters as described in http://wiki.apache.org/couchdb/HttpViewApi
-    def view name, params = nil
+    def view name, params = {}
+      keys = params.delete(:keys)
       url = CouchRest.paramify_url "#{@root}/_view/#{name}", params
-      CouchRest.get url
+      if keys
+        CouchRest.post(url, {:keys => keys})
+      else
+        CouchRest.get url
+      end
     end
     
     # GET a document from CouchDB, by id. Returns a Ruby Hash.

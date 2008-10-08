@@ -22,16 +22,20 @@ describe CouchRest::Database do
       rs['rows'].select{|r|r['key'] == 'wild' && r['value'] == 'and random'}.length.should == 1
     end
     it "should work with a range" do
-      rs = @db.temp_view(@temp_view,{:startkey => "b", :endkey => "z"})
+      rs = @db.temp_view(@temp_view, :startkey => "b", :endkey => "z")
       rs['rows'].length.should == 2
     end
     it "should work with a key" do
-      rs = @db.temp_view(@temp_view,{:key => "wild"})
+      rs = @db.temp_view(@temp_view, :key => "wild")
       rs['rows'].length.should == 1
     end
     it "should work with a count" do
-      rs = @db.temp_view(@temp_view,{:count => 1})
+      rs = @db.temp_view(@temp_view, :count => 1)
       rs['rows'].length.should == 1
+    end
+    it "should work with multi-keys" do
+      rs = @db.temp_view(@temp_view, :keys => ["another", "wild"])
+      rs['rows'].length.should == 2
     end
   end
 
@@ -98,16 +102,20 @@ describe CouchRest::Database do
       rs['rows'].select{|r|r['key'] == 'wild' && r['value'] == 'and random'}.length.should == 1
     end
     it "should work with a range" do
-      rs = @db.view('first/test',{:startkey => "b", :endkey => "z"})
+      rs = @db.view('first/test', :startkey => "b", :endkey => "z")
       rs['rows'].length.should == 2
     end
     it "should work with a key" do
-      rs = @db.view('first/test',{:key => "wild"})
+      rs = @db.view('first/test', :key => "wild")
       rs['rows'].length.should == 1
     end
     it "should work with a count" do
-      rs = @db.view('first/test',{:count => 1})
+      rs = @db.view('first/test', :count => 1)
       rs['rows'].length.should == 1
+    end
+    it "should work with multi-keys" do
+      rs = @db.view('first/test', :keys => ["another", "wild"])
+      rs['rows'].length.should == 2
     end
   end
 
@@ -426,6 +434,9 @@ describe CouchRest::Database do
     ds['rows'].length.should == 4
     ds = @db.documents(:key => 'doc0')
     ds['rows'].length.should == 1
+    
+    rs = @db.documents :keys => ["doc0", "doc7"]
+    rs['rows'].length.should == 2
   end
   
   describe "deleting a database" do

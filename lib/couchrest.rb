@@ -108,8 +108,8 @@ module CouchRest
       JSON.parse(RestClient.delete(uri))
     end
   
-    def paramify_url url, params = nil
-      if params
+    def paramify_url url, params = {}
+      if params && !params.empty?
         query = params.collect do |k,v|
           v = v.to_json if %w{key startkey endkey}.include?(k.to_s)
           "#{k}=#{CGI.escape(v.to_s)}"
