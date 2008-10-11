@@ -419,7 +419,8 @@ describe CouchRest::Model do
       Course.new(:title => 'aaa').save
       Course.new(:title => 'bbb').save
     end
-    it "should make the design doc" do
+    it "should make the design doc upon first query" do
+      Course.by_title 
       doc = Course.design_doc
       doc['views']['all']['map'].should include('Course')
     end
@@ -496,7 +497,7 @@ describe CouchRest::Model do
       newdocs["rows"].length.should == @design_docs["rows"].length
     end
     it "should create a new design document on view access" do
-      Article.view_by :created_at
+      Article.view_by :updated_at
       Article.by_created_at
       newdocs = Article.database.documents :startkey => "_design/", :endkey => "_design/\u9999"
       newdocs["rows"].length.should == @design_docs["rows"].length + 1
