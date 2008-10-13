@@ -117,6 +117,13 @@ describe CouchRest::Database do
       rs = @db.view('first/test', :keys => ["another", "wild"])
       rs['rows'].length.should == 2
     end
+    it "should accept a block" do
+      rows = []
+      rs = @db.view('first/test', :include_docs => true) do |row|
+        rows << row
+      end
+      rows.length.should == 3
+    end
   end
 
   describe "GET (document by id) when the doc exists" do

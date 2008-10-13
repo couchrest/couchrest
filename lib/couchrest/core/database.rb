@@ -16,6 +16,7 @@ module CouchRest
       @server = server
       @host = server.uri
       @root = "#{host}/#{name}"
+      @streamer = Streamer.new(self)
     end
     
     # returns the database's uri
@@ -48,13 +49,17 @@ module CouchRest
     end
   
     # Query a CouchDB view as defined by a <tt>_design</tt> document. Accepts paramaters as described in http://wiki.apache.org/couchdb/HttpViewApi
-    def view name, params = {}
+    def view name, params = {}, &block
       keys = params.delete(:keys)
       url = CouchRest.paramify_url "#{@root}/_view/#{name}", params
       if keys
         CouchRest.post(url, {:keys => keys})
       else
-        CouchRest.get url
+        if block_given?
+          @streamer.view(name, params, &block)
+        else
+          CouchRest.get url
+        end
       end
     end
     
