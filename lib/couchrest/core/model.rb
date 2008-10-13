@@ -273,7 +273,7 @@ module CouchRest
 
         method_name = "by_#{keys.join('_and_')}"
         self.generated_design_doc ||= default_design_doc
-
+        ducktype = opts.delete(:ducktype)
         if opts[:map]
           view = {}
           view['map'] = opts.delete(:map)
@@ -288,7 +288,7 @@ module CouchRest
           key_emit = doc_keys.length == 1 ? "#{doc_keys.first}" : "[#{doc_keys.join(', ')}]"
           map_function = <<-JAVASCRIPT
           function(doc) {
-            if (doc['couchrest-type'] == '#{type}' && #{key_protection}) {
+            if (#{!ducktype ? "doc['couchrest-type'] == '#{type}' && " : ""}#{key_protection}) {
               emit(#{key_emit}, null);
             }
           }

@@ -39,6 +39,8 @@ class Article < CouchRest::Model
   view_by :date, :descending => true
   view_by :user_id, :date
   
+  view_by :title, :ducktype => true
+  
   view_by :tags,
     :map => 
       "function(doc) {
@@ -430,6 +432,26 @@ describe CouchRest::Model do
     end
   end
   
+  describe "a ducktype view" do
+    before(:each) do
+      @id = @db.save({:title => true})['id']
+      @as = Article.by_title
+    end
+    it "should setup" do
+      puts id
+      duck = Article.get(@id)
+      duck.should == 'x'
+    end
+    it "should make the design doc" do
+      @doc = Article.design_doc
+      @doc["views"]["by_title"]["map"].should_not include("couchrest")
+    end
+    it "should not look for class" do |variable|
+      @as.should == 'x'
+      [0]['_id'].should == @id
+    end
+  end
+  
   describe "a model with a compound key view" do
     before(:all) do
       written_at = Time.now - 24 * 3600 * 7
@@ -498,7 +520,7 @@ describe CouchRest::Model do
     end
     it "should create a new design document on view access" do
       Article.view_by :updated_at
-      Article.by_created_at
+      Article.by_updated_at
       newdocs = Article.database.documents :startkey => "_design/", :endkey => "_design/\u9999"
       newdocs["rows"].length.should == @design_docs["rows"].length + 1
     end
