@@ -30,6 +30,7 @@ class Course < CouchRest::Model
   cast :questions, :as => ['Question']
   cast :professor, :as => 'Person'
   view_by :title
+  view_by :dept, :ducktype => true
 end
 
 class Article < CouchRest::Model
@@ -38,9 +39,7 @@ class Article < CouchRest::Model
   
   view_by :date, :descending => true
   view_by :user_id, :date
-  
-  view_by :title, :ducktype => true
-  
+    
   view_by :tags,
     :map => 
       "function(doc) {
@@ -433,22 +432,20 @@ describe CouchRest::Model do
   end
   
   describe "a ducktype view" do
-    before(:each) do
-      @id = @db.save({:title => true})['id']
-      @as = Article.by_title
+    before(:all) do
+      @id = @db.save({:dept => true})['id']
     end
     it "should setup" do
-      puts id
-      duck = Article.get(@id)
-      duck.should == 'x'
+      duck = Course.get(@id) # from a different db
+      duck["dept"].should == true
     end
     it "should make the design doc" do
-      @doc = Article.design_doc
-      @doc["views"]["by_title"]["map"].should_not include("couchrest")
+      @doc = Course.design_doc
+      @doc["views"]["by_dept"]["map"].should_not include("couchrest")
     end
     it "should not look for class" do |variable|
-      @as.should == 'x'
-      [0]['_id'].should == @id
+      @as = Course.by_dept
+      @as[0]['_id'].should == @id
     end
   end
   
@@ -472,7 +469,8 @@ describe CouchRest::Model do
     end
     it "should sort correctly" do
       articles = Article.by_user_id_and_date
-      articles.collect{|a|a['user_id']}.should == ['aaron', 'aaron', 'quentin', 'quentin']
+      articles.collect{|a|a['user_id']}.should == ['aaron', 'aaron', 'quentin', 
+        'quentin']
       articles[1].title.should == 'not junk'
     end
     it "should be queryable with couchrest options" do
@@ -484,7 +482,8 @@ describe CouchRest::Model do
   
   describe "with a custom view" do
     before(:all) do
-      @titles = ["very uniq one", "even less interesting", "some fun", "really junk", "crazy bob"]
+      @titles = ["very uniq one", "even less interesting", "some fun", 
+        "really junk", "crazy bob"]
       @tags = ["cool", "lame"]
       @titles.each_with_index do |title,i|
         u = i % 2
@@ -511,17 +510,20 @@ describe CouchRest::Model do
   describe "adding a view" do
     before(:each) do
       Article.by_date
-      @design_docs = Article.database.documents :startkey => "_design/", :endkey => "_design/\u9999"
+      @design_docs = Article.database.documents :startkey => "_design/", 
+        :endkey => "_design/\u9999"
     end
     it "should not create a design doc on view definition" do
       Article.view_by :created_at
-      newdocs = Article.database.documents :startkey => "_design/", :endkey => "_design/\u9999"
+      newdocs = Article.database.documents :startkey => "_design/", 
+        :endkey => "_design/\u9999"
       newdocs["rows"].length.should == @design_docs["rows"].length
     end
     it "should create a new design document on view access" do
       Article.view_by :updated_at
       Article.by_updated_at
-      newdocs = Article.database.documents :startkey => "_design/", :endkey => "_design/\u9999"
+      newdocs = Article.database.documents :startkey => "_design/", 
+        :endkey => "_design/\u9999"
       newdocs["rows"].length.should == @design_docs["rows"].length + 1
     end
   end
