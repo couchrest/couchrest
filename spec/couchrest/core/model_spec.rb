@@ -447,7 +447,7 @@ describe CouchRest::Model do
       end
       courses[0]["key"].should =='aaa'
     end
-end
+  end
   
   describe "a ducktype view" do
     before(:all) do
