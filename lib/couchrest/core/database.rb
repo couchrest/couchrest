@@ -60,7 +60,6 @@ module CouchRest
         CouchRest.post(url, {:keys => keys})
       else
         if block_given?
-          puts "streamer"
           @streamer.view(name, params, &block)
         else
           CouchRest.get url

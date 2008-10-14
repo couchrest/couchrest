@@ -440,7 +440,6 @@ describe CouchRest::Model do
     end
     it "should yield" do
       courses = []
-      puts "Course.view(:by_title)"
       rs = Course.by_title # remove me
       Course.view(:by_title) do |course|
         # puts "course"
@@ -459,6 +458,7 @@ end
       duck["dept"].should == true
     end
     it "should make the design doc" do
+      @as = Course.by_dept
       @doc = Course.design_doc
       @doc["views"]["by_dept"]["map"].should_not include("couchrest")
     end

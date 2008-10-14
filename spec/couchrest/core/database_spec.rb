@@ -123,7 +123,7 @@ describe CouchRest::Database do
         rows << row
       end
       rows.length.should == 4
-      rs.should == 'a parsed thing. not that easy.'
+      rs["total_rows"].should == 3
     end
   end
 
@@ -223,7 +223,7 @@ describe CouchRest::Database do
 
   describe "PUT attachment from file" do
     before(:each) do
-      filename = File.dirname(__FILE__) + '/../../fixtures/attachments/couchdb.png'
+      filename = FIXTURE_PATH + '/attachments/couchdb.png'
       @file = File.open(filename)
     end
     after(:each) do

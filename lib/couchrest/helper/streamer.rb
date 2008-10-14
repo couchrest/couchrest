@@ -9,18 +9,16 @@ module CouchRest
     def view name, params = nil, &block
       urlst = /^_/.match(name) ? "#{@db.root}/#{name}" : "#{@db.root}/_view/#{name}"
       url = CouchRest.paramify_url urlst, params
+      # puts "stream #{url}"
       first = nil
       IO.popen("curl --silent #{url}") do |view|
         first = view.gets # discard header
-        # puts first
         while line = view.gets 
-          # puts line
           row = parse_line(line)
           block.call row
         end
       end
-      # parse_line(line)
-      first
+      parse_first(first)
     end
     
     private
@@ -30,6 +28,16 @@ module CouchRest
       if /(\{.*\}),?/.match(line.chomp)
         JSON.parse($1)
       end
+    end
+
+    def parse_first first
+      return nil unless first
+      parts = first.split(',')
+      parts.pop
+      line = parts.join(',')
+      JSON.parse("#{line}}")
+    rescue
+      nil
     end
     
   end

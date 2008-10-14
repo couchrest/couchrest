@@ -26,7 +26,7 @@ end
 
 describe CouchRest::FileManager, "generating an app" do
   before(:all) do
-    @appdir = File.expand_path(File.dirname(__FILE__)) + '/fixtures/couchapp'
+    @appdir = FIXTURE_PATH + '/couchapp'
     `rm -rf #{@appdir}`
     `mkdir -p #{@appdir}`
     CouchRest::FileManager.generate_app(@appdir)
@@ -56,7 +56,7 @@ describe CouchRest::FileManager, "pushing an app" do
     @db.delete! rescue nil
     @db = @cr.create_db(TESTDB) rescue nil
     
-    @appdir = File.expand_path(File.dirname(__FILE__)) + '/fixtures/couchapp'
+    @appdir = FIXTURE_PATH + '/couchapp'
     `rm -rf #{@appdir}`
     `mkdir -p #{@appdir}`
     CouchRest::FileManager.generate_app(@appdir)
@@ -86,7 +86,7 @@ describe CouchRest::FileManager, "pushing views" do
     @db = @cr.create_db(TESTDB) rescue nil
     
     @fm = CouchRest::FileManager.new(TESTDB, COUCHHOST)
-    @view_dir = File.dirname(__FILE__) + '/fixtures/views'
+    @view_dir = FIXTURE_PATH + '/views'
     ds = @fm.push_views(@view_dir)
     @design = @db.get("_design/test_view")
   end
@@ -119,7 +119,7 @@ describe CouchRest::FileManager, "pushing a directory with id" do
     @db = @cr.create_db(TESTDB) rescue nil
     
     @fm = CouchRest::FileManager.new(TESTDB, COUCHHOST)
-    @push_dir = File.dirname(__FILE__) + '/fixtures/attachments'
+    @push_dir = FIXTURE_PATH + '/attachments'
     ds = @fm.push_directory(@push_dir, 'attached')
   end
   it "should create a document for the folder" do
@@ -143,7 +143,7 @@ describe CouchRest::FileManager, "pushing a directory without id" do
     @db = @cr.create_db(TESTDB) rescue nil
     
     @fm = CouchRest::FileManager.new(TESTDB, COUCHHOST)
-    @push_dir = File.dirname(__FILE__) + '/fixtures/attachments'
+    @push_dir = FIXTURE_PATH + '/attachments'
     ds = @fm.push_directory(@push_dir)
   end
   it "should use the dirname" do
@@ -160,7 +160,7 @@ describe CouchRest::FileManager, "pushing a directory/ without id" do
     @db = @cr.create_db(TESTDB) rescue nil
     
     @fm = CouchRest::FileManager.new(TESTDB, COUCHHOST)
-    @push_dir = File.dirname(__FILE__) + '/fixtures/attachments/'
+    @push_dir = FIXTURE_PATH + '/attachments/'
     ds = @fm.push_directory(@push_dir)
   end
   it "should use the dirname" do
