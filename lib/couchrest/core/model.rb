@@ -302,6 +302,9 @@ module CouchRest
 
         self.meta_class.instance_eval do
           define_method method_name do |*args|
+            # block = args.pop if args.last.is_a?(Proc)
+            block = nil
+            puts "block" if block_given?
             query = opts.merge(args[0] || {})
             query[:raw] = true if query[:reduce]
             unless design_doc_fresh
@@ -309,7 +312,7 @@ module CouchRest
             end
             raw = query.delete(:raw)
             view_name = "#{design_doc_slug}/#{method_name}"
-            fetch_view_with_docs(view_name, query, raw)
+            fetch_view_with_docs(view_name, query, raw, &block)
           end
         end
       end
@@ -319,28 +322,38 @@ module CouchRest
         database.get("_design/#{design_doc_slug}")
       end
 
+      # Dispatches to any named view.
+      def view name, query={}, &block
+        name = name.to_s
+        view_name = "#{design_doc_slug}/#{name}"
+        puts view_name
+        fetch_view_with_docs(view_name, query, true, &block)
+      end
+
       private
 
-      def fetch_view_with_docs name, opts, raw=false
+      def fetch_view_with_docs name, opts, raw=false, &block
+        
         if raw
-          fetch_view name, opts
+          fetch_view name, opts, &block
         else
           begin
-            view = fetch_view name, opts.merge({:include_docs => true})
-            view['rows'].collect{|r|new(r['doc'])}
+            view = fetch_view name, opts.merge({:include_docs => true}), &block
+            view['rows'].collect{|r|new(r['doc'])} if view
           rescue
             # fallback for old versions of couchdb that don't 
             # have include_docs support
-            view = fetch_view name, opts
-            view['rows'].collect{|r|new(database.get(r['id']))}
+            view = fetch_view name, opts, &block
+            view['rows'].collect{|r|new(database.get(r['id']))} if view
           end
         end
       end
 
-      def fetch_view view_name, opts
+      def fetch_view view_name, opts, &block
         retryable = true
         begin
-          database.view(view_name, opts)
+          puts "block" if block
+          database.view(view_name, opts, &block)
           # the design doc could have been deleted by a rouge process
         rescue RestClient::ResourceNotFound => e
           if retryable

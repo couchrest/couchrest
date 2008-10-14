@@ -419,17 +419,36 @@ describe CouchRest::Model do
       @db = @cr.create_db(TESTDB) rescue nil
       Course.new(:title => 'aaa').save
       Course.new(:title => 'bbb').save
+      Course.new(:title => 'ddd').save
+      Course.new(:title => 'eee').save
     end
     it "should make the design doc upon first query" do
       Course.by_title 
       doc = Course.design_doc
       doc['views']['all']['map'].should include('Course')
     end
+    it "should can query via view" do
+      # register methods with method-missing, for local dispatch. method
+      # missing lookup table, no heuristics.
+      view = Course.view :by_title
+      designed = Course.by_title :raw => true
+      view.should == designed
+    end
     it "should get them" do
       rs = Course.by_title 
-      rs.length.should == 2
+      rs.length.should == 4
     end
-  end
+    it "should yield" do
+      courses = []
+      puts "Course.view(:by_title)"
+      rs = Course.by_title # remove me
+      Course.view(:by_title) do |course|
+        # puts "course"
+        courses << course
+      end
+      courses[0]["key"].should =='aaa'
+    end
+end
   
   describe "a ducktype view" do
     before(:all) do

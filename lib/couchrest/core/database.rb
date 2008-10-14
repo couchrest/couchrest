@@ -5,8 +5,9 @@ module CouchRest
   class Database
     attr_reader :server, :host, :name, :root
      
-    # Create a CouchRest::Database adapter for the supplied CouchRest::Server and database name.
-    # 
+    # Create a CouchRest::Database adapter for the supplied CouchRest::Server
+    # and database name.
+    #  
     # ==== Parameters
     # server<CouchRest::Server>:: database host
     # name<String>:: database name
@@ -40,7 +41,9 @@ module CouchRest
       end
     end
   
-    # POST a temporary view function to CouchDB for querying. This is not recommended, as you don't get any performance benefit from CouchDB's materialized views. Can be quite slow on large databases.
+    # POST a temporary view function to CouchDB for querying. This is not
+    # recommended, as you don't get any performance benefit from CouchDB's
+    # materialized views. Can be quite slow on large databases.
     def temp_view funcs, params = {}
       keys = params.delete(:keys)
       funcs = funcs.merge({:keys => keys}) if keys
@@ -48,7 +51,8 @@ module CouchRest
       JSON.parse(RestClient.post(url, funcs.to_json, {"Content-Type" => 'application/json'}))
     end
   
-    # Query a CouchDB view as defined by a <tt>_design</tt> document. Accepts paramaters as described in http://wiki.apache.org/couchdb/HttpViewApi
+    # Query a CouchDB view as defined by a <tt>_design</tt> document. Accepts
+    # paramaters as described in http://wiki.apache.org/couchdb/HttpViewApi
     def view name, params = {}, &block
       keys = params.delete(:keys)
       url = CouchRest.paramify_url "#{@root}/_view/#{name}", params
@@ -56,6 +60,7 @@ module CouchRest
         CouchRest.post(url, {:keys => keys})
       else
         if block_given?
+          puts "streamer"
           @streamer.view(name, params, &block)
         else
           CouchRest.get url
@@ -89,7 +94,12 @@ module CouchRest
       JSON.parse(RestClient.put(uri, file, options))
     end
     
-    # Save a document to CouchDB. This will use the <tt>_id</tt> field from the document as the id for PUT, or request a new UUID from CouchDB, if no <tt>_id</tt> is present on the document. IDs are attached to documents on the client side because POST has the curious property of being automatically retried by proxies in the event of network segmentation and lost responses.
+    # Save a document to CouchDB. This will use the <tt>_id</tt> field from
+    # the document as the id for PUT, or request a new UUID from CouchDB, if
+    # no <tt>_id</tt> is present on the document. IDs are attached to
+    # documents on the client side because POST has the curious property of
+    # being automatically retried by proxies in the event of network
+    # segmentation and lost responses.
     def save doc
       if doc['_attachments']
         doc['_attachments'] = encode_attachments(doc['_attachments'])
@@ -107,7 +117,8 @@ module CouchRest
       end
     end
     
-    # POST an array of documents to CouchDB. If any of the documents are missing ids, supply one from the uuid cache.
+    # POST an array of documents to CouchDB. If any of the documents are
+    # missing ids, supply one from the uuid cache.
     def bulk_save docs
       ids, noids = docs.partition{|d|d['_id']}
       uuid_count = [noids.length, @server.uuid_batch_count].max
@@ -118,13 +129,15 @@ module CouchRest
       CouchRest.post "#{@root}/_bulk_docs", {:docs => docs}
     end
     
-    # DELETE the document from CouchDB that has the given <tt>_id</tt> and <tt>_rev</tt>.
+    # DELETE the document from CouchDB that has the given <tt>_id</tt> and
+    # <tt>_rev</tt>.
     def delete doc
       slug = CGI.escape(doc['_id'])
       CouchRest.delete "#{@root}/#{slug}?rev=#{doc['_rev']}"
     end
     
-    # DELETE the database itself. This is not undoable and could be rather catastrophic. Use with care!
+    # DELETE the database itself. This is not undoable and could be rather
+    # catastrophic. Use with care!
     def delete!
       CouchRest.delete @root
     end

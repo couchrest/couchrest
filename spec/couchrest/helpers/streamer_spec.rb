@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/spec_helper'
+require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe CouchRest::Streamer do
   before(:all) do
@@ -17,7 +17,7 @@ describe CouchRest::Streamer do
     @streamer.view("_all_docs") do |row|
       count += 1
     end
-    count.should == 1000
+    count.should == 1001
   end
   
 end

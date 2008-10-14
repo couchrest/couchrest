@@ -122,7 +122,8 @@ describe CouchRest::Database do
       rs = @db.view('first/test', :include_docs => true) do |row|
         rows << row
       end
-      rows.length.should == 3
+      rows.length.should == 4
+      rs.should == 'a parsed thing. not that easy.'
     end
   end
 
