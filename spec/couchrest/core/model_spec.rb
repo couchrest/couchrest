@@ -431,7 +431,7 @@ describe CouchRest::Model do
       # register methods with method-missing, for local dispatch. method
       # missing lookup table, no heuristics.
       view = Course.view :by_title
-      designed = Course.by_title :raw => true
+      designed = Course.by_title
       view.should == designed
     end
     it "should get them" do
@@ -445,7 +445,8 @@ describe CouchRest::Model do
         # puts "course"
         courses << course
       end
-      courses[0]["key"].should =='aaa'
+      # courses.should == 'x'
+      courses[0]["doc"]["title"].should =='aaa'
     end
   end
   

@@ -297,20 +297,25 @@ module CouchRest
             'map' => map_function
           }
         end
-
+        generated_design_doc['views'][method_name]['couchrest-defaults'] = opts
         self.design_doc_fresh = false
+        method_name
+      end
 
-        self.meta_class.instance_eval do
-          define_method method_name do |*args|
-            query = opts.merge(args[0] || {})
-            query[:raw] = true if query[:reduce]
-            unless design_doc_fresh
-              refresh_design_doc
-            end
-            raw = query.delete(:raw)
-            view_name = "#{design_doc_slug}/#{method_name}"
-            fetch_view_with_docs(view_name, query, raw)
-          end
+      def method_missing m, *args
+        if opts = has_view?(m)
+          query = args.shift || {}
+          view(m, opts.merge(query), *args)
+        else
+          super
+        end
+      end
+
+      # returns true if the there is a view named this in the design doc
+      def has_view?(view)
+        view = view.to_s
+        if generated_design_doc['views'][view]
+          generated_design_doc['views'][view]["couchrest-defaults"]
         end
       end
 
@@ -321,26 +326,29 @@ module CouchRest
 
       # Dispatches to any named view.
       def view name, query={}, &block
-        name = name.to_s
+        unless design_doc_fresh
+          refresh_design_doc
+        end
+        query[:raw] = true if query[:reduce]        
+        raw = query.delete(:raw)
         view_name = "#{design_doc_slug}/#{name}"
-        fetch_view_with_docs(view_name, query, true, &block)
+        fetch_view_with_docs(view_name, query, raw, &block)
       end
 
       private
 
       def fetch_view_with_docs name, opts, raw=false, &block
-        
         if raw
           fetch_view name, opts, &block
         else
           begin
             view = fetch_view name, opts.merge({:include_docs => true}), &block
-            view['rows'].collect{|r|new(r['doc'])} if view
+            view['rows'].collect{|r|new(r['doc'])} if view['rows']
           rescue
             # fallback for old versions of couchdb that don't 
             # have include_docs support
             view = fetch_view name, opts, &block
-            view['rows'].collect{|r|new(database.get(r['id']))} if view
+            view['rows'].collect{|r|new(database.get(r['id']))} if view['rows']
           end
         end
       end
