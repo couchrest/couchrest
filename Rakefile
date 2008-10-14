@@ -78,5 +78,5 @@ Rake::RDocTask.new do |rdoc|
   rdoc.title = "CouchRest: Ruby CouchDB, close to the metal"
 end
 
-desc "Generate the gemspec"
+desc "Run the rspec"
 task :default => :spec
