@@ -1,10 +1,10 @@
 Gem::Specification.new do |s|
   s.extra_rdoc_files = ["README.rdoc", "LICENSE", "THANKS"]
-  s.date = "Thu Sep 11 00:00:00 -0700 2008"
+  s.date = "Tue Oct 14 00:00:00 -0700 2008"
   s.executables = ["couchview", "couchdir", "couchapp"]
   s.authors = ["J. Chris Anderson"]
   s.required_rubygems_version = ">= 0"
-  s.version = "0.9.11"
+  s.version = "0.9.12"
   s.files = ["LICENSE",
  "README.rdoc",
  "Rakefile",
@@ -52,7 +52,10 @@ Gem::Specification.new do |s|
  "spec/couchrest/core/couchrest_spec.rb",
  "spec/couchrest/core/database_spec.rb",
  "spec/couchrest/core/model_spec.rb",
- "spec/file_manager_spec.rb",
+ "spec/couchrest/helpers",
+ "spec/couchrest/helpers/file_manager_spec.rb",
+ "spec/couchrest/helpers/pager_spec.rb",
+ "spec/couchrest/helpers/streamer_spec.rb",
  "spec/fixtures",
  "spec/fixtures/attachments",
  "spec/fixtures/attachments/couchdb.png",
@@ -64,6 +67,12 @@ Gem::Specification.new do |s|
  "spec/fixtures/couchapp/views/example-map.js",
  "spec/fixtures/couchapp/views/example-reduce.js",
  "spec/fixtures/couchapp-test",
+ "spec/fixtures/couchapp-test/my-app",
+ "spec/fixtures/couchapp-test/my-app/attachments",
+ "spec/fixtures/couchapp-test/my-app/attachments/index.html",
+ "spec/fixtures/couchapp-test/my-app/views",
+ "spec/fixtures/couchapp-test/my-app/views/example-map.js",
+ "spec/fixtures/couchapp-test/my-app/views/example-reduce.js",
  "spec/fixtures/views",
  "spec/fixtures/views/lib.js",
  "spec/fixtures/views/test_view",
@@ -71,10 +80,8 @@ Gem::Specification.new do |s|
  "spec/fixtures/views/test_view/only-map.js",
  "spec/fixtures/views/test_view/test-map.js",
  "spec/fixtures/views/test_view/test-reduce.js",
- "spec/pager_spec.rb",
  "spec/spec.opts",
  "spec/spec_helper.rb",
- "spec/streamer_spec.rb",
  "utils/remap.rb",
  "utils/subset.rb"]
   s.has_rdoc = "true"
