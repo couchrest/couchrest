@@ -311,7 +311,7 @@ module CouchRest
         end
       end
 
-      # returns true if the there is a view named this in the design doc
+      # returns stored defaults if the there is a view named this in the design doc
       def has_view?(view)
         view = view.to_s
         if generated_design_doc['views'][view]
