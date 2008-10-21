@@ -20,7 +20,7 @@ module CouchRest
       end
     end
     
-    def key_reduce(view, count, firstkey = nil, lastkey = nil, &block)
+    def key_reduce(view, count=2000, firstkey = nil, lastkey = nil, &block)
       # start with no keys
       startkey = firstkey
       # lastprocessedkey = nil
