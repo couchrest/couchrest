@@ -588,7 +588,7 @@ module CouchRest
     
     def get_mime_type(file)
       MIME::Types.type_for(file.path).empty? ? 
-        'text\/plain' : MIME::Types.type_for(file.path).content_type.gsub(/\//,'\/')
+        'text\/plain' : MIME::Types.type_for(file.path).first.content_type.gsub(/\//,'\/')
     end
 
     def set_attachment_attr(file, attachment_name)

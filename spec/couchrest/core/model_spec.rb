@@ -727,4 +727,60 @@ describe CouchRest::Model do
       lambda{Basic.get(@obj.id)}.should raise_error
     end
   end
+  
+  describe "creating an attachment" do
+    before(:each) do
+      @obj = Basic.new
+      @obj.save.should == true
+      @file_ext = File.open(FIXTURE_PATH + '/attachments/test.html')
+      @file_no_text = File.open(FIXTURE_PATH + '/attachments/README')
+      @attachment_name = 'my_attachment'
+    end
+    
+    it "should create an attachment from file with an extension" do
+      @obj.create_attachment(@file_ext, @attachment_name)
+      @obj.save.should == true
+      reloaded_obj = Basic.get(@obj.id)
+      reloaded_obj['_attachments'][@attachment_name].should_not be_nil
+    end
+    
+    it "should create an attachment from file without an extension" do
+      @obj.create_attachment(@file_no_text, @attachment_name)
+      @obj.save.should == true
+      reloaded_obj = Basic.get(@obj.id)
+      reloaded_obj['_attachments'][@attachment_name].should_not be_nil
+    end
+  end
+  
+  describe 'reading, updating, and deleting an attachment' do
+    before(:each) do
+      @obj = Basic.new
+      @file = File.open(FIXTURE_PATH + '/attachments/test.html')
+      @attachment_name = 'my_attachment'
+      @obj.create_attachment(@file, @attachment_name)
+      @obj.save.should == true
+      @file.rewind
+    end
+    
+    it 'should read an attachment that exists' do
+      @obj.read_attachment(@attachment_name).should == @file.read
+    end
+    
+    it 'should update an attachment that exists' do
+      file = File.open(FIXTURE_PATH + '/attachments/README')
+      @file.should_not == file
+      @obj.update_attachment(file, @attachment_name)
+      @obj.save
+      reloaded_obj = Basic.get(@obj.id)
+      file.rewind
+      reloaded_obj.read_attachment(@attachment_name).should_not == @file.read
+      reloaded_obj.read_attachment(@attachment_name).should == file.read
+    end
+    
+    it 'should delete an attachment that exists' do
+      @obj.delete_attachment(@attachment_name)
+      @obj.save
+      lambda{Basic.get(@obj.id).read_attachment(@attachment_name)}.should raise_error
+    end
+  end
 end
