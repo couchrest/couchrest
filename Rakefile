@@ -1,7 +1,7 @@
 require 'rake'
 require "rake/rdoctask"
 require 'spec/rake/spectask'
-
+require 'rake/gempackagetask'
 
 spec = Gem::Specification.new do |s|
   s.name = "couchrest"
@@ -24,6 +24,8 @@ spec = Gem::Specification.new do |s|
   s.add_dependency("rest-client", ">= 0.5")
   s.add_dependency("extlib", ">= 0.9.6")
 end
+
+::Rake::GemPackageTask.new(spec) { |p| p.gem_spec = spec }
 
 desc "Update Github Gemspec"
 task :gemspec do
