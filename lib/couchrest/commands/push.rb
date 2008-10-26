@@ -10,7 +10,11 @@ module CouchRest
         
         fm      = CouchRest::FileManager.new(database)
         fm.loud = options[:loud]
-        puts "Pushing views from directory #{directory} to database #{fm.db}"
+
+        if options[:loud]
+          puts "Pushing views from directory #{directory} to database #{fm.db}"
+        end
+
         fm.push_views(directory)
       end
 
