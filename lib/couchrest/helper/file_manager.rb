@@ -213,10 +213,9 @@ module CouchRest
         myfield = fields
         while farray.length > 1
           front = farray.shift
-          myfield[front] = {}
+          myfield[front] ||= {}
           myfield = myfield[front]
         end
-        # todo: json
         fname, fext = farray.shift.split('.')
         fguts = File.open(file).read
         if fext == 'json'
@@ -227,7 +226,6 @@ module CouchRest
       end
       if File.exists?("#{appdir}/doc.json")
         default_json = JSON.parse(File.open("#{appdir}/doc.json").read)
-        
       end
       design = @db.get(docid) rescue {}
       design.merge!(fields)

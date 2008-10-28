@@ -82,10 +82,15 @@ describe CouchRest::FileManager, "pushing an app" do
     doc = @db.get("_design/couchapp")
     doc['_attachments']['index.html']["content_type"].should == 'text/html'
   end
-  it "should push bar.txt" do
+  it "should push bar.txt and pals" do
+    File.open("#{@appdir}/foo/test.json",'w') do |f|
+      f.write("[1,2,3,4]")
+    end
+    r = @fm.push_app(@appdir, "couchapp")
     doc = @db.get("_design/couchapp")
     doc["foo"].should_not be_nil
     doc["foo"]["bar"].should include("Couchapp will")
+    doc["foo"]["test"].should == [1,2,3,4]
   end
   it "should push json as json" do
     File.open("#{@appdir}/test.json",'w') do |f|
