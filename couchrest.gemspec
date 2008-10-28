@@ -4,7 +4,7 @@ Gem::Specification.new do |s|
   s.executables = ["couchview", "couchdir", "couchapp"]
   s.authors = ["J. Chris Anderson"]
   s.required_rubygems_version = ">= 0"
-  s.version = "0.9.13"
+  s.version = "0.9.14"
   s.files = ["LICENSE",
  "README.rdoc",
  "Rakefile",
@@ -70,6 +70,14 @@ Gem::Specification.new do |s|
  "spec/fixtures/couchapp/views/example-map.js",
  "spec/fixtures/couchapp/views/example-reduce.js",
  "spec/fixtures/couchapp-test",
+ "spec/fixtures/couchapp-test/my-app",
+ "spec/fixtures/couchapp-test/my-app/_attachments",
+ "spec/fixtures/couchapp-test/my-app/_attachments/index.html",
+ "spec/fixtures/couchapp-test/my-app/foo",
+ "spec/fixtures/couchapp-test/my-app/foo/bar.txt",
+ "spec/fixtures/couchapp-test/my-app/views",
+ "spec/fixtures/couchapp-test/my-app/views/example-map.js",
+ "spec/fixtures/couchapp-test/my-app/views/example-reduce.js",
  "spec/fixtures/views",
  "spec/fixtures/views/lib.js",
  "spec/fixtures/views/test_view",

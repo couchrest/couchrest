@@ -5,7 +5,7 @@ require 'rake/gempackagetask'
 
 spec = Gem::Specification.new do |s|
   s.name = "couchrest"
-  s.version = "0.9.13"
+  s.version = "0.9.14"
   s.date = "2008-10-14"
   s.summary = "Lean and RESTful interface to CouchDB."
   s.email = "jchris@grabb.it"
