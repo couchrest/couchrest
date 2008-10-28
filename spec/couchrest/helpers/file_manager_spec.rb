@@ -37,9 +37,16 @@ describe CouchRest::FileManager, "generating an app" do
   it "should create a views directory" do
     Dir["#{@appdir}/*"].select{|x|x =~ /views/}.length.should == 1  
   end
+  it "should create a foo directory" do
+    Dir["#{@appdir}/*"].select{|x|x =~ /foo/}.length.should == 1  
+  end
   it "should create index.html" do
-    html = File.open("#{@appdir}/attachments/index.html").read
+    html = File.open("#{@appdir}/_attachments/index.html").read
     html.should match(/DOCTYPE/)
+  end
+  it "should create bar.txt" do
+    html = File.open("#{@appdir}/foo/bar.txt").read
+    html.should match(/Couchapp will/)
   end
   it "should create an example view" do
     map = File.open("#{@appdir}/views/example-map.js").read
@@ -74,6 +81,27 @@ describe CouchRest::FileManager, "pushing an app" do
   it "should create the index" do
     doc = @db.get("_design/couchapp")
     doc['_attachments']['index.html']["content_type"].should == 'text/html'
+  end
+  it "should push bar.txt" do
+    doc = @db.get("_design/couchapp")
+    doc["foo"].should_not be_nil
+    doc["foo"]["bar"].should include("Couchapp will")
+  end
+  it "should push json as json" do
+    File.open("#{@appdir}/test.json",'w') do |f|
+      f.write("[1,2,3,4]")
+    end
+    r = @fm.push_app(@appdir, "couchapp")
+    doc = @db.get("_design/couchapp")
+    doc['test'].should == [1,2,3,4]
+  end
+  it "should apply keys from doc.json directly to the doc" do
+    File.open("#{@appdir}/doc.json",'w') do |f|
+      f.write('{"magical":"so magic"}')
+    end
+    r = @fm.push_app(@appdir, "couchapp")
+    doc = @db.get("_design/couchapp")
+    doc['magical'].should == "so magic"
   end
 end
 

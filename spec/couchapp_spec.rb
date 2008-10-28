@@ -7,7 +7,6 @@ describe "couchapp" do
     `rm -rf #{@fixdir}`
     `mkdir -p #{@fixdir}`
     @run = "cd #{@fixdir} && #{@couchapp}"
-    
   end
 
   describe "--help" do

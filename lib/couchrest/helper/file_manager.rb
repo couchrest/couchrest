@@ -189,7 +189,7 @@ module CouchRest
     def push_app(appdir, appname)
       libs = []
       viewdir = File.join(appdir,"views")
-      attachdir = File.join(appdir,"attachments")
+      attachdir = File.join(appdir,"_attachments")
       views, lang = read_design_views(viewdir)
       # attachments = read_attachments(attachdir)
       docid = "_design/#{appname}"
@@ -199,28 +199,61 @@ module CouchRest
       design['language'] = lang
       @db.save(design)
       push_directory(attachdir, docid)
-      # puts views.inspect
+      
+      push_fields(appdir, docid)
+    end
+    
+    def push_fields(appdir, docid)
+      fields = {}
+      (Dir["#{appdir}/**/*.*"] - 
+        Dir["#{appdir}/views/**/*.*"] - 
+        Dir["#{appdir}/doc.json"] -         
+        Dir["#{appdir}/_attachments/**/*.*"]).each do |file|
+        farray = file.sub(appdir, '').sub(/^\//,'').split('/')
+        myfield = fields
+        while farray.length > 1
+          front = farray.shift
+          myfield[front] = {}
+          myfield = myfield[front]
+        end
+        # todo: json
+        fname, fext = farray.shift.split('.')
+        fguts = File.open(file).read
+        if fext == 'json'
+          myfield[fname] = JSON.parse(fguts)
+        else
+          myfield[fname] = fguts
+        end
+      end
+      if File.exists?("#{appdir}/doc.json")
+        default_json = JSON.parse(File.open("#{appdir}/doc.json").read)
+        
+      end
+      design = @db.get(docid) rescue {}
+      design.merge!(fields)
+      design.merge!(default_json) if default_json
+      @db.save(design)
     end
     
     # Generate an application in the given directory.
     # This is a class method because it doesn't depend on 
     # specifying a database.
-    def self.generate_app(app_dir)
+    def self.generate_app(app_dir)      
       FileUtils.mkdir_p(app_dir)
-      FileUtils.mkdir_p(File.join(app_dir,"attachments"))      
+      FileUtils.mkdir_p(File.join(app_dir,"_attachments"))      
       FileUtils.mkdir_p(File.join(app_dir,"views"))
+      FileUtils.mkdir_p(File.join(app_dir,"foo"))
       
-      index_template = File.join(File.expand_path(File.dirname(__FILE__)), 'templates','index.html')
-      index_dest = File.join(app_dir,"attachments","index.html")
-      FileUtils.cp(index_template, index_dest)
-      
-      map_template = File.join(File.expand_path(File.dirname(__FILE__)), 'templates','example-map.js')
-      map_dest = File.join(app_dir,"views","example-map.js")
-      FileUtils.cp(map_template, map_dest)
-      
-      rereduce_template = File.join(File.expand_path(File.dirname(__FILE__)), 'templates','example-reduce.js')
-      rereduce_dest = File.join(app_dir,"views","example-reduce.js")
-      FileUtils.cp(rereduce_template, rereduce_dest)
+      {
+        "index.html" => "_attachments",
+        'example-map.js' => "views",
+        'example-reduce.js' => "views",
+        'bar.txt' => "foo",
+      }.each do |filename, targetdir|
+        template = File.join(File.expand_path(File.dirname(__FILE__)), 'templates',filename)
+        dest = File.join(app_dir,targetdir,filename)
+        FileUtils.cp(template, dest)
+      end
     end
     
     private
