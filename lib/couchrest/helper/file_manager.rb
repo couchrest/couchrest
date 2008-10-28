@@ -191,12 +191,12 @@ module CouchRest
       viewdir = File.join(appdir,"views")
       attachdir = File.join(appdir,"_attachments")
       views, lang = read_design_views(viewdir)
-      # attachments = read_attachments(attachdir)
+
       docid = "_design/#{appname}"
       design = @db.get(docid) rescue {}
       design['_id'] = docid
       design['views'] = views
-      design['language'] = lang
+      design['language'] = lang if lang
       @db.save(design)
       push_directory(attachdir, docid)
       
