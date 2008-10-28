@@ -4,7 +4,7 @@ Gem::Specification.new do |s|
   s.executables = ["couchview", "couchdir", "couchapp"]
   s.authors = ["J. Chris Anderson"]
   s.required_rubygems_version = ">= 0"
-  s.version = "0.9.12"
+  s.version = "0.9.13"
   s.files = ["LICENSE",
  "README.rdoc",
  "Rakefile",
@@ -41,6 +41,7 @@ Gem::Specification.new do |s|
  "lib/couchrest/helper/pager.rb",
  "lib/couchrest/helper/streamer.rb",
  "lib/couchrest/helper/templates",
+ "lib/couchrest/helper/templates/bar.txt",
  "lib/couchrest/helper/templates/example-map.js",
  "lib/couchrest/helper/templates/example-reduce.js",
  "lib/couchrest/helper/templates/index.html",
@@ -61,18 +62,14 @@ Gem::Specification.new do |s|
  "spec/fixtures/attachments/couchdb.png",
  "spec/fixtures/attachments/test.html",
  "spec/fixtures/couchapp",
- "spec/fixtures/couchapp/attachments",
- "spec/fixtures/couchapp/attachments/index.html",
+ "spec/fixtures/couchapp/_attachments",
+ "spec/fixtures/couchapp/_attachments/index.html",
+ "spec/fixtures/couchapp/foo",
+ "spec/fixtures/couchapp/foo/bar.txt",
  "spec/fixtures/couchapp/views",
  "spec/fixtures/couchapp/views/example-map.js",
  "spec/fixtures/couchapp/views/example-reduce.js",
  "spec/fixtures/couchapp-test",
- "spec/fixtures/couchapp-test/my-app",
- "spec/fixtures/couchapp-test/my-app/attachments",
- "spec/fixtures/couchapp-test/my-app/attachments/index.html",
- "spec/fixtures/couchapp-test/my-app/views",
- "spec/fixtures/couchapp-test/my-app/views/example-map.js",
- "spec/fixtures/couchapp-test/my-app/views/example-reduce.js",
  "spec/fixtures/views",
  "spec/fixtures/views/lib.js",
  "spec/fixtures/views/test_view",
