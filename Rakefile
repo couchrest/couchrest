@@ -15,7 +15,7 @@ spec = Gem::Specification.new do |s|
   s.authors = ["J. Chris Anderson"]
   s.files = %w( LICENSE README.rdoc Rakefile THANKS ) + 
     Dir["{bin,examples,lib,spec,utils}/**/*"] - 
-    Dir["spec/fixtures/couchapp*"]
+    Dir["spec/fixtures/couchapp*/**/*"] - Dir["spec/fixtures/couchapp*"]
   s.extra_rdoc_files = %w( README.rdoc LICENSE THANKS )
   s.require_path = "lib"
   s.bindir = 'bin'
