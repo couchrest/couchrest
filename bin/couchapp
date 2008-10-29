@@ -44,6 +44,7 @@ when /push/
     puts "push dirname [appname] database"
     exit(0)
   end
+  CouchRest.database!(dbstring)
   dbspec = CouchRest.parse(dbstring)
   fm = CouchRest::FileManager.new(dbspec[:database], dbspec[:host])
   fm.push_app(dir, appname)
