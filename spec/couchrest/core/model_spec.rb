@@ -734,7 +734,7 @@ describe CouchRest::Model do
       @obj.save.should == true
       @file = File.open(FIXTURE_PATH + '/attachments/test.html')
       @attachment_name = 'my_attachment'
-      @obj.create_attachment(@file, @attachment_name)
+      @obj.create_attachment(:file => @file, :name => @attachment_name)
     end
     
     it 'should return false if there is no attachment' do
@@ -762,22 +762,36 @@ describe CouchRest::Model do
       @obj = Basic.new
       @obj.save.should == true
       @file_ext = File.open(FIXTURE_PATH + '/attachments/test.html')
-      @file_no_text = File.open(FIXTURE_PATH + '/attachments/README')
+      @file_no_ext = File.open(FIXTURE_PATH + '/attachments/README')
       @attachment_name = 'my_attachment'
+      @content_type = 'media/mp3'
     end
     
     it "should create an attachment from file with an extension" do
-      @obj.create_attachment(@file_ext, @attachment_name)
+      @obj.create_attachment(:file => @file_ext, :name => @attachment_name)
       @obj.save.should == true
       reloaded_obj = Basic.get(@obj.id)
       reloaded_obj['_attachments'][@attachment_name].should_not be_nil
     end
     
     it "should create an attachment from file without an extension" do
-      @obj.create_attachment(@file_no_text, @attachment_name)
+      @obj.create_attachment(:file => @file_no_ext, :name => @attachment_name)
       @obj.save.should == true
       reloaded_obj = Basic.get(@obj.id)
       reloaded_obj['_attachments'][@attachment_name].should_not be_nil
+    end
+    
+    it 'should raise ArgumentError if :file is missing' do
+      lambda{ @obj.create_attachment(:name => @attachment_name) }.should raise_error
+    end
+    
+    it 'should raise ArgumentError if :name is missing' do
+      lambda{ @obj.create_attachment(:file => @file_ext) }.should raise_error
+    end
+    
+    it 'should set the content-type if passed' do
+      @obj.create_attachment(:file => @file_ext, :name => @attachment_name, :content_type => @content_type)
+      @obj['_attachments'][@attachment_name]['content-type'].should == @content_type
     end
   end
   
@@ -786,9 +800,10 @@ describe CouchRest::Model do
       @obj = Basic.new
       @file = File.open(FIXTURE_PATH + '/attachments/test.html')
       @attachment_name = 'my_attachment'
-      @obj.create_attachment(@file, @attachment_name)
+      @obj.create_attachment(:file => @file, :name => @attachment_name)
       @obj.save.should == true
       @file.rewind
+      @content_type = 'media/mp3'
     end
     
     it 'should read an attachment that exists' do
@@ -798,12 +813,19 @@ describe CouchRest::Model do
     it 'should update an attachment that exists' do
       file = File.open(FIXTURE_PATH + '/attachments/README')
       @file.should_not == file
-      @obj.update_attachment(file, @attachment_name)
+      @obj.update_attachment(:file => file, :name => @attachment_name)
       @obj.save
       reloaded_obj = Basic.get(@obj.id)
       file.rewind
       reloaded_obj.read_attachment(@attachment_name).should_not == @file.read
       reloaded_obj.read_attachment(@attachment_name).should == file.read
+    end
+    
+    it 'should se the content-type if passed' do
+      file = File.open(FIXTURE_PATH + '/attachments/README')
+      @file.should_not == file
+      @obj.update_attachment(:file => file, :name => @attachment_name, :content_type => @content_type)
+      @obj['_attachments'][@attachment_name]['content-type'].should == @content_type
     end
     
     it 'should delete an attachment that exists' do

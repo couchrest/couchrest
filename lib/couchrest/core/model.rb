@@ -506,10 +506,13 @@ module CouchRest
     end
 
     # creates a file attachment to the current doc
-    def create_attachment(file, attachment_name)
-      return if has_attachment?(attachment_name)
+    def create_attachment(args={})
+      raise ArgumentError unless args[:file] && args[:name]
+      return if has_attachment?(args[:name])
       self['_attachments'] ||= {}
-      set_attachment_attr(file, attachment_name)
+      set_attachment_attr(args)
+    rescue ArgumentError => e
+      raise ArgumentError, 'You must specify :file and :name'
     end
     
     # reads the data from an attachment
@@ -518,10 +521,13 @@ module CouchRest
     end
     
     # modifies a file attachment on the current doc
-    def update_attachment(file, attachment_name)
-      return unless has_attachment?(attachment_name)
-      delete_attachment(attachment_name)
-      set_attachment_attr(file, attachment_name)
+    def update_attachment(args={})
+      raise ArgumentError unless args[:file] && args[:name]
+      return unless has_attachment?(args[:name])
+      delete_attachment(args[:name])
+      set_attachment_attr(args)
+    rescue ArgumentError => e
+      raise ArgumentError, 'You must specify :file and :name'
     end
     
     # deletes a file attachment from the current doc
@@ -595,10 +601,11 @@ module CouchRest
         'text\/plain' : MIME::Types.type_for(file.path).first.content_type.gsub(/\//,'\/')
     end
 
-    def set_attachment_attr(file, attachment_name)
-      self['_attachments'][attachment_name] = {
-        'content-type' => get_mime_type(file),
-        'data'         => encode_attachment(file.read)
+    def set_attachment_attr(args)
+      content_type = args[:content_type] ? args[:content_type] : get_mime_type(args[:file])
+      self['_attachments'][args[:name]] = {
+        'content-type' => content_type,
+        'data'         => encode_attachment(args[:file].read)
       }
     end
 
