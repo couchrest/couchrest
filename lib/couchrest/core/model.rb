@@ -536,8 +536,15 @@ module CouchRest
       self['_attachments'].delete attachment_name
     end
     
+    # returns true if attachment_name exists
     def has_attachment?(attachment_name)
       !!(self['_attachments'] && self['_attachments'][attachment_name] && !self['_attachments'][attachment_name].empty?)
+    end
+
+    # returns URL to fetch the attachment from
+    def attachment_url(attachment_name)
+      return unless has_attachment?(attachment_name)
+      "#{database.root}/#{self.id}/#{attachment_name}"
     end
 
     protected

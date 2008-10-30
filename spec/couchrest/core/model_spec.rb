@@ -834,4 +834,22 @@ describe CouchRest::Model do
       lambda{Basic.get(@obj.id).read_attachment(@attachment_name)}.should raise_error
     end
   end
+  
+  describe "#attachment_url" do
+    before(:each) do
+      @obj = Basic.new
+      @file = File.open(FIXTURE_PATH + '/attachments/test.html')
+      @attachment_name = 'my_attachment'
+      @obj.create_attachment(:file => @file, :name => @attachment_name)
+      @obj.save.should == true
+    end
+    
+    it 'should return nil if attachment does not exist' do
+      @obj.attachment_url('bogus').should be_nil
+    end
+    
+    it 'should return the attachment URL as specified by CouchDB HttpDocumentApi' do
+      @obj.attachment_url(@attachment_name).should == "#{Basic.database}/#{@obj.id}/#{@attachment_name}"
+    end
+  end
 end
