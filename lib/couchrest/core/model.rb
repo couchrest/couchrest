@@ -493,7 +493,7 @@ module CouchRest
       raise "#{self.inspect} failed to save" unless self.save
     end
 
-    # Deletes the document from the database. Runs the :delete callbacks.
+    # Deletes the document from the database. Runs the :destroy callbacks.
     # Removes the <tt>_id</tt> and <tt>_rev</tt> fields, preparing the
     # document to be saved to a new <tt>_id</tt>.
     def destroy
