@@ -728,6 +728,35 @@ describe CouchRest::Model do
     end
   end
   
+  describe "#has_attachment?" do
+    before(:each) do
+      @obj = Basic.new
+      @obj.save.should == true
+      @file = File.open(FIXTURE_PATH + '/attachments/test.html')
+      @attachment_name = 'my_attachment'
+      @obj.create_attachment(@file, @attachment_name)
+    end
+    
+    it 'should return false if there is no attachment' do
+      @obj.has_attachment?('bogus').should be_false
+    end
+    
+    it 'should return true if there is an attachment' do
+      @obj.has_attachment?(@attachment_name).should be_true
+    end
+    
+    it 'should return true if an object with an attachment is reloaded' do
+      @obj.save.should be_true
+      reloaded_obj = Basic.get(@obj.id)
+      reloaded_obj.has_attachment?(@attachment_name).should be_true
+    end
+    
+    it 'should return false if an attachment has been removed' do
+      @obj.delete_attachment(@attachment_name)
+      @obj.has_attachment?(@attachment_name).should be_false
+    end
+  end
+  
   describe "creating an attachment" do
     before(:each) do
       @obj = Basic.new

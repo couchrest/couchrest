@@ -507,7 +507,7 @@ module CouchRest
 
     # creates a file attachment to the current doc
     def create_attachment(file, attachment_name)
-      return if self['_attachments'] && self['_attachments'][attachment_name] && !self['_attachments'][attachment_name].empty?
+      return if has_attachment?(attachment_name)
       self['_attachments'] ||= {}
       set_attachment_attr(file, attachment_name)
     end
@@ -519,7 +519,7 @@ module CouchRest
     
     # modifies a file attachment on the current doc
     def update_attachment(file, attachment_name)
-      return unless self['_attachments'] && self['_attachments'][attachment_name]
+      return unless has_attachment?(attachment_name)
       delete_attachment(attachment_name)
       set_attachment_attr(file, attachment_name)
     end
@@ -528,6 +528,10 @@ module CouchRest
     def delete_attachment(attachment_name)
       return unless self['_attachments']
       self['_attachments'].delete attachment_name
+    end
+    
+    def has_attachment?(attachment_name)
+      !!(self['_attachments'] && self['_attachments'][attachment_name] && !self['_attachments'][attachment_name].empty?)
     end
 
     protected
