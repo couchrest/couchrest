@@ -232,6 +232,28 @@ describe CouchRest::Model do
     end
   end
 
+  describe "finding the first instance of a model" do
+    before(:all) do
+      WithTemplate.new('important-field' => '1').save
+      WithTemplate.new('important-field' => '2').save
+      WithTemplate.new('important-field' => '3').save
+      WithTemplate.new('important-field' => '4').save
+    end
+    it "should make the design doc" do
+      WithTemplate.all
+      d = WithTemplate.design_doc
+      d['views']['all']['map'].should include('WithTemplate')
+    end
+    it "should find first" do
+      rs = WithTemplate.first
+      rs['important-field'].should == "1"
+    end
+    it "should return nil if no instances are found" do
+      WithTemplate.all.each {|obj| obj.destroy }
+      WithTemplate.first.should be_nil
+    end
+  end
+  
   describe "getting a model with a subobject field" do
     before(:all) do
       course_doc = {

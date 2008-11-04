@@ -124,6 +124,11 @@ module CouchRest
         fetch_view_with_docs(view_name, opts, raw)
       end
       
+      def first opts = {}
+        first_instance = self.all(opts.merge!(:count => 1))
+        first_instance.empty? ? nil : first_instance.first
+      end
+      
       # Cast a field as another class. The class must be happy to have the
       # field's primitive type as the argument to it's constucture. Classes
       # which inherit from CouchRest::Model are happy to act as sub-objects
