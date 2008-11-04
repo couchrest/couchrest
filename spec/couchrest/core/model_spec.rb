@@ -3,6 +3,16 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 class Basic < CouchRest::Model
 end
 
+class BasicWithValidation < CouchRest::Model
+  
+  before :save, :validate
+  key_accessor :name
+  
+  def validate
+    throw(:halt, false) unless name
+  end
+end
+
 class WithTemplate < CouchRest::Model
   unique_id do |model|
     model['important-field']
@@ -298,6 +308,21 @@ describe CouchRest::Model do
     it "should set the type" do
       @obj['couchrest-type'].should == 'Basic'
     end
+  end
+  
+  describe "saving a model with validation hooks added as extlib" do
+    before(:all) do
+      @obj = BasicWithValidation.new
+    end
+    
+    it "save should return false is the model doesn't save as expected" do
+      @obj.save.should be_false
+    end
+    
+    it "save! should raise and exception if the model doesn't save" do
+      lambda{ @obj.save!}.should raise_error("#{@obj.inspect} failed to save")
+    end
+    
   end
 
   describe "saving a model with a unique_id configured" do

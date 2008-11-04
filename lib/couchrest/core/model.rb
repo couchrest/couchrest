@@ -459,6 +459,12 @@ module CouchRest
         update
       end
     end
+    
+    # Saves the document to the db using create or update. Raises an exception
+    # if the document is not saved properly.
+    def save!
+      raise "#{self.inspect} failed to save" unless self.save
+    end
 
     # Deletes the document from the database. Runs the :delete callbacks.
     # Removes the <tt>_id</tt> and <tt>_rev</tt> fields, preparing the
