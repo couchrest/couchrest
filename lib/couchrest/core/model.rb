@@ -68,15 +68,12 @@ module CouchRest
   #  
   #     Article.by_tags :key => "ruby", :reduce => true
   #  
-  class Model < Hash
+  class Model < Document
 
     # instantiates the hash by converting all the keys to strings.
     def initialize keys = {}
-      super()
+      super(keys)
       apply_defaults
-      keys.each do |k,v|
-        self[k.to_s] = v
-      end
       cast_keys
       unless self['_id'] && self['_rev']
         self['couchrest-type'] = self.class.to_s
@@ -314,9 +311,8 @@ module CouchRest
       # returns stored defaults if the there is a view named this in the design doc
       def has_view?(view)
         view = view.to_s
-        if generated_design_doc['views'][view]
+        generated_design_doc['views'][view] &&
           generated_design_doc['views'][view]["couchrest-defaults"]
-        end
       end
 
       # Fetch the generated design doc. Could raise an error if the generated views have not been queried yet.
@@ -495,7 +491,7 @@ module CouchRest
     def apply_defaults
       if self.class.default
         self.class.default.each do |k,v|
-          self[k.to_s] = v
+          self[k] = v
         end
       end
     end
