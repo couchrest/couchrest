@@ -29,6 +29,7 @@ module CouchRest
   autoload :Server,       'couchrest/core/server'
   autoload :Database,     'couchrest/core/database'
   autoload :Document,     'couchrest/core/document'
+  autoload :View,         'couchrest/core/view'
   autoload :Model,        'couchrest/core/model'
   autoload :Pager,        'couchrest/helper/pager'
   autoload :FileManager,  'couchrest/helper/file_manager'
