@@ -112,7 +112,7 @@ module CouchRest
       end
 
       # Load all documents that have the "couchrest-type" field equal to the
-      # name of the current class. Take thes the standard set of
+      # name of the current class. Take the standard set of
       # CouchRest::Database#view options.
       def all opts = {}
         self.generated_design_doc ||= default_design_doc
@@ -124,6 +124,17 @@ module CouchRest
         fetch_view_with_docs(view_name, opts, raw)
       end
       
+      # Load the first document that have the "couchrest-type" field equal to
+      # the name of the current class.
+      #
+      # ==== Returns
+      # Object:: The first object instance available
+      # or
+      # Nil:: if no instances available
+      #
+      # ==== Parameters
+      # opts<Hash>::
+      # View options, see <tt>CouchRest::Database#view</tt> options for more info.
       def first opts = {}
         first_instance = self.all(opts.merge!(:count => 1))
         first_instance.empty? ? nil : first_instance.first
