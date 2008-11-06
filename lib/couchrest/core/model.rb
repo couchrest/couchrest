@@ -125,10 +125,39 @@ module CouchRest
       end
       
       # Cast a field as another class. The class must be happy to have the
-      # field's primitive type as the argument to it's constucture. Classes
+      # field's primitive type as the argument to it's constuctur. Classes
       # which inherit from CouchRest::Model are happy to act as sub-objects
       # for any fields that are stored in JSON as object (and therefore are
       # parsed from the JSON as Ruby Hashes).
+      # 
+      # Example:
+      #
+      #   class Post < CouchRest::Model
+      #
+      #     key_accessor :title, :body, :author
+      #
+      #     cast :author, :as => 'Author'
+      #
+      #   end
+      # 
+      #   post.author.class #=> Author
+      #
+      # Using the same example, if a Post should have many Comments, we 
+      # would declare it like this:
+      #
+      #   class Post < CouchRest::Model
+      #
+      #     key_accessor :title, :body, :author, comments
+      #
+      #     cast :author, :as => 'Author'
+      #     cast :comments, :as => ['Comment']
+      #
+      #   end
+      #
+      #   post.author.class #=> Author
+      #   post.comments.class #=> Array
+      #   post.comments.first #=> Comment
+      # 
       def cast field, opts = {}
         self.casts ||= {}
         self.casts[field.to_s] = opts
