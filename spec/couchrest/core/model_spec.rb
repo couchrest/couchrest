@@ -134,7 +134,7 @@ describe CouchRest::Model do
     end
   end
   
-  describe "update attributes" do
+  describe "update attributes without saving" do
     before(:each) do
       a = Article.get "big-bad-danger" rescue nil
       a.destroy if a
@@ -160,13 +160,21 @@ describe CouchRest::Model do
       @art['title'].should == "big bad danger"
     end
     
+  end
+  
+  describe "update attributes" do
+    before(:each) do
+      a = Article.get "big-bad-danger" rescue nil
+      a.destroy if a
+      @art = Article.new(:title => "big bad danger")
+      @art.save
+    end
     it "should save" do
       @art['title'].should == "big bad danger"
       @art.update_attributes('date' => Time.now, :title => "super danger")
       loaded = Article.get @art.id
       loaded['title'].should == "super danger"
     end
-    
   end
   
   describe "a model with template values" do
