@@ -215,7 +215,7 @@ describe CouchRest::Database do
       r2["lemons"].should == "from texas"
     end
     it "should use PUT with UUIDs" do
-      CouchRest.should_receive(:put)
+      CouchRest.should_receive(:put).and_return({"ok" => true, "id" => "100", "rev" => "55"})
       r = @db.save({'just' => ['another document']})      
     end
     

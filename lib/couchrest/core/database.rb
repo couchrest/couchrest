@@ -70,7 +70,14 @@ module CouchRest
     # GET a document from CouchDB, by id. Returns a Ruby Hash.
     def get id
       slug = CGI.escape(id) 
-      CouchRest.get "#{@root}/#{slug}"
+      hash = CouchRest.get("#{@root}/#{slug}")
+      doc = if /^_design/ =~ hash["_id"]
+        Design.new(hash)
+      else
+        Document.new(hash)
+      end
+      doc.database = self
+      doc
     end
     
     # GET an attachment directly from CouchDB
@@ -103,7 +110,7 @@ module CouchRest
       if doc['_attachments']
         doc['_attachments'] = encode_attachments(doc['_attachments'])
       end
-      if doc['_id']
+      result = if doc['_id']
         slug = CGI.escape(doc['_id'])
         CouchRest.put "#{@root}/#{slug}", doc
       else
@@ -114,6 +121,12 @@ module CouchRest
           CouchRest.post @root, doc
         end
       end
+      if result['ok']
+        doc['_id'] = result['id']
+        doc['_rev'] = result['rev']
+        doc.database = self if doc.respond_to?(:database=)
+      end
+      result
     end
     
     # POST an array of documents to CouchDB. If any of the documents are

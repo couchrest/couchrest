@@ -87,7 +87,7 @@ module CouchRest
     class_inheritable_accessor :casts
     class_inheritable_accessor :default_obj
     class_inheritable_accessor :class_database
-    class_inheritable_accessor :generated_design_doc
+    class_inheritable_accessor :design_doc
     class_inheritable_accessor :design_doc_slug_cache
     class_inheritable_accessor :design_doc_fresh
 
@@ -111,15 +111,15 @@ module CouchRest
       # Load all documents that have the "couchrest-type" field equal to the
       # name of the current class. Take thes the standard set of
       # CouchRest::Database#view options.
-      def all opts = {}
-        self.generated_design_doc ||= default_design_doc
-        unless design_doc_fresh
-          refresh_design_doc
-        end
-        view_name = "#{design_doc_slug}/all"
-        raw = opts.delete(:raw)
-        fetch_view_with_docs(view_name, opts, raw)
-      end
+      # def all opts = {}
+      #   self.generated_design_doc ||= default_design_doc
+      #   unless design_doc_fresh
+      #     refresh_design_doc
+      #   end
+      #   view_name = "#{design_doc_slug}/all"
+      #   raw = opts.delete(:raw)
+      #   fetch_view_with_docs(view_name, opts, raw)
+      # end
       
       # Cast a field as another class. The class must be happy to have the
       # field's primitive type as the argument to it's constucture. Classes
@@ -263,46 +263,54 @@ module CouchRest
       # To understand the capabilities of this view system more compeletly,
       # it is recommended that you read the RSpec file at
       # <tt>spec/core/model_spec.rb</tt>.
-      def view_by *keys
-        opts = keys.pop if keys.last.is_a?(Hash)
-        opts ||= {}
-        type = self.to_s
 
-        method_name = "by_#{keys.join('_and_')}"
-        self.generated_design_doc ||= default_design_doc
-        ducktype = opts.delete(:ducktype)
-        if opts[:map]
-          view = {}
-          view['map'] = opts.delete(:map)
-          if opts[:reduce]
-            view['reduce'] = opts.delete(:reduce)
-            opts[:reduce] = false
-          end
-          generated_design_doc['views'][method_name] = view
-        else
-          doc_keys = keys.collect{|k|"doc['#{k}']"}
-          key_protection = doc_keys.join(' && ')
-          key_emit = doc_keys.length == 1 ? "#{doc_keys.first}" : "[#{doc_keys.join(', ')}]"
-          map_function = <<-JAVASCRIPT
-          function(doc) {
-            if (#{!ducktype ? "doc['couchrest-type'] == '#{type}' && " : ""}#{key_protection}) {
-              emit(#{key_emit}, null);
-            }
-          }
-          JAVASCRIPT
-          generated_design_doc['views'][method_name] = {
-            'map' => map_function
-          }
-        end
-        generated_design_doc['views'][method_name]['couchrest-defaults'] = opts
-        self.design_doc_fresh = false
-        method_name
+      def view_by *keys
+        self.design_doc ||= Design.new(default_design_doc)
+        self.design_doc.view_by(*keys)
       end
 
+      # def view_by *keys
+      #   opts = keys.pop if keys.last.is_a?(Hash)
+      #   opts ||= {}
+      #   
+      #   
+      #   type = self.to_s
+      # 
+      #   method_name = "by_#{keys.join('_and_')}"
+      #   self.generated_design_doc ||= default_design_doc
+      #   ducktype = opts.delete(:ducktype)
+      #   if opts[:map]
+      #     view = {}
+      #     view['map'] = opts.delete(:map)
+      #     if opts[:reduce]
+      #       view['reduce'] = opts.delete(:reduce)
+      #       opts[:reduce] = false
+      #     end
+      #     generated_design_doc['views'][method_name] = view
+      #   else
+      #     doc_keys = keys.collect{|k|"doc['#{k}']"}
+      #     key_protection = doc_keys.join(' && ')
+      #     key_emit = doc_keys.length == 1 ? "#{doc_keys.first}" : "[#{doc_keys.join(', ')}]"
+      #     map_function = <<-JAVASCRIPT
+      #     function(doc) {
+      #       if (#{!ducktype ? "doc['couchrest-type'] == '#{type}' && " : ""}#{key_protection}) {
+      #         emit(#{key_emit}, null);
+      #       }
+      #     }
+      #     JAVASCRIPT
+      #     generated_design_doc['views'][method_name] = {
+      #       'map' => map_function
+      #     }
+      #   end
+      #   generated_design_doc['views'][method_name]['couchrest-defaults'] = opts
+      #   self.design_doc_fresh = false
+      #   method_name
+      # end
+
       def method_missing m, *args
-        if opts = has_view?(m)
+        if has_view?(m)
           query = args.shift || {}
-          view(m, opts.merge(query), *args)
+          view(m, query, *args)
         else
           super
         end
@@ -311,14 +319,14 @@ module CouchRest
       # returns stored defaults if the there is a view named this in the design doc
       def has_view?(view)
         view = view.to_s
-        generated_design_doc['views'][view] &&
-          generated_design_doc['views'][view]["couchrest-defaults"]
+        design_doc['views'][view]
       end
 
-      # Fetch the generated design doc. Could raise an error if the generated views have not been queried yet.
-      def design_doc
-        database.get("_design/#{design_doc_slug}")
-      end
+      # # Fetch the generated design doc. Could raise an error if the generated
+      # # views have not been queried yet.
+      # def design_doc
+      #   database.get("_design/#{design_doc_slug}")
+      # end
 
       # Dispatches to any named view.
       def view name, query={}, &block
@@ -327,8 +335,7 @@ module CouchRest
         end
         query[:raw] = true if query[:reduce]        
         raw = query.delete(:raw)
-        view_name = "#{design_doc_slug}/#{name}"
-        fetch_view_with_docs(view_name, query, raw, &block)
+        fetch_view_with_docs(name, query, raw, &block)
       end
 
       private
@@ -352,7 +359,7 @@ module CouchRest
       def fetch_view view_name, opts, &block
         retryable = true
         begin
-          database.view(view_name, opts, &block)
+          design_doc.view(view_name, opts, &block)
           # the design doc could have been deleted by a rouge process
         rescue RestClient::ResourceNotFound => e
           if retryable
@@ -368,7 +375,7 @@ module CouchRest
       def design_doc_slug
         return design_doc_slug_cache if design_doc_slug_cache && design_doc_fresh
         funcs = []
-        generated_design_doc['views'].each do |name, view|
+        design_doc['views'].each do |name, view|
           funcs << "#{name}/#{view['map']}#{view['reduce']}"
         end
         md5 = Digest::MD5.hexdigest(funcs.sort.join(''))
@@ -390,36 +397,27 @@ module CouchRest
         }
       end
 
-      def refresh_design_doc
-        did = "_design/#{design_doc_slug}"
-        saved = database.get(did) rescue nil
-        if saved
-          generated_design_doc['views'].each do |name, view|
-            saved['views'][name] = view
-          end
-          database.save(saved)
-        else
-          generated_design_doc['_id'] = did
-          database.save(generated_design_doc)
-        end
-        self.design_doc_fresh = true
-      end
+      # def refresh_design_doc
+      #   did = "_design/#{design_doc_slug}"
+      #   saved = database.get(did) rescue nil
+      #   if saved
+      #     design_doc['views'].each do |name, view|
+      #       saved['views'][name] = view
+      #     end
+      #     database.save(saved)
+      #   else
+      #     design_doc['_id'] = did
+      #     design_doc.database = database
+      #     design_doc.save
+      #   end
+      #   self.design_doc_fresh = true
+      # end
 
     end # class << self
 
     # returns the database used by this model's class
     def database
       self.class.database
-    end
-
-    # alias for self['_id']
-    def id
-      self['_id']
-    end
-
-    # alias for self['_rev']      
-    def rev
-      self['_rev']
     end
 
     # Takes a hash as argument, and applies the values by using writer methods
@@ -435,58 +433,7 @@ module CouchRest
       save
     end
 
-    # returns true if the document has never been saved
-    def new_record?
-      !rev
-    end
-
-    # Saves the document to the db using create or update. Also runs the :save
-    # callbacks. Sets the <tt>_id</tt> and <tt>_rev</tt> fields based on
-    # CouchDB's response.
-    def save
-      if new_record?
-        create
-      else
-        update
-      end
-    end
-
-    # Deletes the document from the database. Runs the :delete callbacks.
-    # Removes the <tt>_id</tt> and <tt>_rev</tt> fields, preparing the
-    # document to be saved to a new <tt>_id</tt>.
-    def destroy
-      result = database.delete self
-      if result['ok']
-        self['_rev'] = nil
-        self['_id'] = nil
-      end
-      result['ok']
-    end
-
-    protected
-
-    # Saves a document for the first time, after running the before(:create)
-    # callbacks, and applying the unique_id.
-    def create
-      set_unique_id if respond_to?(:set_unique_id) # hack
-      save_doc
-    end
-
-    # Saves the document and runs the :update callbacks.
-    def update
-      save_doc
-    end
-
     private
-
-    def save_doc
-      result = database.save self
-      if result['ok']
-        self['_id'] = result['id']
-        self['_rev'] = result['rev']
-      end
-      result['ok']
-    end
 
     def apply_defaults
       if self.class.default
