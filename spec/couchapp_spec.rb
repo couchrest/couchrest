@@ -43,6 +43,12 @@ describe "couchapp" do
       doc = @db.get("_design/my-app")
       doc['views']['example']['map'].should match(/function/)
     end
+    it "should create view for all the views" do
+      `echo 'moremap' > #{@fixdir}/my-app/views/more-map.js`
+      `#{@run} push my-app #{TESTDB}`
+      doc = @db.get("_design/my-app")
+      doc['views']['more']['map'].should match(/moremap/)
+    end
     it "should create the index" do
       `#{@run} push my-app #{TESTDB}`
       doc = @db.get("_design/my-app")
