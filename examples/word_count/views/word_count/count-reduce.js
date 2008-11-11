@@ -1,3 +1,3 @@
-function(key,combine){
-  return sum(combine);
+function(key,values){
+  return sum(values);
 }
