@@ -10,6 +10,7 @@ module CouchRest
       "html"  => "text/html",
       "htm"   => "text/html",
       "png"   => "image/png",
+      "gif"   => "image/gif",
       "css"   => "text/css",
       "js"    => "test/javascript"
     }    
