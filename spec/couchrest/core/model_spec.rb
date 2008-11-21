@@ -16,6 +16,7 @@ end
 
 class Question < CouchRest::Model
   key_accessor :q, :a
+  couchrest_type = 'Question'
 end
 
 class Person < CouchRest::Model

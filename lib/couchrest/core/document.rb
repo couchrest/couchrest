@@ -28,7 +28,7 @@ module CouchRest
     end
 
     # returns true if the document has never been saved
-    def new_record?
+    def new_document?
       !rev
     end
 
