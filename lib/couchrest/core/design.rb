@@ -1,7 +1,6 @@
 module CouchRest  
   class Design < Document
     def view_by *keys
-      # @stale = true
       opts = keys.pop if keys.last.is_a?(Hash)
       opts ||= {}
       self['views'] ||= {}
@@ -29,6 +28,7 @@ module CouchRest
         self['views'][method_name] = {
           'map' => map_function
         }
+        self['views'][method_name]['couchrest-defaults'] = opts
         method_name
       end
     end
@@ -43,24 +43,23 @@ module CouchRest
     # end
 
     # Dispatches to any named view.
-    def view name, query={}, &block
-      # if @stale
-      #   self.save
-      # end
-      view_name = "#{slug}/#{name}"
-      fetch_view(view_name, query, &block)
+    def view view_name, query={}, &block
+      view_name = view_name.to_s
+      view_slug = "#{name}/#{view_name}"
+      defaults = (self['views'][view_name] && self['views'][view_name]["couchrest-defaults"]) || {}
+      fetch_view(view_slug, defaults.merge(query), &block)
     end
 
-    def slug
-      id.sub('_design/','')
+    def name
+      id.sub('_design/','') if id
     end
 
-    def slug= newslug
-      self['_id'] = "_design/#{newslug}"
+    def name= newname
+      self['_id'] = "_design/#{newname}"
     end
 
     def save
-      raise ArgumentError, "_design" unless slug && slug.length > 0
+      raise ArgumentError, "_design docs require a name" unless name && name.length > 0
       super
     end
 

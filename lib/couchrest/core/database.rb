@@ -144,6 +144,8 @@ module CouchRest
     # DELETE the document from CouchDB that has the given <tt>_id</tt> and
     # <tt>_rev</tt>.
     def delete doc
+      raise ArgumentError, "_id and _rev required for deleting" unless doc['_id'] && doc['_rev']
+      
       slug = CGI.escape(doc['_id'])
       CouchRest.delete "#{@root}/#{slug}?rev=#{doc['_rev']}"
     end

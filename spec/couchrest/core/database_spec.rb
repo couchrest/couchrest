@@ -418,6 +418,9 @@ describe CouchRest::Database do
       @db.delete doc
       lambda{@db.get @docid}.should raise_error
     end
+    it "should fail without an _id" do
+      lambda{@db.delete({"not"=>"a real doc"})}.should raise_error(ArgumentError)
+    end
   end
   
   it "should list documents" do

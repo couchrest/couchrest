@@ -1,5 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-
+__END__
 class Basic < CouchRest::Model
 end
 

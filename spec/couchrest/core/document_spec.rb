@@ -44,7 +44,7 @@ describe CouchRest::Document, "saving using a database" do
     @db = reset_test_db!    
     @resp = @db.save(@doc)
   end
-  it "should get the database" do
+  it "should apply the database" do
     @doc.database.should == @db    
   end
   it "should get id and rev" do
@@ -67,9 +67,30 @@ describe "getting from a database" do
   it "should have a database" do
     @doc.database.should == @db
   end
-  it "should be saveable" do
+  it "should be saveable and resavable" do
     @doc["more"] = "keys"
     @doc.save
     @db.get(@resp['id'])["more"].should == "keys"
+    @doc["more"] = "these keys"    
+    @doc.save
+    @db.get(@resp['id'])["more"].should == "these keys"
+  end
+end
+
+describe "destroying a document from a db" do
+  before(:all) do
+    @db = reset_test_db!
+    @resp = @db.save({
+      "key" => "value"
+    })
+    @doc = @db.get @resp['id']
+  end
+  it "should make it disappear" do
+    @doc.destroy
+    lambda{@db.get @resp['id']}.should raise_error
+  end
+  it "should error when there's no db" do
+    @doc = CouchRest::Document.new("key" => [1,2,3], :more => "values")    
+    lambda{@doc.destroy}.should raise_error(ArgumentError)
   end
 end
