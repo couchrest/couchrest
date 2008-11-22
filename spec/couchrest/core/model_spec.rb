@@ -565,6 +565,23 @@ describe CouchRest::Model do
     end
   end
 
+  describe "with a lot of designs left around" do
+    before(:each) do
+      Article.by_date
+      Article.view_by :field
+      Article.by_field
+    end
+    it "should clean them up" do
+      Article.view_by :stream
+      Article.by_stream
+      ddocs = Article.all_design_doc_versions
+      ddocs["rows"].length.should > 1
+      Article.cleanup_design_docs!
+      ddocs = Article.all_design_doc_versions
+      ddocs["rows"].length.should == 1
+    end
+  end
+
   describe "destroying an instance" do
     before(:each) do
       @obj = Basic.new

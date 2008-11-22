@@ -276,44 +276,6 @@ module CouchRest
         self.design_doc_fresh = false
       end
 
-      # def view_by *keys
-      #   opts = keys.pop if keys.last.is_a?(Hash)
-      #   opts ||= {}
-      #   
-      #   
-      #   type = self.to_s
-      # 
-      #   method_name = "by_#{keys.join('_and_')}"
-      #   self.generated_design_doc ||= default_design_doc
-      #   ducktype = opts.delete(:ducktype)
-      #   if opts[:map]
-      #     view = {}
-      #     view['map'] = opts.delete(:map)
-      #     if opts[:reduce]
-      #       view['reduce'] = opts.delete(:reduce)
-      #       opts[:reduce] = false
-      #     end
-      #     generated_design_doc['views'][method_name] = view
-      #   else
-      #     doc_keys = keys.collect{|k|"doc['#{k}']"}
-      #     key_protection = doc_keys.join(' && ')
-      #     key_emit = doc_keys.length == 1 ? "#{doc_keys.first}" : "[#{doc_keys.join(', ')}]"
-      #     map_function = <<-JAVASCRIPT
-      #     function(doc) {
-      #       if (#{!ducktype ? "doc['couchrest-type'] == '#{type}' && " : ""}#{key_protection}) {
-      #         emit(#{key_emit}, null);
-      #       }
-      #     }
-      #     JAVASCRIPT
-      #     generated_design_doc['views'][method_name] = {
-      #       'map' => map_function
-      #     }
-      #   end
-      #   generated_design_doc['views'][method_name]['couchrest-defaults'] = opts
-      #   self.design_doc_fresh = false
-      #   method_name
-      # end
-
       def method_missing m, *args
         if has_view?(m)
           query = args.shift || {}
@@ -329,12 +291,6 @@ module CouchRest
         design_doc && design_doc['views'] && design_doc['views'][view]
       end
 
-      # # Fetch the generated design doc. Could raise an error if the generated
-      # # views have not been queried yet.
-      # def design_doc
-      #   database.get("_design/#{design_doc_slug}")
-      # end
-
       # Dispatches to any named view.
       def view name, query={}, &block
         unless design_doc_fresh
@@ -343,6 +299,28 @@ module CouchRest
         query[:raw] = true if query[:reduce]        
         raw = query.delete(:raw)
         fetch_view_with_docs(name, query, raw, &block)
+      end
+
+      def all_design_doc_versions
+        database.documents :startkey => "_design/#{self.to_s}-", 
+          :endkey => "_design/#{self.to_s}-\u9999"
+      end
+
+      # Deletes any non-current design docs that were created by this class. 
+      # Running this when you're deployed version of your application is steadily 
+      # and consistently using the latest code, is the way to clear out old design 
+      # docs. Running it to early could mean that live code has to regenerate
+      # potentially large indexes.
+      def cleanup_design_docs!
+        ddocs = all_design_doc_versions
+        ddocs["rows"].each do |row|
+          if (row['id'] != design_doc_id)
+            database.delete({
+              "_id" => row['id'],
+              "_rev" => row['value']['rev']
+            })
+          end
+        end
       end
 
       private
@@ -379,6 +357,10 @@ module CouchRest
         end
       end
 
+      def design_doc_id
+        "_design/#{design_doc_slug}"
+      end
+
       def design_doc_slug
         return design_doc_slug_cache if design_doc_slug_cache && design_doc_fresh
         funcs = []
@@ -405,7 +387,7 @@ module CouchRest
       end
 
       def refresh_design_doc
-        did = "_design/#{design_doc_slug}"
+        did = design_doc_id
         saved = database.get(did) rescue nil
         if saved
           design_doc['views'].each do |name, view|
