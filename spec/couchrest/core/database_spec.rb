@@ -215,7 +215,7 @@ describe CouchRest::Database do
       r2["lemons"].should == "from texas"
     end
     it "should use PUT with UUIDs" do
-      CouchRest.should_receive(:put)
+      CouchRest.should_receive(:put).and_return({"ok" => true, "id" => "100", "rev" => "55"})
       r = @db.save({'just' => ['another document']})      
     end
     
@@ -417,6 +417,9 @@ describe CouchRest::Database do
       doc = @db.get(@docid)
       @db.delete doc
       lambda{@db.get @docid}.should raise_error
+    end
+    it "should fail without an _id" do
+      lambda{@db.delete({"not"=>"a real doc"})}.should raise_error(ArgumentError)
     end
   end
   

@@ -16,6 +16,7 @@ end
 
 class Question < CouchRest::Model
   key_accessor :q, :a
+  couchrest_type = 'Question'
 end
 
 class Person < CouchRest::Model
@@ -213,7 +214,7 @@ describe CouchRest::Model do
       @course["questions"][0].a[0].should == "beast"
     end
   end
-
+  
   describe "finding all instances of a model" do
     before(:all) do
       WithTemplate.new('important-field' => '1').save
@@ -283,6 +284,11 @@ describe CouchRest::Model do
       @art = Article.new
       @old = Article.database.get('this-is-the-title') rescue nil
       Article.database.delete(@old) if @old
+    end
+    
+    it "should be a new document" do
+      @art.should be_a_new_document
+      @art.title.should be_nil
     end
     
     it "should require the title" do
@@ -390,10 +396,14 @@ describe CouchRest::Model do
         written_at += 24 * 3600
       end
     end
+
+    it "should have a design doc" do
+      Article.design_doc["views"]["by_date"].should_not be_nil
+    end
     
-    it "should create the design doc" do
-      Article.by_date rescue nil
-      doc = Article.design_doc
+    it "should save the design doc" do
+      Article.by_date #rescue nil
+      doc = Article.database.get Article.design_doc.id
       doc['views']['by_date'].should_not be_nil
     end
     
@@ -402,7 +412,7 @@ describe CouchRest::Model do
       view['rows'].length.should == 4
     end
     
-    it "should return the matching objects (with descending)" do
+    it "should return the matching objects (with default argument :descending => true)" do
       articles = Article.by_date
       articles.collect{|a|a.title}.should == @titles.reverse
     end
@@ -417,10 +427,9 @@ describe CouchRest::Model do
     before(:all) do
       Course.database.delete! rescue nil
       @db = @cr.create_db(TESTDB) rescue nil
-      Course.new(:title => 'aaa').save
-      Course.new(:title => 'bbb').save
-      Course.new(:title => 'ddd').save
-      Course.new(:title => 'eee').save
+      %w{aaa bbb ddd eee}.each do |title|
+        Course.new(:title => title).save
+      end
     end
     it "should make the design doc upon first query" do
       Course.by_title 
@@ -442,13 +451,12 @@ describe CouchRest::Model do
       courses = []
       rs = Course.by_title # remove me
       Course.view(:by_title) do |course|
-        # puts "course"
         courses << course
       end
-      # courses.should == 'x'
       courses[0]["doc"]["title"].should =='aaa'
     end
   end
+
   
   describe "a ducktype view" do
     before(:all) do
@@ -527,6 +535,7 @@ describe CouchRest::Model do
     end
   end
 
+  # TODO: moved to Design, delete
   describe "adding a view" do
     before(:each) do
       Article.by_date
@@ -544,6 +553,8 @@ describe CouchRest::Model do
       Article.by_updated_at
       newdocs = Article.database.documents :startkey => "_design/", 
         :endkey => "_design/\u9999"
+      # puts @design_docs.inspect
+      # puts newdocs.inspect
       newdocs["rows"].length.should == @design_docs["rows"].length + 1
     end
   end
