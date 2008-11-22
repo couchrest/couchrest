@@ -1,10 +1,10 @@
 Gem::Specification.new do |s|
   s.extra_rdoc_files = ["README.rdoc", "LICENSE", "THANKS"]
-  s.date = "Wed Oct 29 00:00:00 -0700 2008"
+  s.date = "Sat Nov 22 00:00:00 -0800 2008"
   s.executables = ["couchview", "couchdir", "couchapp"]
   s.authors = ["J. Chris Anderson"]
   s.required_rubygems_version = ">= 0"
-  s.version = "0.9.15"
+  s.version = "0.10.0"
   s.files = ["LICENSE",
  "README.rdoc",
  "Rakefile",
@@ -34,8 +34,11 @@ Gem::Specification.new do |s|
  "lib/couchrest/commands/push.rb",
  "lib/couchrest/core",
  "lib/couchrest/core/database.rb",
+ "lib/couchrest/core/design.rb",
+ "lib/couchrest/core/document.rb",
  "lib/couchrest/core/model.rb",
  "lib/couchrest/core/server.rb",
+ "lib/couchrest/core/view.rb",
  "lib/couchrest/helper",
  "lib/couchrest/helper/file_manager.rb",
  "lib/couchrest/helper/pager.rb",
@@ -52,6 +55,8 @@ Gem::Specification.new do |s|
  "spec/couchrest/core",
  "spec/couchrest/core/couchrest_spec.rb",
  "spec/couchrest/core/database_spec.rb",
+ "spec/couchrest/core/design_spec.rb",
+ "spec/couchrest/core/document_spec.rb",
  "spec/couchrest/core/model_spec.rb",
  "spec/couchrest/helpers",
  "spec/couchrest/helpers/file_manager_spec.rb",
