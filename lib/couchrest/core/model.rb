@@ -116,9 +116,6 @@ module CouchRest
         unless design_doc_fresh
           refresh_design_doc
         end
-        # view_name = "#{design_doc_slug}/all"
-        # raw = opts.delete(:raw)
-        # fetch_view_with_docs(view_name, opts, raw)
         view :all, opts, &block
       end
       
@@ -270,8 +267,10 @@ module CouchRest
         opts = keys.pop if keys.last.is_a?(Hash)
         opts ||= {}
         ducktype = opts.delete(:ducktype)
-        # if ducktype
-        # end
+        unless ducktype || opts[:map]
+          opts[:guards] ||= []
+          opts[:guards].push "(doc['couchrest-type'] == '#{self.to_s}')"
+        end
         keys.push opts
         self.design_doc.view_by(*keys)
         self.design_doc_fresh = false

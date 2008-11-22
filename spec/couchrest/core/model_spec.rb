@@ -412,6 +412,12 @@ describe CouchRest::Model do
       view['rows'].length.should == 4
     end
     
+    it "should not include non-Articles" do
+      Article.database.save({"date" => 1})
+      view = Article.by_date :raw => true
+      view['rows'].length.should == 4
+    end
+    
     it "should return the matching objects (with default argument :descending => true)" do
       articles = Article.by_date
       articles.collect{|a|a.title}.should == @titles.reverse
