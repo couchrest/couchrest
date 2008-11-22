@@ -17,31 +17,23 @@ module CouchRest
       else
         doc_keys = keys.collect{|k|"doc['#{k}']"} # this is where :require => 'doc.x == true' would show up
         key_emit = doc_keys.length == 1 ? "#{doc_keys.first}" : "[#{doc_keys.join(', ')}]"
-        guards = doc_keys
+        guards = opts.delete(:guards) || []
+        guards.concat doc_keys
         map_function = <<-JAVASCRIPT
-        function(doc) {
-          if (#{guards.join(' && ')}) {
-            emit(#{key_emit}, null);
-          }
-        }
-        JAVASCRIPT
+function(doc) {
+  if (#{guards.join(' && ')}) {
+    emit(#{key_emit}, null);
+  }
+}
+JAVASCRIPT
         self['views'][method_name] = {
           'map' => map_function
         }
-        self['views'][method_name]['couchrest-defaults'] = opts
-        method_name
       end
+      self['views'][method_name]['couchrest-defaults'] = opts unless opts.empty?
+      method_name
     end
-
-    # def method_missing m, *args
-    #   if opts = has_view?(m)
-    #     query = args.shift || {}
-    #     view(m, opts.merge(query), *args)
-    #   else
-    #     super
-    #   end
-    # end
-
+    
     # Dispatches to any named view.
     def view view_name, query={}, &block
       view_name = view_name.to_s

@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'extlib'
 require 'digest/md5'
-
+require File.dirname(__FILE__) + '/document'
 # = CouchRest::Model - ORM, the CouchDB way
 module CouchRest
   # = CouchRest::Model - ORM, the CouchDB way
@@ -111,15 +111,16 @@ module CouchRest
       # Load all documents that have the "couchrest-type" field equal to the
       # name of the current class. Take thes the standard set of
       # CouchRest::Database#view options.
-      # def all opts = {}
-      #   self.generated_design_doc ||= default_design_doc
-      #   unless design_doc_fresh
-      #     refresh_design_doc
-      #   end
-      #   view_name = "#{design_doc_slug}/all"
-      #   raw = opts.delete(:raw)
-      #   fetch_view_with_docs(view_name, opts, raw)
-      # end
+      def all opts = {}, &block
+        self.design_doc ||= Design.new(default_design_doc)
+        unless design_doc_fresh
+          refresh_design_doc
+        end
+        # view_name = "#{design_doc_slug}/all"
+        # raw = opts.delete(:raw)
+        # fetch_view_with_docs(view_name, opts, raw)
+        view :all, opts, &block
+      end
       
       # Cast a field as another class. The class must be happy to have the
       # field's primitive type as the argument to it's constucture. Classes
@@ -266,7 +267,14 @@ module CouchRest
 
       def view_by *keys
         self.design_doc ||= Design.new(default_design_doc)
+        opts = keys.pop if keys.last.is_a?(Hash)
+        opts ||= {}
+        ducktype = opts.delete(:ducktype)
+        # if ducktype
+        # end
+        keys.push opts
         self.design_doc.view_by(*keys)
+        self.design_doc_fresh = false
       end
 
       # def view_by *keys
@@ -319,7 +327,7 @@ module CouchRest
       # returns stored defaults if the there is a view named this in the design doc
       def has_view?(view)
         view = view.to_s
-        design_doc['views'][view]
+        design_doc && design_doc['views'] && design_doc['views'][view]
       end
 
       # # Fetch the generated design doc. Could raise an error if the generated
@@ -397,21 +405,22 @@ module CouchRest
         }
       end
 
-      # def refresh_design_doc
-      #   did = "_design/#{design_doc_slug}"
-      #   saved = database.get(did) rescue nil
-      #   if saved
-      #     design_doc['views'].each do |name, view|
-      #       saved['views'][name] = view
-      #     end
-      #     database.save(saved)
-      #   else
-      #     design_doc['_id'] = did
-      #     design_doc.database = database
-      #     design_doc.save
-      #   end
-      #   self.design_doc_fresh = true
-      # end
+      def refresh_design_doc
+        did = "_design/#{design_doc_slug}"
+        saved = database.get(did) rescue nil
+        if saved
+          design_doc['views'].each do |name, view|
+            saved['views'][name] = view
+          end
+          database.save(saved)
+        else
+          design_doc['_id'] = did
+          design_doc.delete('_rev')
+          design_doc.database = database
+          design_doc.save
+        end
+        self.design_doc_fresh = true
+      end
 
     end # class << self
 
@@ -431,6 +440,34 @@ module CouchRest
         self.send("#{k}=",v)
       end
       save
+    end
+
+    # for compatibility with old-school frameworks
+    alias :new_record? :new_document? 
+
+    # We override this to create the create and update callback opportunities.
+    # I think we should drop those and just have save. If you care, in your callback, 
+    # check new_document?
+    def save actually=false
+      if actually
+        super()
+      else
+        if new_document?
+          create
+        else
+          update
+        end
+      end     
+    end
+    
+    def update
+      save :actually
+    end
+
+    def create
+      # can we use the callbacks for this?
+      set_unique_id if self.respond_to?(:set_unique_id)
+      save :actually
     end
 
     private
@@ -461,6 +498,8 @@ module CouchRest
     end
 
     include ::Extlib::Hook
+    # todo: drop create and update hooks... 
+    # (use new_record? in callbacks if you care)
     register_instance_hooks :save, :create, :update, :destroy
 
   end # class Model

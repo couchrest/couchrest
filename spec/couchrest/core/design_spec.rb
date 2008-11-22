@@ -119,7 +119,8 @@ describe CouchRest::Design do
       method = @des.view_by :name, :age
       @des.database = @db
       @des.save
-      @db.bulk_save([{"name" => "a", "age" => 2},{"name" => "a", "age" => 4},{"name" => "z", "age" => 9}])
+      @db.bulk_save([{"name" => "a", "age" => 2},
+        {"name" => "a", "age" => 4},{"name" => "z", "age" => 9}])
     end
     it "should work" do
       res = @des.view :by_name_and_age
