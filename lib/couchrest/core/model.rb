@@ -440,15 +440,22 @@ module CouchRest
     end
 
     # Takes a hash as argument, and applies the values by using writer methods
-    # for each key. Raises a NoMethodError if the corresponding methods are
-    # missing. In case of error, no attributes are changed.
-    def update_attributes hash
+    # for each key. It doesn't save the document at the end. Raises a NoMethodError if the corresponding methods are
+    # missing. In case of error, no attributes are changed.    
+    def update_attributes_without_saving hash
       hash.each do |k, v|
         raise NoMethodError, "#{k}= method not available, use key_accessor or key_writer :#{k}" unless self.respond_to?("#{k}=")
       end      
       hash.each do |k, v|
         self.send("#{k}=",v)
       end
+    end
+
+    # Takes a hash as argument, and applies the values by using writer methods
+    # for each key. Raises a NoMethodError if the corresponding methods are
+    # missing. In case of error, no attributes are changed.
+    def update_attributes hash
+      update_attributes_without_saving hash
       save
     end
 
