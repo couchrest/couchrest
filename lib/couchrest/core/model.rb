@@ -119,6 +119,11 @@ module CouchRest
         view :all, opts, &block
       end
       
+      def first opts = {}
+        first_instance = self.all(opts.merge!(:count => 1))
+        first_instance.empty? ? nil : first_instance.first
+      end
+      
       # Cast a field as another class. The class must be happy to have the
       # field's primitive type as the argument to it's constuctur. Classes
       # which inherit from CouchRest::Model are happy to act as sub-objects
@@ -477,8 +482,26 @@ module CouchRest
       end     
     end
     
+    # Saves the document to the db using create or update. Raises an exception
+    # if the document is not saved properly.
+    def save!
+      raise "#{self.inspect} failed to save" unless self.save
+    end
+    
     def update
       save :actually
+    end
+
+    # Deletes the document from the database. Runs the :delete callbacks.
+    # Removes the <tt>_id</tt> and <tt>_rev</tt> fields, preparing the
+    # document to be saved to a new <tt>_id</tt>.
+    def destroy
+      result = database.delete self
+      if result['ok']
+        self['_rev'] = nil
+        self['_id'] = nil
+      end
+      result['ok']
     end
 
     def create
