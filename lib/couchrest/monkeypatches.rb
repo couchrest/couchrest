@@ -8,7 +8,7 @@ class Time
 
   def to_json(options = nil)
     u = self.utc
-    %("#{u.strftime("%Y/%m/%d %H:%M:%S +0000")}")
+    %("#{u.strftime("%Y/%m/%d %H:%M:%S.#{u.usec} +0000")}")
   end
 
   # Decodes the JSON time format to a UTC time.
