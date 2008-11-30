@@ -526,7 +526,11 @@ module CouchRest
     def apply_defaults
       if self.class.default
         self.class.default.each do |k,v|
-          self[k] = v
+          if v.class == Proc
+            self[k.to_s] = v.call
+          else
+            self[k.to_s] = Marshal.load(Marshal.dump(v))
+          end
         end
       end
     end
