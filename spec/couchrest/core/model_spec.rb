@@ -77,6 +77,27 @@ class Article < CouchRest::Model
   end
 end
 
+class Player < CouchRest::Model
+  unique_id :email
+
+  key_accessor :email, :name, :str, :coord, :int, :con, :spirit, :level, :xp, :points, :coins, :date, :items, :loc
+
+  view_by :name, :descending => true
+  view_by :loc
+  
+  timestamps!
+end
+
+describe "save bug" do
+  it "should fix" do
+    @db = reset_test_db!
+    @p = Player.new
+    @p.email = 'insane@fakestreet.com'
+    @p.save
+  end
+end
+
+
 describe CouchRest::Model do
   before(:all) do
     @cr = CouchRest.new(COUCHHOST)
