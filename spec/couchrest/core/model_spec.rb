@@ -13,7 +13,7 @@ class BasicWithValidation < CouchRest::Model
   end
 end
 
-class WithTemplate < CouchRest::Model
+class WithTemplateAndUniqueID < CouchRest::Model
   unique_id do |model|
     model['important-field']
   end
@@ -190,7 +190,7 @@ describe CouchRest::Model do
   
   describe "a model with template values" do
     before(:all) do
-      @tmpl = WithTemplate.new
+      @tmpl = WithTemplateAndUniqueID.new
     end
     it "should have fields set when new" do
       @tmpl.preset.should == 'value'
@@ -235,41 +235,42 @@ describe CouchRest::Model do
   
   describe "finding all instances of a model" do
     before(:all) do
-      WithTemplate.new('important-field' => '1').save
-      WithTemplate.new('important-field' => '2').save
-      WithTemplate.new('important-field' => '3').save
-      WithTemplate.new('important-field' => '4').save
+      WithTemplateAndUniqueID.new('important-field' => '1').save
+      WithTemplateAndUniqueID.new('important-field' => '2').save
+      WithTemplateAndUniqueID.new('important-field' => '3').save
+      WithTemplateAndUniqueID.new('important-field' => '4').save
     end
     it "should make the design doc" do
-      WithTemplate.all
-      d = WithTemplate.design_doc
-      d['views']['all']['map'].should include('WithTemplate')
+      WithTemplateAndUniqueID.all
+      d = WithTemplateAndUniqueID.design_doc
+      d['views']['all']['map'].should include('WithTemplateAndUniqueID')
     end
     it "should find all" do
-      rs = WithTemplate.all 
+      rs = WithTemplateAndUniqueID.all 
       rs.length.should == 4
     end
   end
 
   describe "finding the first instance of a model" do
-    before(:all) do
-      WithTemplate.new('important-field' => '1').save
-      WithTemplate.new('important-field' => '2').save
-      WithTemplate.new('important-field' => '3').save
-      WithTemplate.new('important-field' => '4').save
+    before(:each) do      
+      @db = reset_test_db!
+      WithTemplateAndUniqueID.new('important-field' => '1').save
+      WithTemplateAndUniqueID.new('important-field' => '2').save
+      WithTemplateAndUniqueID.new('important-field' => '3').save
+      WithTemplateAndUniqueID.new('important-field' => '4').save
     end
     it "should make the design doc" do
-      WithTemplate.all
-      d = WithTemplate.design_doc
-      d['views']['all']['map'].should include('WithTemplate')
+      WithTemplateAndUniqueID.all
+      d = WithTemplateAndUniqueID.design_doc
+      d['views']['all']['map'].should include('WithTemplateAndUniqueID')
     end
     it "should find first" do
-      rs = WithTemplate.first
+      rs = WithTemplateAndUniqueID.first
       rs['important-field'].should == "1"
     end
     it "should return nil if no instances are found" do
-      WithTemplate.all.each {|obj| obj.destroy }
-      WithTemplate.first.should be_nil
+      WithTemplateAndUniqueID.all.each {|obj| obj.destroy }
+      WithTemplateAndUniqueID.first.should be_nil
     end
   end
   
@@ -382,8 +383,8 @@ describe CouchRest::Model do
 
   describe "saving a model with a unique_id lambda" do
     before(:each) do
-      @templated = WithTemplate.new
-      @old = WithTemplate.get('very-important') rescue nil
+      @templated = WithTemplateAndUniqueID.new
+      @old = WithTemplateAndUniqueID.get('very-important') rescue nil
       @old.destroy if @old
     end
     
@@ -396,7 +397,7 @@ describe CouchRest::Model do
     it "should save with the id" do
       @templated['important-field'] = 'very-important'
       @templated.save.should == true
-      t = WithTemplate.get('very-important')
+      t = WithTemplateAndUniqueID.get('very-important')
       t.should == @templated
     end
     
@@ -405,14 +406,14 @@ describe CouchRest::Model do
       @templated.save.should == true
       @templated['important-field'] = 'not-important'
       @templated.save.should == true
-      t = WithTemplate.get('very-important')
+      t = WithTemplateAndUniqueID.get('very-important')
       t.should == @templated
     end
     
     it "should raise an error when the id is taken" do
       @templated['important-field'] = 'very-important'
       @templated.save.should == true
-      lambda{WithTemplate.new('important-field' => 'very-important').save}.should raise_error
+      lambda{WithTemplateAndUniqueID.new('important-field' => 'very-important').save}.should raise_error
     end
     
     it "should set the id" do
