@@ -461,6 +461,16 @@ describe CouchRest::Database do
     end
   end
   
+
+  describe "compacting a database" do
+    it "should compact the database" do
+      db = @cr.database('couchrest-test')
+      # r = 
+      db.compact!
+      # r['ok'].should == true
+    end
+  end
+
   describe "deleting a database" do
     it "should start with the test database" do
       @cr.databases.should include('couchrest-test')

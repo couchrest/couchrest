@@ -149,7 +149,12 @@ module CouchRest
       slug = CGI.escape(doc['_id'])
       CouchRest.delete "#{@root}/#{slug}?rev=#{doc['_rev']}"
     end
-    
+
+    # Compact the database, removing old document revisions and optimizing space use.
+    def compact!
+      CouchRest.post "#{@root}/_compact"
+    end
+
     # DELETE the database itself. This is not undoable and could be rather
     # catastrophic. Use with care!
     def delete!
