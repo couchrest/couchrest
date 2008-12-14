@@ -12,7 +12,8 @@ module CouchRest
       "png"   => "image/png",
       "gif"   => "image/gif",
       "css"   => "text/css",
-      "js"    => "test/javascript"
+      "js"    => "test/javascript",
+      "txt"   => "text/plain"
     }    
     def initialize(dbname, host="http://127.0.0.1:5984")
       @db = CouchRest.new(host).database(dbname)
