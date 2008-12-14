@@ -15,12 +15,12 @@ describe CouchRest::FileManager do
     lambda{CouchRest::FileManager.new}.should raise_error
   end
   it "should accept a db name" do
-    @fm = CouchRest::FileManager.new(TESTDB, 'http://localhost')
+    @fm = CouchRest::FileManager.new(TESTDB, 'http://127.0.0.1')
     @fm.db.name.should == TESTDB
   end
-  it "should default to localhost couchdb" do
+  it "should default to 127.0.0.1 couchdb" do
     @fm = CouchRest::FileManager.new(TESTDB)
-    @fm.db.host.should == 'http://localhost:5984'
+    @fm.db.host.should == 'http://127.0.0.1:5984'
   end
 end
 

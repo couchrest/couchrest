@@ -5,10 +5,10 @@ require 'couchrest'
 # use it to create a smaller dataset on which to prototype views.
 
 # specify the source database
-source = CouchRest.new("http://localhost:5984").database('source-db')
+source = CouchRest.new("http://127.0.0.1:5984").database('source-db')
 
 # specify the target database
-target = CouchRest.new("http://localhost:5984").database('target-db')
+target = CouchRest.new("http://127.0.0.1:5984").database('target-db')
 
 # pager efficiently yields all view rows
 pager = CouchRest::Pager.new(source)

@@ -14,7 +14,7 @@ module CouchRest
       "css"   => "text/css",
       "js"    => "test/javascript"
     }    
-    def initialize(dbname, host="http://localhost:5984")
+    def initialize(dbname, host="http://127.0.0.1:5984")
       @db = CouchRest.new(host).database(dbname)
     end
     

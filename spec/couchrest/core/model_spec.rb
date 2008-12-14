@@ -45,7 +45,7 @@ class Course < CouchRest::Model
 end
 
 class Article < CouchRest::Model
-  use_database CouchRest.database!('http://localhost:5984/couchrest-model-test')
+  use_database CouchRest.database!('http://127.0.0.1:5984/couchrest-model-test')
   unique_id :slug
   
   view_by :date, :descending => true
@@ -106,8 +106,8 @@ describe CouchRest::Model do
     @db = @cr.create_db(TESTDB) rescue nil
     @adb = @cr.database('couchrest-model-test')
     @adb.delete! rescue nil
-    CouchRest.database!('http://localhost:5984/couchrest-model-test')
-    CouchRest::Model.default_database = CouchRest.database!('http://localhost:5984/couchrest-test')
+    CouchRest.database!('http://127.0.0.1:5984/couchrest-model-test')
+    CouchRest::Model.default_database = CouchRest.database!('http://127.0.0.1:5984/couchrest-test')
   end
   
   it "should use the default database" do

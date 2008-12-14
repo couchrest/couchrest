@@ -52,7 +52,7 @@ module CouchRest
         foo-project/bar-views/my-design/viewname-reduce.js
         foo-project/bar-views/my-design/noreduce-map.js
 
-        Pushed to => http://localhost:5984/baz-database/_design/my-design
+        Pushed to => http://127.0.0.1:5984/baz-database/_design/my-design
 
         And the design document:
         {

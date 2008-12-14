@@ -2,7 +2,7 @@
 
 require File.expand_path(File.dirname(__FILE__)) + '/../../couchrest'
 
-cr = CouchRest.new("http://localhost:5984")
+cr = CouchRest.new("http://127.0.0.1:5984")
 @db = cr.database('word-count-example')
 @word_memoizer = {}
 
