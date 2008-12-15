@@ -119,7 +119,7 @@ module CouchRest
       if bulk
         @bulk_save_cache << doc
         return bulk_save if @bulk_save_cache.length >= @bulk_save_cache_limit
-        return doc
+        return {"ok" => true} # Compatibility with Document#save
       elsif !bulk && @bulk_save_cache.length > 0
         bulk_save
       end

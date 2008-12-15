@@ -35,9 +35,10 @@ module CouchRest
     # Saves the document to the db using create or update. Also runs the :save
     # callbacks. Sets the <tt>_id</tt> and <tt>_rev</tt> fields based on
     # CouchDB's response.
-    def save
+    # If <tt>bulk</tt> is <tt>true</tt> (defaults to false) the document is cached for bulk save.
+    def save(bulk = false)
       raise ArgumentError, "doc.database required for saving" unless database
-      result = database.save self
+      result = database.save self, bulk
       result['ok']
     end
 
