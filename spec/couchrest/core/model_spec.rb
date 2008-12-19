@@ -40,6 +40,7 @@ class Course < CouchRest::Model
   key_accessor :title
   cast :questions, :as => ['Question']
   cast :professor, :as => 'Person'
+  cast :final_test_at, :as => 'Time'
   view_by :title
   view_by :dept, :ducktype => true
 end
@@ -301,7 +302,8 @@ describe CouchRest::Model do
         "title" => "Metaphysics 410",
         "professor" => {
           "name" => ["Mark", "Hinchliff"]
-        }
+        },
+        "final_test_at" => "2008/12/19 13:00:00 +0800"
       }
       r = Course.database.save course_doc
       @course = Course.get r['id']
@@ -311,6 +313,9 @@ describe CouchRest::Model do
     end
     it "should instantiate the professor as a person" do
       @course['professor'].last_name.should == "Hinchliff"
+    end
+    it "should instantiate the final_test_at as a Time" do
+      @course['final_test_at'].should == Time.parse("2008/12/19 13:00:00 +0800")
     end
   end
 
