@@ -4,6 +4,7 @@ require "base64"
 module CouchRest
   class Database
     attr_reader :server, :host, :name, :root
+    attr_accessor :bulk_save_cache_limit
      
     # Create a CouchRest::Database adapter for the supplied CouchRest::Server
     # and database name.
@@ -18,6 +19,8 @@ module CouchRest
       @host = server.uri
       @root = "#{host}/#{name}"
       @streamer = Streamer.new(self)
+      @bulk_save_cache = []
+      @bulk_save_cache_limit = 50
     end
     
     # returns the database's uri
@@ -106,9 +109,19 @@ module CouchRest
     # documents on the client side because POST has the curious property of
     # being automatically retried by proxies in the event of network
     # segmentation and lost responses.
-    def save doc
+    #
+    # If <tt>bulk</tt> is true (false by default) the document is cached for bulk-saving later.
+    # Bulk saving happens automatically when #bulk_save_cache limit is exceded, or on the next non bulk save.
+    def save (doc, bulk = false)
       if doc['_attachments']
         doc['_attachments'] = encode_attachments(doc['_attachments'])
+      end
+      if bulk
+        @bulk_save_cache << doc
+        return bulk_save if @bulk_save_cache.length >= @bulk_save_cache_limit
+        return {"ok" => true} # Compatibility with Document#save
+      elsif !bulk && @bulk_save_cache.length > 0
+        bulk_save
       end
       result = if doc['_id']
         slug = CGI.escape(doc['_id'])
@@ -131,7 +144,13 @@ module CouchRest
     
     # POST an array of documents to CouchDB. If any of the documents are
     # missing ids, supply one from the uuid cache.
-    def bulk_save docs
+    #
+    # If called with no arguments, bulk saves the cache of documents to be bulk saved.
+    def bulk_save (docs = nil)
+      if docs.nil?
+        docs = @bulk_save_cache
+        @bulk_save_cache = []
+      end
       ids, noids = docs.partition{|d|d['_id']}
       uuid_count = [noids.length, @server.uuid_batch_count].max
       noids.each do |doc|
@@ -149,7 +168,12 @@ module CouchRest
       slug = CGI.escape(doc['_id'])
       CouchRest.delete "#{@root}/#{slug}?rev=#{doc['_rev']}"
     end
-    
+
+    # Compact the database, removing old document revisions and optimizing space use.
+    def compact!
+      CouchRest.post "#{@root}/_compact"
+    end
+
     # DELETE the database itself. This is not undoable and could be rather
     # catastrophic. Use with care!
     def delete!

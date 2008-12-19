@@ -53,6 +53,21 @@ describe CouchRest::Document, "saving using a database" do
   end
 end
 
+describe CouchRest::Document, "bulk saving" do
+  before :all do
+    @db = reset_test_db!
+  end
+
+  it "should use the document bulk save cache" do
+    doc = CouchRest::Document.new({"_id" => "bulkdoc", "val" => 3})
+    doc.database = @db
+    doc.save(true)
+    lambda { doc.database.get(doc["_id"]) }.should raise_error(RestClient::ResourceNotFound)
+    doc.database.bulk_save
+    doc.database.get(doc["_id"])["val"].should == doc["val"]
+  end
+end
+
 describe "getting from a database" do
   before(:all) do
     @db = reset_test_db!

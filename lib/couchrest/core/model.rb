@@ -215,8 +215,9 @@ module CouchRest
       # on the document whenever saving occurs. CouchRest uses a pretty
       # decent time format by default. See Time#to_json
       def timestamps!
-        before(:create) do
-          self['updated_at'] = self['created_at'] = Time.now
+        before(:save) do
+          self['updated_at'] = Time.now
+          self['created_at'] = self['updated_at'] if new_document?
         end                  
         before(:update) do   
           self['updated_at'] = Time.now
@@ -478,29 +479,16 @@ module CouchRest
     # for compatibility with old-school frameworks
     alias :new_record? :new_document? 
 
-    # We override this to create the create and update callback opportunities.
-    # I think we should drop those and just have save. If you care, in your callback, 
-    # check new_document?
-    def save actually=false
-      if actually
-        super()
-      else
-        if new_document?
-          create
-        else
-          update
-        end
-      end     
+    # Overridden to set the unique ID.
+    def save bulk = false
+      set_unique_id if self.respond_to?(:set_unique_id)
+      super(bulk)
     end
     
     # Saves the document to the db using create or update. Raises an exception
     # if the document is not saved properly.
     def save!
       raise "#{self.inspect} failed to save" unless self.save
-    end
-    
-    def update
-      save :actually
     end
 
     # Deletes the document from the database. Runs the :delete callbacks.
@@ -513,12 +501,6 @@ module CouchRest
         self['_id'] = nil
       end
       result['ok']
-    end
-
-    def create
-      # can we use the callbacks for this?
-      set_unique_id if self.respond_to?(:set_unique_id)
-      save :actually
     end
 
     private
@@ -553,9 +535,7 @@ module CouchRest
     end
 
     include ::Extlib::Hook
-    # todo: drop create and update hooks... 
-    # (use new_record? in callbacks if you care)
-    register_instance_hooks :save, :create, :update, :destroy
+    register_instance_hooks :save, :destroy
 
   end # class Model
 end # module CouchRest

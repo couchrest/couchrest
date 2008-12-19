@@ -72,9 +72,9 @@ class Article < CouchRest::Model
 
   timestamps!
   
-  before(:create, :generate_slug_from_title)  
+  before(:save, :generate_slug_from_title)  
   def generate_slug_from_title
-    self['slug'] = title.downcase.gsub(/[^a-z0-9]/,'-').squeeze('-').gsub(/^\-|\-$/,'')
+    self['slug'] = title.downcase.gsub(/[^a-z0-9]/,'-').squeeze('-').gsub(/^\-|\-$/,'') if new_document?
   end
 end
 

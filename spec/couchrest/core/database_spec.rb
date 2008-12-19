@@ -190,6 +190,16 @@ describe CouchRest::Database do
         @db.get('twoB')
       end.should raise_error(RestClient::ResourceNotFound)
     end
+
+    it "should empty the bulk save cache if no documents are given" do
+      @db.save({"_id" => "bulk_cache_1", "val" => "test"}, true)
+      lambda do
+        @db.get('bulk_cache_1')
+      end.should raise_error(RestClient::ResourceNotFound)
+      @db.bulk_save
+      @db.get("bulk_cache_1")["val"].should == "test"
+    end
+
     it "should raise an error that is useful for recovery" do
       @r = @db.save({"_id" => "taken", "field" => "stuff"})
       begin
@@ -400,7 +410,48 @@ describe CouchRest::Database do
       now['them-keys'].should == 'huge'
     end
   end
-  
+
+  describe "cached bulk save" do
+    it "stores documents in a database-specific cache" do
+      td = {"_id" => "btd1", "val" => "test"}
+      @db.save(td, true)
+      @db.instance_variable_get("@bulk_save_cache").should == [td]
+      
+    end
+
+    it "doesn't save to the database until the configured cache size is exceded" do
+      @db.bulk_save_cache_limit = 3
+      td1 = {"_id" => "td1", "val" => true}
+      td2 = {"_id" => "td2", "val" => 4}
+      @db.save(td1, true)
+      @db.save(td2, true)
+      lambda do
+        @db.get(td1["_id"])
+      end.should raise_error(RestClient::ResourceNotFound)
+      lambda do
+        @db.get(td2["_id"])
+      end.should raise_error(RestClient::ResourceNotFound)
+      td3 = {"_id" => "td3", "val" => "foo"}
+      @db.save(td3, true)
+      @db.get(td1["_id"])["val"].should == td1["val"]
+      @db.get(td2["_id"])["val"].should == td2["val"]
+      @db.get(td3["_id"])["val"].should == td3["val"]
+    end
+
+    it "clears the bulk save cache the first time a non bulk save is requested" do
+      td1 = {"_id" => "blah", "val" => true}
+      td2 = {"_id" => "steve", "val" => 3}
+      @db.bulk_save_cache_limit = 50
+      @db.save(td1, true)
+      lambda do
+        @db.get(td1["_id"])
+      end.should raise_error(RestClient::ResourceNotFound)
+      @db.save(td2)
+      @db.get(td1["_id"])["val"].should == td1["val"]
+      @db.get(td2["_id"])["val"].should == td2["val"]
+    end
+  end
+
   describe "DELETE existing document" do
     before(:each) do
       @r = @db.save({'lemons' => 'from texas', 'and' => 'spain'})
@@ -461,6 +512,16 @@ describe CouchRest::Database do
     end
   end
   
+
+  describe "compacting a database" do
+    it "should compact the database" do
+      db = @cr.database('couchrest-test')
+      # r = 
+      db.compact!
+      # r['ok'].should == true
+    end
+  end
+
   describe "deleting a database" do
     it "should start with the test database" do
       @cr.databases.should include('couchrest-test')
