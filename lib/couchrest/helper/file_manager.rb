@@ -175,21 +175,8 @@ module CouchRest
           libs << open(global_lib).read
           libs << "\n"
         end
-        Dir["#{forms_dir}/#{folder}/lib.#{design_lang}"].collect do |global_lib|
-          libs << open(global_lib).read
-          libs << "\n"
-        end
-          designs[folder]["forms"]["#{form_name}"] = read(design_doc, libs)
-        end
+        designs[folder]["forms"]["#{form_name}"] = read(design_doc, libs)
       end
-      
-      # # cleanup empty maps and reduces
-      # designs.each do |name, props|
-      #   props["forms"].each do |view, funcs|
-      #     next unless view.include?("reduce")
-      #     props["forms"].delete(view) unless funcs.keys.include?("reduce")
-      #   end
-      # end
       
       designs.each do |k,v|
         create_or_update("_design/#{k}", v)
