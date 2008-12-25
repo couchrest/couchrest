@@ -38,7 +38,7 @@ module CouchRest
         @attachments[name] = {
           "data" => value,
           "content_type" => MIMES[name.split('.').last]
-        }
+        } 
       end
 
       doc = @db.get(docid) rescue nil
@@ -153,7 +153,51 @@ module CouchRest
       
       designs
     end
-    
+ 
+   def push_forms(forms_dir)
+      designs = {}
+      
+      Dir["#{forms_dir}/**/*.*"].each do |design_doc|
+        design_doc_parts = design_doc.split('/')
+        next if /^lib\..*$/.match design_doc_parts.last
+        pre_normalized_view_name = design_doc_parts.last.split("-")
+        form_name = pre_normalized_view_name[0..pre_normalized_view_name.length-2].join("-")
+
+        folder = design_doc_parts[-2]
+
+        designs[folder] ||= {}
+        designs[folder]["forms"] ||= {}
+        design_lang = design_doc_parts.last.split(".").last
+        designs[folder]["language"] ||= LANGS[design_lang]
+
+        libs = ""
+        Dir["#{forms_dir}/lib.#{design_lang}"].collect do |global_lib|
+          libs << open(global_lib).read
+          libs << "\n"
+        end
+        Dir["#{forms_dir}/#{folder}/lib.#{design_lang}"].collect do |global_lib|
+          libs << open(global_lib).read
+          libs << "\n"
+        end
+          designs[folder]["forms"]["#{form_name}"] = read(design_doc, libs)
+        end
+      end
+      
+      # # cleanup empty maps and reduces
+      # designs.each do |name, props|
+      #   props["forms"].each do |view, funcs|
+      #     next unless view.include?("reduce")
+      #     props["forms"].delete(view) unless funcs.keys.include?("reduce")
+      #   end
+      # end
+      
+      designs.each do |k,v|
+        create_or_update("_design/#{k}", v)
+      end
+      
+      designs
+    end
+   
     def pull_views(view_dir)
       prefix = "_design"
       ds = db.documents(:startkey => '#{prefix}/', :endkey => '#{prefix}/ZZZZZZZZZ')
