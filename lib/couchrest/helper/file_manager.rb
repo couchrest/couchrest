@@ -124,18 +124,13 @@ module CouchRest
           libs << "\n"
         end
         if design_doc_parts.last =~ /-map/
-          designs[folder]["views"]["#{view_name}-map"] ||= {}
-
-          designs[folder]["views"]["#{view_name}-map"]["map"] = read(design_doc, libs)
-
-          designs[folder]["views"]["#{view_name}-reduce"] ||= {}
-          designs[folder]["views"]["#{view_name}-reduce"]["map"] = read(design_doc, libs)
+          designs[folder]["views"][view_name] ||= {}
+          designs[folder]["views"][view_name]["map"] = read(design_doc, libs)
         end
 
         if design_doc_parts.last =~ /-reduce/
-          designs[folder]["views"]["#{view_name}-reduce"] ||= {}
-
-          designs[folder]["views"]["#{view_name}-reduce"]["reduce"] = read(design_doc, libs)
+          designs[folder]["views"][view_name] ||= {}
+          designs[folder]["views"][view_name]["reduce"] = read(design_doc, libs)
         end
       end
 

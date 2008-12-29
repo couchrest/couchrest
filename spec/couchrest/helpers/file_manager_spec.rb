@@ -127,16 +127,16 @@ describe CouchRest::FileManager, "pushing views" do
     @design["views"].should_not be_nil
   end
   it "should push a map and reduce view" do
-    @design["views"]["test-map"].should_not be_nil
-    @design["views"]["test-reduce"].should_not be_nil
+    @design["views"]["test"]["map"].should_not be_nil
+    @design["views"]["test"]["reduce"].should_not be_nil
   end
   it "should push a map only view" do
-    @design["views"]["only-map"].should_not be_nil
-    @design["views"]["only-reduce"].should be_nil
+    @design["views"]["only"]["map"].should_not be_nil
+    @design["views"]["only"]["reduce"].should be_nil
   end
   it "should include library files" do
-    @design["views"]["only-map"]["map"].should include("globalLib")
-    @design["views"]["only-map"]["map"].should include("justThisView")
+    @design["views"]["only"]["map"].should include("globalLib")
+    @design["views"]["only"]["map"].should include("justThisView")
   end
   it "should not create extra design docs" do
     docs = @db.documents(:startkey => '_design', :endkey => '_design/ZZZZZZ')
