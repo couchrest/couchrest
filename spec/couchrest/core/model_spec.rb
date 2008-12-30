@@ -88,6 +88,12 @@ class Player < CouchRest::Model
   timestamps!
 end
 
+class Event < CouchRest::Model
+  key_accessor :subject, :occurs_at
+
+  cast :occurs_at, :as => 'Time', :send => 'parse'
+end
+
 describe "save bug" do
   it "should fix" do
     @db = reset_test_db!
@@ -311,6 +317,18 @@ describe CouchRest::Model do
     end
     it "should instantiate the professor as a person" do
       @course['professor'].last_name.should == "Hinchliff"
+    end
+  end
+
+  describe "cast keys to any type" do
+    before(:all) do
+      event_doc = { :subject => "Some event", :occurs_at => Time.now }
+      e = Event.database.save event_doc
+
+      @event = Event.get e['id']
+    end
+    it "should cast created_at to Time" do
+      @event['occurs_at'].should be_an_instance_of(Time)
     end
   end
 
