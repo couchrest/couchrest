@@ -522,10 +522,14 @@ module CouchRest
         if target.is_a?(Array)
           klass = ::Extlib::Inflection.constantize(target[0])
           self[k] = self[k].collect do |value|
-            klass.new(value)
+            klass == Time ? Time.parse(value) : klass.new(value)
           end
         else
-          self[k] = ::Extlib::Inflection.constantize(target).new(self[k])
+          self[k] = if target == 'Time'
+            Time.parse(self[k])
+          else
+            ::Extlib::Inflection.constantize(target).new(self[k])
+          end
         end
       end
     end
