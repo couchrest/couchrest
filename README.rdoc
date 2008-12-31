@@ -31,7 +31,7 @@ CouchRest install, from the project root directory run `rake`, or `autotest`
 Quick Start:
 
     # with !, it creates the database if it doesn't already exist
-    @db = CouchRest.database!("http://localhost:5984/couchrest-test")
+    @db = CouchRest.database!("http://127.0.0.1:5984/couchrest-test")
     response = @db.save({:key => 'value', 'another key' => 'another value'})
     doc = @db.get(response['id'])
     puts doc.inspect

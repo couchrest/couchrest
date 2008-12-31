@@ -1,7 +1,7 @@
 module CouchRest
   class Server
     attr_accessor :uri, :uuid_batch_count
-    def initialize server = 'http://localhost:5984', uuid_batch_count = 1000
+    def initialize server = 'http://127.0.0.1:5984', uuid_batch_count = 1000
       @uri = server
       @uuid_batch_count = uuid_batch_count
     end

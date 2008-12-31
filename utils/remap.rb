@@ -2,11 +2,11 @@ require 'rubygems'
 require 'couchrest'
 
 # set the source db and map view
-source = CouchRest.new("http://localhost:5984").database('source-db')
+source = CouchRest.new("http://127.0.0.1:5984").database('source-db')
 source_view = 'mydesign/view-map'
 
 # set the target db
-target = CouchRest.new("http://localhost:5984").database('target-db')
+target = CouchRest.new("http://127.0.0.1:5984").database('target-db')
 
 
 pager = CouchRest::Pager.new(source)

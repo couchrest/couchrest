@@ -18,7 +18,7 @@ module CouchRest
   # than this example.
   #    
   #   class Article < CouchRest::Model
-  #     use_database CouchRest.database!('http://localhost:5984/couchrest-model-test')
+  #     use_database CouchRest.database!('http://127.0.0.1:5984/couchrest-model-test')
   #     unique_id :slug
   #
   #     view_by :date, :descending => true
