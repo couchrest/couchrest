@@ -89,8 +89,11 @@ class Player < CouchRest::Model
 end
 
 describe "save bug" do
+  before(:each) do
+    CouchRest::Model.default_database = reset_test_db!
+  end
+  
   it "should fix" do
-    @db = reset_test_db!
     @p = Player.new
     @p.email = 'insane@fakestreet.com'
     @p.save
