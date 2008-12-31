@@ -519,17 +519,14 @@ module CouchRest
       self.class.casts.each do |k,v|
         next unless self[k]
         target = v[:as]
+        v[:send] ||= 'new'
         if target.is_a?(Array)
           klass = ::Extlib::Inflection.constantize(target[0])
           self[k] = self[k].collect do |value|
-            klass == Time ? Time.parse(value) : klass.new(value)
+            klass.send(v[:send], value)
           end
         else
-          self[k] = if target == 'Time'
-            Time.parse(self[k])
-          else
-            ::Extlib::Inflection.constantize(target).new(self[k])
-          end
+          self[k] = ::Extlib::Inflection.constantize(target).send(v[:send], self[k])
         end
       end
     end
