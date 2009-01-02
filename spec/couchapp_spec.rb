@@ -54,6 +54,9 @@ describe "couchapp" do
     it "should create the views" do
       @doc['views']['example']['map'].should match(/function/)
     end
+    it "should create the view libs" do
+      @doc['views']['example']['map'].should match(/aHelperFunction/)
+    end
     it "should create view for all the views" do
       `mkdir -p #{@fixdir}/my-app/views/more`
       `echo 'moremap' > #{@fixdir}/my-app/views/more/map.js`

@@ -28,17 +28,13 @@ module CouchRest
       package_forms(fields["forms"])
       package_views(fields["views"])
 
-      # views, lang = read_design_views(viewdir)
-
       docid = "_design/#{appname}"
       design = @db.get(docid) rescue {}
       design.merge!(fields)
       design['_id'] = docid
-      # design['views'] = views
       # design['language'] = lang if lang
       @db.save(design)
       push_directory(attachdir, docid)
-      # push_fields(appdir, docid)
     end
 
     def push_directory(push_dir, docid=nil)
@@ -120,7 +116,9 @@ module CouchRest
       end
     end
     
+    # deprecated
     def push_views(view_dir)
+      puts "WARNING this is deprecated, use `couchapp` script"
       designs = {}
 
       Dir["#{view_dir}/**/*.*"].each do |design_doc|
@@ -170,38 +168,7 @@ module CouchRest
       
       designs
     end
- 
-   def push_forms(forms_dir)
-      designs = {}
-      
-      Dir["#{forms_dir}/**/*.*"].each do |design_doc|
-        design_doc_parts = design_doc.split('/')
-        next if /^lib\..*$/.match design_doc_parts.last
-        pre_normalized_view_name = design_doc_parts.last.split("-")
-        form_name = pre_normalized_view_name[0..pre_normalized_view_name.length-2].join("-")
-
-        folder = design_doc_parts[-2]
-
-        designs[folder] ||= {}
-        designs[folder]["forms"] ||= {}
-        design_lang = design_doc_parts.last.split(".").last
-        designs[folder]["language"] ||= LANGS[design_lang]
-
-        libs = ""
-        Dir["#{forms_dir}/lib.#{design_lang}"].collect do |global_lib|
-          libs << open(global_lib).read
-          libs << "\n"
-        end
-        designs[folder]["forms"]["#{form_name}"] = read(design_doc, libs)
-      end
-      
-      designs.each do |k,v|
-        create_or_update("_design/#{k}", v)
-      end
-      
-      designs
-    end
-   
+    
     def pull_views(view_dir)
       prefix = "_design"
       ds = db.documents(:startkey => '#{prefix}/', :endkey => '#{prefix}/ZZZZZZZZZ')
@@ -232,8 +199,7 @@ module CouchRest
             end
           end
         end
-      end  
-      
+      end        
     end
     
     def dir_to_fields(dir)
@@ -258,12 +224,6 @@ module CouchRest
       return fields
     end
     
-    def push_fields(appdir, docid)
-      fields = dir_to_fields(appdir)
-      design = @db.get(docid) rescue {}
-      design.merge!(fields)
-      @db.save(design)
-    end
     
     # Generate an application in the given directory.
     # This is a class method because it doesn't depend on 
@@ -279,71 +239,23 @@ module CouchRest
       if funcs["lib"]
         lib = "var lib = #{funcs["lib"].to_json};"
         funcs.delete("lib")
-        funcs.each do |k,v|
-          funcs[k] = v.sub(/(\/\/|#)\ ?include-lib/,lib)
-        end
+        apply_lib(funcs, lib)
       end
     end
     
-    def package_views(fileviews)
-      view = {}
-      if fileviews["lib"]
-        lib = "var lib = #{fileviews["lib"].to_json};"
-        fileviews.delete("lib")
+    def package_views(views)
+      if views["_lib"]
+        lib = "var lib = #{views["_lib"].to_json};"
+        views.delete("_lib")
       end
-      fileviews.each do |filename, guts|
-        puts filename
-        
-        views[k] = v.sub(/(\/\/|#)\ ?include-lib/,lib) if lib
+      views.each do |view, funcs|
+        apply_lib(funcs, lib) if lib
       end
     end
     
-    def read_design_views(viewdir)
-      libs = []
-      language = nil
-      views = {}
-      Dir["#{viewdir}/*.*"].each do |viewfile|
-        view_parts = viewfile.split('/')
-        viewfile_name = view_parts.last
-        # example-map.js
-        viewfile_name_parts = viewfile_name.split('.')
-        viewfile_ext = viewfile_name_parts.last
-        view_name_parts = viewfile_name_parts.first.split('-')
-        func_type = view_name_parts.pop
-        view_name = view_name_parts.join('-')
-        contents = File.open(viewfile).read
-        if /^lib\..*$/.match viewfile_name
-          libs.push(contents)
-        else
-          views[view_name] ||= {}
-          language = LANGS[viewfile_ext]
-          views[view_name][func_type] = contents.sub(/(\/\/|#)include-lib/,libs.join("\n"))
-        end
-      end
-      [views, language]
-    end
-    
-    def read_forms(formdir)
-      lib = {}
-      language = nil
-      forms = {}
-      Dir["#{formdir}/*.*"].each do |viewfile|
-        view_parts = viewfile.split('/')
-        viewfile_name = view_parts.last
-        # example-map.js
-        viewfile_name_parts = viewfile_name.split('.')
-        viewfile_ext = viewfile_name_parts.last
-        view_name_parts = viewfile_name_parts.first.split('-')
-        func_type = view_name_parts.pop
-        view_name = view_name_parts.join('-')
-        contents = File.open(viewfile).read
-        if /^lib\..*$/.match viewfile_name
-          libs.push(contents)
-        else
-          views[view_name] ||= {}
-          language = LANGS[viewfile_ext]
-          views[view_name][func_type] = contents.sub(/(\/\/|#)include-lib/,libs.join("\n"))
-        end
+    def apply_lib(funcs, lib)
+      funcs.each do |k,v|
+        funcs[k] = v.sub(/(\/\/|#)\ ?include-lib/,lib)
       end
     end
     
@@ -355,6 +267,7 @@ module CouchRest
       Digest::MD5.hexdigest(string)
     end
     
+    # deprecated
     def read(file, libs=nil)
       st = open(file).read
       st.sub!(/(\/\/|#)include-lib/,libs) if libs
