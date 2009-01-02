@@ -26,7 +26,7 @@ module CouchRest
       attachdir = File.join(appdir,"_attachments")
 
       fields = dir_to_fields(appdir)
-      library = fields["library"]
+      library = fields["lib"]
       package_forms(fields["forms"], library)
       package_views(fields["views"], library)
 
@@ -153,14 +153,14 @@ module CouchRest
     
     def package_forms(funcs, library)
       if library
-        lib = "var library = #{library.to_json};"
+        lib = "var lib = #{library.to_json};"
         apply_lib(funcs, lib)
       end
     end
     
     def package_views(views, library)
       if library
-        lib = "var library = #{library.to_json};"
+        lib = "var lib = #{library.to_json};"
         views.each do |view, funcs|
           apply_lib(funcs, lib) if lib
         end
@@ -169,6 +169,7 @@ module CouchRest
     
     def apply_lib(funcs, lib)
       funcs.each do |k,v|
+        next unless v.is_a?(String)
         funcs[k] = v.sub(/(\/\/|#)\ ?include-lib/,lib)
       end
     end
