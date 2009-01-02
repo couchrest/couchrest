@@ -163,11 +163,25 @@ module CouchRest
     def apply_lib(funcs)
       funcs.each do |k,v|
         next unless v.is_a?(String)
-        funcs[k] = preprocess_func(v)
+        funcs[k] = process_require(process_include(v))
       end
     end
     
-    def preprocess_func(f_string)
+    # process requires
+    def process_require(f_string)
+      f_string.gsub /(\/\/|#)\ ?!require (.*)/ do
+        fields = $2.split('.')
+        library = @doc
+        fields.each do |field|
+          library = library[field]
+          break unless library
+        end
+        library
+      end
+    end
+    
+    
+    def process_include(f_string)
 
       # process includes
       included = {}
@@ -191,24 +205,16 @@ module CouchRest
 
       end
       # puts included.inspect
-      if included == {}
-        return f_string
+      rval = if included == {}
+        f_string
       else
-        # process requires
-        puts "\n\n\n\nBEFORE"
-        puts f_string
-        puts "\nAFTER"
-        # puts f_string
         varstrings = included.collect do |k, v|
           "var #{k} = #{v.to_json};"
         end
-
-        rst = f_string.sub /(\/\/|#)\ ?!include (.*)/, varstrings.join("\n")
-        puts rst
-        return rst
+        f_string.sub /(\/\/|#)\ ?!include (.*)/, varstrings.join("\n")
       end
-     
-
+      
+      rval
     end
     
     

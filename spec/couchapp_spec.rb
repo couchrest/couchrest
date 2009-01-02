@@ -55,7 +55,8 @@ describe "couchapp" do
       @doc['views']['example']['map'].should match(/function/)
     end
     it "should create the view libs" do
-      @doc['views']['example']['map'].should match(/Resig/)
+      @doc['views']['example']['map'].should match(/stddev/)
+      @doc['forms']['example-form'].should_not match(/\"helpers\"/)
     end
     it "should create view for all the views" do
       `mkdir -p #{@fixdir}/my-app/views/more`
@@ -72,7 +73,10 @@ describe "couchapp" do
     end
     it "should allow deeper includes" do
       @doc['forms']['example-form'].should_not match(/\"helpers\"/)
-      
+    end
+    it "deep requires" do
+      @doc['forms']['example-form'].should_not match(/\"template\"/)
+      @doc['forms']['example-form'].should match(/Resig/)
     end
   end
 
