@@ -19,6 +19,22 @@ module CouchRest
       @db = CouchRest.new(host).database(dbname)
     end
     
+    def push_app(appdir, appname)
+      libs = []
+      viewdir = File.join(appdir,"views")
+      attachdir = File.join(appdir,"_attachments")
+      views, lang = read_design_views(viewdir)
+
+      docid = "_design/#{appname}"
+      design = @db.get(docid) rescue {}
+      design['_id'] = docid
+      design['views'] = views
+      design['language'] = lang if lang
+      @db.save(design)
+      push_directory(attachdir, docid)
+      push_fields(appdir, docid)
+    end
+
     def push_directory(push_dir, docid=nil)
       docid ||= push_dir.split('/').reverse.find{|part|!part.empty?}
 
@@ -214,28 +230,12 @@ module CouchRest
       
     end
     
-    def push_app(appdir, appname)
-      libs = []
-      viewdir = File.join(appdir,"views")
-      attachdir = File.join(appdir,"_attachments")
-      views, lang = read_design_views(viewdir)
-
-      docid = "_design/#{appname}"
-      design = @db.get(docid) rescue {}
-      design['_id'] = docid
-      design['views'] = views
-      design['language'] = lang if lang
-      @db.save(design)
-      push_directory(attachdir, docid)
-      push_fields(appdir, docid)
-    end
-    
-    def push_fields(appdir, docid)
+    def dir_to_fields(dir)
       fields = {}
-      (Dir["#{appdir}/**/*.*"] - 
-        Dir["#{appdir}/views/**/*.*"] - 
-        Dir["#{appdir}/_attachments/**/*.*"]).each do |file|
-        farray = file.sub(appdir, '').sub(/^\//,'').split('/')
+      (Dir["#{dir}/**/*.*"] - 
+        Dir["#{dir}/views/**/*.*"] - 
+        Dir["#{dir}/_attachments/**/*.*"]).each do |file|
+        farray = file.sub(dir, '').sub(/^\//,'').split('/')
         myfield = fields
         while farray.length > 1
           front = farray.shift
@@ -250,6 +250,11 @@ module CouchRest
           myfield[fname] = fguts
         end
       end
+      return fields
+    end
+    
+    def push_fields(appdir, docid)
+      fields = dir_to_fields(appdir)
       design = @db.get(docid) rescue {}
       design.merge!(fields)
       @db.save(design)
@@ -301,6 +306,30 @@ module CouchRest
         end
       end
       [views, language]
+    end
+    
+    def read_forms(formdir)
+      lib = {}
+      language = nil
+      forms = {}
+      Dir["#{formdir}/*.*"].each do |viewfile|
+        view_parts = viewfile.split('/')
+        viewfile_name = view_parts.last
+        # example-map.js
+        viewfile_name_parts = viewfile_name.split('.')
+        viewfile_ext = viewfile_name_parts.last
+        view_name_parts = viewfile_name_parts.first.split('-')
+        func_type = view_name_parts.pop
+        view_name = view_name_parts.join('-')
+        contents = File.open(viewfile).read
+        if /^lib\..*$/.match viewfile_name
+          libs.push(contents)
+        else
+          views[view_name] ||= {}
+          language = LANGS[viewfile_ext]
+          views[view_name][func_type] = contents.sub(/(\/\/|#)include-lib/,libs.join("\n"))
+        end
+      end
     end
     
     def say words
