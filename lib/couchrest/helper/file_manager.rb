@@ -23,16 +23,22 @@ module CouchRest
       libs = []
       viewdir = File.join(appdir,"views")
       attachdir = File.join(appdir,"_attachments")
-      views, lang = read_design_views(viewdir)
+
+      fields = dir_to_fields(appdir)
+      package_forms(fields["forms"])
+      package_views(fields["views"])
+
+      # views, lang = read_design_views(viewdir)
 
       docid = "_design/#{appname}"
       design = @db.get(docid) rescue {}
+      design.merge!(fields)
       design['_id'] = docid
-      design['views'] = views
-      design['language'] = lang if lang
+      # design['views'] = views
+      # design['language'] = lang if lang
       @db.save(design)
       push_directory(attachdir, docid)
-      push_fields(appdir, docid)
+      # push_fields(appdir, docid)
     end
 
     def push_directory(push_dir, docid=nil)
@@ -233,7 +239,6 @@ module CouchRest
     def dir_to_fields(dir)
       fields = {}
       (Dir["#{dir}/**/*.*"] - 
-        Dir["#{dir}/views/**/*.*"] - 
         Dir["#{dir}/_attachments/**/*.*"]).each do |file|
         farray = file.sub(dir, '').sub(/^\//,'').split('/')
         myfield = fields
@@ -264,24 +269,34 @@ module CouchRest
     # This is a class method because it doesn't depend on 
     # specifying a database.
     def self.generate_app(app_dir)      
-      FileUtils.mkdir_p(app_dir)
-      FileUtils.mkdir_p(File.join(app_dir,"_attachments"))      
-      FileUtils.mkdir_p(File.join(app_dir,"views"))
-      FileUtils.mkdir_p(File.join(app_dir,"foo"))
-      
-      {
-        "index.html" => "_attachments",
-        'example-map.js' => "views",
-        'example-reduce.js' => "views",
-        'bar.txt' => "foo",
-      }.each do |filename, targetdir|
-        template = File.join(File.expand_path(File.dirname(__FILE__)), 'templates',filename)
-        dest = File.join(app_dir,targetdir,filename)
-        FileUtils.cp(template, dest)
-      end
+      templatedir = File.join(File.expand_path(File.dirname(__FILE__)), 'template-app')
+      FileUtils.cp_r(templatedir, app_dir)
     end
     
     private
+    
+    def package_forms(funcs)
+      if funcs["lib"]
+        lib = "var lib = #{funcs["lib"].to_json};"
+        funcs.delete("lib")
+        funcs.each do |k,v|
+          funcs[k] = v.sub(/(\/\/|#)\ ?include-lib/,lib)
+        end
+      end
+    end
+    
+    def package_views(fileviews)
+      view = {}
+      if fileviews["lib"]
+        lib = "var lib = #{fileviews["lib"].to_json};"
+        fileviews.delete("lib")
+      end
+      fileviews.each do |filename, guts|
+        puts filename
+        
+        views[k] = v.sub(/(\/\/|#)\ ?include-lib/,lib) if lib
+      end
+    end
     
     def read_design_views(viewdir)
       libs = []
