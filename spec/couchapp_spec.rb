@@ -55,7 +55,8 @@ describe "couchapp" do
       @doc['views']['example']['map'].should match(/function/)
     end
     it "should create view for all the views" do
-      `echo 'moremap' > #{@fixdir}/my-app/views/more-map.js`
+      `mkdir -p #{@fixdir}/my-app/views/more`
+      `echo 'moremap' > #{@fixdir}/my-app/views/more/map.js`
       `#{@run} push my-app #{TESTDB}`
       doc = @db.get("_design/my-app")
       doc['views']['more']['map'].should match(/moremap/)
