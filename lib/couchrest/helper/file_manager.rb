@@ -227,7 +227,6 @@ module CouchRest
       design['language'] = lang if lang
       @db.save(design)
       push_directory(attachdir, docid)
-      
       push_fields(appdir, docid)
     end
     
@@ -235,7 +234,6 @@ module CouchRest
       fields = {}
       (Dir["#{appdir}/**/*.*"] - 
         Dir["#{appdir}/views/**/*.*"] - 
-        Dir["#{appdir}/doc.json"] -         
         Dir["#{appdir}/_attachments/**/*.*"]).each do |file|
         farray = file.sub(appdir, '').sub(/^\//,'').split('/')
         myfield = fields
@@ -252,12 +250,8 @@ module CouchRest
           myfield[fname] = fguts
         end
       end
-      if File.exists?("#{appdir}/doc.json")
-        default_json = JSON.parse(File.open("#{appdir}/doc.json").read)
-      end
       design = @db.get(docid) rescue {}
       design.merge!(fields)
-      design.merge!(default_json) if default_json
       @db.save(design)
     end
     
