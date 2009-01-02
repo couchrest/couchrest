@@ -171,7 +171,7 @@ module CouchRest
     def apply_lib(funcs, lib)
       funcs.each do |k,v|
         next unless v.is_a?(String)
-        funcs[k] = v.sub(/(\/\/|#)\ ?include-lib/,lib)
+        funcs[k] = v.sub(/(\/\/|#)\ ?!include lib/,lib)
       end
     end
     

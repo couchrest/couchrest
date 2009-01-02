@@ -81,11 +81,11 @@ module CouchRest
         (for project global libs). These libraries are only inserted into views which
         include the text
 
-        //include-lib
+        // !include lib
 
         or
 
-        #include-lib
+        # !include lib
 
         Couchview is a result of scratching my own itch. I'd be happy to make it more
         general, so please contact me at jchris@grabb.it if you'd like to see anything
