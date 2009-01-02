@@ -5,7 +5,7 @@ require 'rake/gempackagetask'
 
 spec = Gem::Specification.new do |s|
   s.name = "couchrest"
-  s.version = "0.10.1"
+  s.version = "0.11.1"
   s.date = "2008-11-22"
   s.summary = "Lean and RESTful interface to CouchDB."
   s.email = "jchris@grabb.it"
@@ -19,7 +19,6 @@ spec = Gem::Specification.new do |s|
   s.extra_rdoc_files = %w( README.rdoc LICENSE THANKS )
   s.require_path = "lib"
   s.bindir = 'bin'
-  s.executables << 'couchview'
   s.executables << 'couchdir'
   s.executables << 'couchapp'
   s.add_dependency("json", ">= 1.1.2")

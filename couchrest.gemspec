@@ -1,17 +1,16 @@
 Gem::Specification.new do |s|
   s.extra_rdoc_files = ["README.rdoc", "LICENSE", "THANKS"]
   s.date = "Sat Nov 22 00:00:00 -0800 2008"
-  s.executables = ["couchview", "couchdir", "couchapp"]
+  s.executables = ["couchdir", "couchapp"]
   s.authors = ["J. Chris Anderson"]
   s.required_rubygems_version = ">= 0"
-  s.version = "0.10.1"
+  s.version = "0.11.1"
   s.files = ["LICENSE",
  "README.rdoc",
  "Rakefile",
  "THANKS",
  "bin/couchapp",
  "bin/couchdir",
- "bin/couchview",
  "examples/model",
  "examples/model/example.rb",
  "examples/word_count",
@@ -43,11 +42,21 @@ Gem::Specification.new do |s|
  "lib/couchrest/helper/file_manager.rb",
  "lib/couchrest/helper/pager.rb",
  "lib/couchrest/helper/streamer.rb",
- "lib/couchrest/helper/templates",
- "lib/couchrest/helper/templates/bar.txt",
- "lib/couchrest/helper/templates/example-map.js",
- "lib/couchrest/helper/templates/example-reduce.js",
- "lib/couchrest/helper/templates/index.html",
+ "lib/couchrest/helper/template-app",
+ "lib/couchrest/helper/template-app/_attachments",
+ "lib/couchrest/helper/template-app/_attachments/index.html",
+ "lib/couchrest/helper/template-app/foo",
+ "lib/couchrest/helper/template-app/foo/bar.txt",
+ "lib/couchrest/helper/template-app/forms",
+ "lib/couchrest/helper/template-app/forms/example-form.js",
+ "lib/couchrest/helper/template-app/forms/lib",
+ "lib/couchrest/helper/template-app/forms/lib/example-template.html",
+ "lib/couchrest/helper/template-app/views",
+ "lib/couchrest/helper/template-app/views/_lib",
+ "lib/couchrest/helper/template-app/views/_lib/helper.js",
+ "lib/couchrest/helper/template-app/views/example",
+ "lib/couchrest/helper/template-app/views/example/map.js",
+ "lib/couchrest/helper/template-app/views/example/reduce.js",
  "lib/couchrest/monkeypatches.rb",
  "lib/couchrest.rb",
  "spec/couchapp_spec.rb",

@@ -116,91 +116,6 @@ module CouchRest
       end
     end
     
-    # deprecated
-    def push_views(view_dir)
-      puts "WARNING this is deprecated, use `couchapp` script"
-      designs = {}
-
-      Dir["#{view_dir}/**/*.*"].each do |design_doc|
-        design_doc_parts = design_doc.split('/')
-        next if /^lib\..*$/.match design_doc_parts.last
-        pre_normalized_view_name = design_doc_parts.last.split("-")
-        view_name = pre_normalized_view_name[0..pre_normalized_view_name.length-2].join("-")
-
-        folder = design_doc_parts[-2]
-
-        designs[folder] ||= {}
-        designs[folder]["views"] ||= {}
-        design_lang = design_doc_parts.last.split(".").last
-        designs[folder]["language"] ||= LANGS[design_lang]
-
-        libs = ""
-        Dir["#{view_dir}/lib.#{design_lang}"].collect do |global_lib|
-          libs << open(global_lib).read
-          libs << "\n"
-        end
-        Dir["#{view_dir}/#{folder}/lib.#{design_lang}"].collect do |global_lib|
-          libs << open(global_lib).read
-          libs << "\n"
-        end
-        if design_doc_parts.last =~ /-map/
-          designs[folder]["views"][view_name] ||= {}
-          designs[folder]["views"][view_name]["map"] = read(design_doc, libs)
-        end
-
-        if design_doc_parts.last =~ /-reduce/
-          designs[folder]["views"][view_name] ||= {}
-          designs[folder]["views"][view_name]["reduce"] = read(design_doc, libs)
-        end
-      end
-
-      # cleanup empty maps and reduces
-      designs.each do |name, props|
-        props["views"].each do |view, funcs|
-          next unless view.include?("reduce")
-          props["views"].delete(view) unless funcs.keys.include?("reduce")
-        end
-      end
-      
-      designs.each do |k,v|
-        create_or_update("_design/#{k}", v)
-      end
-      
-      designs
-    end
-    
-    def pull_views(view_dir)
-      prefix = "_design"
-      ds = db.documents(:startkey => '#{prefix}/', :endkey => '#{prefix}/ZZZZZZZZZ')
-      ds['rows'].collect{|r|r['id']}.each do |id|
-        puts directory = id.split('/').last
-        FileUtils.mkdir_p(File.join(view_dir,directory))
-        views = db.get(id)['views']
-
-        vgroups = views.keys.group_by{|k|k.sub(/\-(map|reduce)$/,'')}
-        vgroups.each do|g,vs|
-          mapname = vs.find {|v|views[v]["map"]}
-          if mapname
-            # save map
-            mapfunc = views[mapname]["map"]
-            mapfile = File.join(view_dir, directory, "#{g}-map.js") # todo support non-js views
-            File.open(mapfile,'w') do |f|
-              f.write mapfunc
-            end
-          end
-
-          reducename = vs.find {|v|views[v]["reduce"]}
-          if reducename
-            # save reduce
-            reducefunc = views[reducename]["reduce"]
-            reducefile = File.join(view_dir, directory, "#{g}-reduce.js") # todo support non-js views
-            File.open(reducefile,'w') do |f|
-              f.write reducefunc
-            end
-          end
-        end
-      end        
-    end
     
     def dir_to_fields(dir)
       fields = {}
@@ -265,31 +180,6 @@ module CouchRest
     
     def md5 string
       Digest::MD5.hexdigest(string)
-    end
-    
-    # deprecated
-    def read(file, libs=nil)
-      st = open(file).read
-      st.sub!(/(\/\/|#)include-lib/,libs) if libs
-      st
-    end
-    
-    def create_or_update(id, fields)
-      existing = @db.get(id) rescue nil
-
-      if existing
-        updated = existing.merge(fields)
-        if existing != updated
-          say "replacing #{id}"
-          db.save(updated)
-        else
-          say "skipping #{id}"
-        end
-      else
-        say "creating #{id}"
-        db.save(fields.merge({"_id" => id}))
-      end
-
     end
   end
 end
