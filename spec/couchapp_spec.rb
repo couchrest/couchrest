@@ -70,6 +70,10 @@ describe "couchapp" do
     it "should push the forms" do
       @doc['forms']['example-form'].should match(/Generated CouchApp Form Template/)
     end
+    it "should allow deeper includes" do
+      @doc['forms']['example-form'].should_not match(/\"helpers\"/)
+      
+    end
   end
 
   describe "push . #{TESTDB}" do

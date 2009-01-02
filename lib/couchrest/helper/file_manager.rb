@@ -25,14 +25,13 @@ module CouchRest
       viewdir = File.join(appdir,"views")
       attachdir = File.join(appdir,"_attachments")
 
-      fields = dir_to_fields(appdir)
-      library = fields["lib"]
-      package_forms(fields["forms"], library)
-      package_views(fields["views"], library)
+      @doc = dir_to_fields(appdir)
+      package_forms(@doc["forms"])
+      package_views(@doc["views"])
 
       docid = "_design/#{appname}"
       design = @db.get(docid) rescue {}
-      design.merge!(fields)
+      design.merge!(@doc)
       design['_id'] = docid
       # design['language'] = lang if lang
       @db.save(design)
@@ -151,29 +150,67 @@ module CouchRest
     
     private
     
-    def package_forms(funcs, library)
-      if library
-        lib = "var lib = #{library.to_json};"
-        apply_lib(funcs, lib)
+    def package_forms(funcs)
+      apply_lib(funcs)
+    end
+    
+    def package_views(views)
+      views.each do |view, funcs|
+        apply_lib(funcs)
       end
     end
     
-    def package_views(views, library)
-      if library
-        lib = "var lib = #{library.to_json};"
-        puts lib
-        views.each do |view, funcs|
-          apply_lib(funcs, lib) if lib
-        end
-      end
-    end
-    
-    def apply_lib(funcs, lib)
+    def apply_lib(funcs)
       funcs.each do |k,v|
         next unless v.is_a?(String)
-        funcs[k] = v.sub(/(\/\/|#)\ ?!include lib/,lib)
+        funcs[k] = preprocess_func(v)
       end
     end
+    
+    def preprocess_func(f_string)
+
+      # process includes
+      included = {}
+      f_string.gsub /(\/\/|#)\ ?!include (.*)/ do
+        fields = $2.split('.')
+        library = @doc
+        include_to = included
+        count = fields.length
+        fields.each_with_index do |field, i|
+          break unless library[field]
+          library = library[field]
+          # normal case
+          if i+1 < count 
+            include_to[field] = include_to[field] || {}
+            include_to = include_to[field]
+          else
+            # last one
+            include_to[field] = library
+          end
+        end
+
+      end
+      # puts included.inspect
+      if included == {}
+        return f_string
+      else
+        # process requires
+        puts "\n\n\n\nBEFORE"
+        puts f_string
+        puts "\nAFTER"
+        # puts f_string
+        varstrings = included.collect do |k, v|
+          "var #{k} = #{v.to_json};"
+        end
+
+        rst = f_string.sub /(\/\/|#)\ ?!include (.*)/, varstrings.join("\n")
+        puts rst
+        return rst
+      end
+     
+
+    end
+    
     
     def say words
       puts words if @loud
