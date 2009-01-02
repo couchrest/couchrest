@@ -161,6 +161,7 @@ module CouchRest
     def package_views(views, library)
       if library
         lib = "var lib = #{library.to_json};"
+        puts lib
         views.each do |view, funcs|
           apply_lib(funcs, lib) if lib
         end
