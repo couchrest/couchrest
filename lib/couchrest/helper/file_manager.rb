@@ -14,7 +14,8 @@ module CouchRest
       "css"   => "text/css",
       "js"    => "test/javascript",
       "txt"   => "text/plain"
-    }    
+    }
+     
     def initialize(dbname, host="http://127.0.0.1:5984")
       @db = CouchRest.new(host).database(dbname)
     end
@@ -25,8 +26,9 @@ module CouchRest
       attachdir = File.join(appdir,"_attachments")
 
       fields = dir_to_fields(appdir)
-      package_forms(fields["forms"])
-      package_views(fields["views"])
+      library = fields["library"]
+      package_forms(fields["forms"], library)
+      package_views(fields["views"], library)
 
       docid = "_design/#{appname}"
       design = @db.get(docid) rescue {}
@@ -36,7 +38,38 @@ module CouchRest
       @db.save(design)
       push_directory(attachdir, docid)
     end
-
+    
+    def dir_to_fields(dir)
+      fields = {}
+      (Dir["#{dir}/**/*.*"] - 
+        Dir["#{dir}/_attachments/**/*.*"]).each do |file|
+        farray = file.sub(dir, '').sub(/^\//,'').split('/')
+        myfield = fields
+        while farray.length > 1
+          front = farray.shift
+          myfield[front] ||= {}
+          myfield = myfield[front]
+        end
+        fname, fext = farray.shift.split('.')
+        fguts = File.open(file).read
+        if fext == 'json'
+          myfield[fname] = JSON.parse(fguts)
+        else
+          myfield[fname] = fguts
+        end
+      end
+      return fields
+    end
+    
+    
+    # Generate an application in the given directory.
+    # This is a class method because it doesn't depend on 
+    # specifying a database.
+    def self.generate_app(app_dir)      
+      templatedir = File.join(File.expand_path(File.dirname(__FILE__)), 'template-app')
+      FileUtils.cp_r(templatedir, app_dir)
+    end
+    
     def push_directory(push_dir, docid=nil)
       docid ||= push_dir.split('/').reverse.find{|part|!part.empty?}
 
@@ -116,55 +149,21 @@ module CouchRest
       end
     end
     
-    
-    def dir_to_fields(dir)
-      fields = {}
-      (Dir["#{dir}/**/*.*"] - 
-        Dir["#{dir}/_attachments/**/*.*"]).each do |file|
-        farray = file.sub(dir, '').sub(/^\//,'').split('/')
-        myfield = fields
-        while farray.length > 1
-          front = farray.shift
-          myfield[front] ||= {}
-          myfield = myfield[front]
-        end
-        fname, fext = farray.shift.split('.')
-        fguts = File.open(file).read
-        if fext == 'json'
-          myfield[fname] = JSON.parse(fguts)
-        else
-          myfield[fname] = fguts
-        end
-      end
-      return fields
-    end
-    
-    
-    # Generate an application in the given directory.
-    # This is a class method because it doesn't depend on 
-    # specifying a database.
-    def self.generate_app(app_dir)      
-      templatedir = File.join(File.expand_path(File.dirname(__FILE__)), 'template-app')
-      FileUtils.cp_r(templatedir, app_dir)
-    end
-    
     private
     
-    def package_forms(funcs)
-      if funcs["lib"]
-        lib = "var lib = #{funcs["lib"].to_json};"
-        funcs.delete("lib")
+    def package_forms(funcs, library)
+      if library
+        lib = "var library = #{library.to_json};"
         apply_lib(funcs, lib)
       end
     end
     
-    def package_views(views)
-      if views["_lib"]
-        lib = "var lib = #{views["_lib"].to_json};"
-        views.delete("_lib")
-      end
-      views.each do |view, funcs|
-        apply_lib(funcs, lib) if lib
+    def package_views(views, library)
+      if library
+        lib = "var library = #{library.to_json};"
+        views.each do |view, funcs|
+          apply_lib(funcs, lib) if lib
+        end
       end
     end
     

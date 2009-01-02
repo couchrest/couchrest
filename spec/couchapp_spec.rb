@@ -34,7 +34,7 @@ describe "couchapp" do
     end
     it "should create a forms and libs" do
       Dir["#{@fixdir}/my-app/forms/*"].select{|x|x =~ /example-form.js/}.length.should == 1
-      Dir["#{@fixdir}/my-app/forms/lib/*"].select{|x|x =~ /example-template.html/}.length.should == 1
+      Dir["#{@fixdir}/my-app/library/templates/*"].select{|x|x =~ /example-template.html/}.length.should == 1
     end
   end
   
@@ -55,6 +55,9 @@ describe "couchapp" do
       @doc['views']['example']['map'].should match(/function/)
     end
     it "should create the view libs" do
+      @doc['views']['example']['map'].should match(/aHelperFunction/)
+    end
+    it "should create specific view libs" do
       @doc['views']['example']['map'].should match(/aHelperFunction/)
     end
     it "should create view for all the views" do
