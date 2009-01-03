@@ -163,7 +163,7 @@ module CouchRest
     def apply_lib(funcs)
       funcs.each do |k,v|
         next unless v.is_a?(String)
-        funcs[k] = process_require(process_include(v))
+        funcs[k] = process_include(process_require(v))
       end
     end
     
