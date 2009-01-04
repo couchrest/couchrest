@@ -1,10 +1,11 @@
 Gem::Specification.new do |s|
-  s.extra_rdoc_files = ["README.rdoc", "LICENSE", "THANKS"]
   s.date = "Sat Nov 22 00:00:00 -0800 2008"
-  s.executables = ["couchdir", "couchapp"]
   s.authors = ["J. Chris Anderson"]
+  s.require_paths = ["lib"]
   s.required_rubygems_version = ">= 0"
-  s.version = "0.11.1"
+  s.has_rdoc = "true"
+  s.specification_version = 2
+  s.loaded = "false"
   s.files = ["LICENSE",
  "README.rdoc",
  "Rakefile",
@@ -49,14 +50,17 @@ Gem::Specification.new do |s|
  "lib/couchrest/helper/template-app/foo/bar.txt",
  "lib/couchrest/helper/template-app/forms",
  "lib/couchrest/helper/template-app/forms/example-form.js",
- "lib/couchrest/helper/template-app/forms/lib",
- "lib/couchrest/helper/template-app/forms/lib/example-template.html",
+ "lib/couchrest/helper/template-app/lib",
+ "lib/couchrest/helper/template-app/lib/helpers",
+ "lib/couchrest/helper/template-app/lib/helpers/math.js",
+ "lib/couchrest/helper/template-app/lib/helpers/template.js",
+ "lib/couchrest/helper/template-app/lib/templates",
+ "lib/couchrest/helper/template-app/lib/templates/example.html",
  "lib/couchrest/helper/template-app/views",
- "lib/couchrest/helper/template-app/views/_lib",
- "lib/couchrest/helper/template-app/views/_lib/helper.js",
  "lib/couchrest/helper/template-app/views/example",
  "lib/couchrest/helper/template-app/views/example/map.js",
  "lib/couchrest/helper/template-app/views/example/reduce.js",
+ "lib/couchrest/helper/templates",
  "lib/couchrest/monkeypatches.rb",
  "lib/couchrest.rb",
  "spec/couchapp_spec.rb",
@@ -86,20 +90,19 @@ Gem::Specification.new do |s|
  "spec/spec_helper.rb",
  "utils/remap.rb",
  "utils/subset.rb"]
-  s.has_rdoc = "true"
-  s.specification_version = 2
-  s.loaded = "false"
   s.email = "jchris@grabb.it"
-  s.name = "couchrest"
   s.required_ruby_version = ">= 0"
-  s.bindir = "bin"
-  s.rubygems_version = "1.2.0"
+  s.version = "0.11.1"
+  s.rubygems_version = "1.3.1"
   s.homepage = "http://github.com/jchris/couchrest"
+  s.extra_rdoc_files = ["README.rdoc", "LICENSE", "THANKS"]
   s.platform = "ruby"
+  s.name = "couchrest"
   s.summary = "Lean and RESTful interface to CouchDB."
+  s.executables = ["couchdir", "couchapp"]
   s.description = "CouchRest provides a simple interface on top of CouchDB's RESTful HTTP API, as well as including some utility scripts for managing views and attachments."
   s.add_dependency "json", [">= 1.1.2"]
   s.add_dependency "rest-client", [">= 0.5"]
   s.add_dependency "extlib", [">= 0.9.6"]
-  s.require_paths = ["lib"]
+  s.bindir = "bin"
 end
