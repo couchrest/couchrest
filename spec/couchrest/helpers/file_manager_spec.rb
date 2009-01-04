@@ -108,6 +108,11 @@ describe CouchRest::FileManager, "pushing an app" do
     doc = @db.get("_design/couchapp")
     doc['magical'].should == "so magic"
   end
+  it "handles not having a forms directory" do
+    `rm -rf #{@appdir}/forms`
+    lambda { @fm.push_app(@appdir, "couchapp") }.should_not raise_error
+    `mkdir -p #{@appdir}/forms`
+  end
 end
 
 
