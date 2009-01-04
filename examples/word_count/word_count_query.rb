@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../couchrest'
 
-couch = CouchRest.new("http://localhost:5984")
+couch = CouchRest.new("http://127.0.0.1:5984")
 db = couch.database('word-count-example')
 
 puts "Now that we've parsed all those books into CouchDB, the queries we can run are incredibly flexible."
@@ -35,5 +35,5 @@ puts "\nHere are the params for 'flight' in the da-vinci book:"
 puts params.inspect
 puts
 puts 'The url looks like this:'
-puts 'http://localhost:5984/word-count-example/_view/word_count/count?key=["flight","da-vinci"]'
+puts 'http://127.0.0.1:5984/word-count-example/_view/word_count/count?key=["flight","da-vinci"]'
 puts "\nTry dropping that in your browser..."

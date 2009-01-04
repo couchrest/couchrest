@@ -72,7 +72,7 @@ module CouchRest
       db = nil if db && db.empty?
 
       {
-        :host => host || "localhost:5984",
+        :host => host || "127.0.0.1:5984",
         :database => db,
         :doc => docid
       }

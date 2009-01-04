@@ -15,12 +15,12 @@ describe CouchRest::FileManager do
     lambda{CouchRest::FileManager.new}.should raise_error
   end
   it "should accept a db name" do
-    @fm = CouchRest::FileManager.new(TESTDB, 'http://localhost')
+    @fm = CouchRest::FileManager.new(TESTDB, 'http://127.0.0.1')
     @fm.db.name.should == TESTDB
   end
-  it "should default to localhost couchdb" do
+  it "should default to 127.0.0.1 couchdb" do
     @fm = CouchRest::FileManager.new(TESTDB)
-    @fm.db.host.should == 'http://localhost:5984'
+    @fm.db.host.should == 'http://127.0.0.1:5984'
   end
 end
 
@@ -127,16 +127,16 @@ describe CouchRest::FileManager, "pushing views" do
     @design["views"].should_not be_nil
   end
   it "should push a map and reduce view" do
-    @design["views"]["test-map"].should_not be_nil
-    @design["views"]["test-reduce"].should_not be_nil
+    @design["views"]["test"]["map"].should_not be_nil
+    @design["views"]["test"]["reduce"].should_not be_nil
   end
   it "should push a map only view" do
-    @design["views"]["only-map"].should_not be_nil
-    @design["views"]["only-reduce"].should be_nil
+    @design["views"]["only"]["map"].should_not be_nil
+    @design["views"]["only"]["reduce"].should be_nil
   end
   it "should include library files" do
-    @design["views"]["only-map"]["map"].should include("globalLib")
-    @design["views"]["only-map"]["map"].should include("justThisView")
+    @design["views"]["only"]["map"].should include("globalLib")
+    @design["views"]["only"]["map"].should include("justThisView")
   end
   it "should not create extra design docs" do
     docs = @db.documents(:startkey => '_design', :endkey => '_design/ZZZZZZ')

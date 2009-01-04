@@ -46,7 +46,7 @@ class Course < CouchRest::Model
 end
 
 class Article < CouchRest::Model
-  use_database CouchRest.database!('http://localhost:5984/couchrest-model-test')
+  use_database CouchRest.database!('http://127.0.0.1:5984/couchrest-model-test')
   unique_id :slug
   
   view_by :date, :descending => true
@@ -89,9 +89,18 @@ class Player < CouchRest::Model
   timestamps!
 end
 
+class Event < CouchRest::Model
+  key_accessor :subject, :occurs_at
+
+  cast :occurs_at, :as => 'Time', :send => 'parse'
+end
+
 describe "save bug" do
+  before(:each) do
+    CouchRest::Model.default_database = reset_test_db!
+  end
+  
   it "should fix" do
-    @db = reset_test_db!
     @p = Player.new
     @p.email = 'insane@fakestreet.com'
     @p.save
@@ -107,8 +116,8 @@ describe CouchRest::Model do
     @db = @cr.create_db(TESTDB) rescue nil
     @adb = @cr.database('couchrest-model-test')
     @adb.delete! rescue nil
-    CouchRest.database!('http://localhost:5984/couchrest-model-test')
-    CouchRest::Model.default_database = CouchRest.database!('http://localhost:5984/couchrest-test')
+    CouchRest.database!('http://127.0.0.1:5984/couchrest-model-test')
+    CouchRest::Model.default_database = CouchRest.database!('http://127.0.0.1:5984/couchrest-test')
   end
   
   it "should use the default database" do
@@ -316,6 +325,18 @@ describe CouchRest::Model do
     end
     it "should instantiate the final_test_at as a Time" do
       @course['final_test_at'].should == Time.parse("2008/12/19 13:00:00 +0800")
+    end
+  end
+
+  describe "cast keys to any type" do
+    before(:all) do
+      event_doc = { :subject => "Some event", :occurs_at => Time.now }
+      e = Event.database.save event_doc
+
+      @event = Event.get e['id']
+    end
+    it "should cast created_at to Time" do
+      @event['occurs_at'].should be_an_instance_of(Time)
     end
   end
 

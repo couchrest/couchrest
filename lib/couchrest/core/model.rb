@@ -18,7 +18,7 @@ module CouchRest
   # than this example.
   #    
   #   class Article < CouchRest::Model
-  #     use_database CouchRest.database!('http://localhost:5984/couchrest-model-test')
+  #     use_database CouchRest.database!('http://127.0.0.1:5984/couchrest-model-test')
   #     unique_id :slug
   #
   #     view_by :date, :descending => true
@@ -519,16 +519,17 @@ module CouchRest
       self.class.casts.each do |k,v|
         next unless self[k]
         target = v[:as]
+        v[:send] || 'new'
         if target.is_a?(Array)
           klass = ::Extlib::Inflection.constantize(target[0])
           self[k] = self[k].collect do |value|
-            klass == Time ? Time.parse(value) : klass.new(value)
+            (!v[:send] && klass == Time) ? Time.parse(value) : klass.send((v[:send] || 'new'), value)
           end
         else
-          self[k] = if target == 'Time'
+          self[k] = if (!v[:send] && target == 'Time') 
             Time.parse(self[k])
           else
-            ::Extlib::Inflection.constantize(target).new(self[k])
+            ::Extlib::Inflection.constantize(target).send((v[:send] || 'new'), self[k])
           end
         end
       end

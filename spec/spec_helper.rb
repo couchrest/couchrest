@@ -5,7 +5,7 @@ require File.dirname(__FILE__) + '/../lib/couchrest'
 
 FIXTURE_PATH = File.dirname(__FILE__) + '/fixtures'
 
-COUCHHOST = "http://localhost:5984"
+COUCHHOST = "http://127.0.0.1:5984"
 TESTDB = 'couchrest-test'
 
 def reset_test_db!
