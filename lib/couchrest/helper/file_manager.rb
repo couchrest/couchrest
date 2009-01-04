@@ -26,8 +26,8 @@ module CouchRest
       attachdir = File.join(appdir,"_attachments")
 
       @doc = dir_to_fields(appdir)
-      package_forms(@doc["forms"])
-      package_views(@doc["views"])
+      package_forms(@doc["forms"]) if @doc['forms']
+      package_views(@doc["views"]) if @doc['views']
 
       docid = "_design/#{appname}"
       design = @db.get(docid) rescue {}
