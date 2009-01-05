@@ -171,7 +171,35 @@ module CouchRest
       slug = CGI.escape(doc['_id'])
       CouchRest.delete "#{@root}/#{slug}?rev=#{doc['_rev']}"
     end
-
+    
+    # COPY an existing document to a new id. If the destination id currently exists, a rev must be provided.
+    # <tt>dest</tt> can take one of two forms if overwriting: "id_to_overwrite?rev=revision" or the actual doc
+    # hash with a '_rev' key
+    def copy doc, dest
+      raise ArgumentError, "_id is required for copying" unless doc['_id']
+      slug = CGI.escape(doc['_id'])
+      destination = if dest.respond_to?(:has_key?) && dest['_id'] && dest['_rev']
+        "#{dest['_id']}?rev=#{dest['_rev']}"
+      else
+        dest
+      end
+      CouchRest.copy "#{@root}/#{slug}", destination
+    end
+    
+    # MOVE an existing document to a new id. If the destination id currently exists, a rev must be provided.
+    # <tt>dest</tt> can take one of two forms if overwriting: "id_to_overwrite?rev=revision" or the actual doc
+    # hash with a '_rev' key
+    def move doc, dest
+      raise ArgumentError, "_id and _rev are required for moving" unless doc['_id'] && doc['_rev']
+      slug = CGI.escape(doc['_id'])
+      destination = if dest.respond_to?(:has_key?) && dest['_id'] && dest['_rev']
+        "#{dest['_id']}?rev=#{dest['_rev']}"
+      else
+        dest
+      end
+      CouchRest.move "#{@root}/#{slug}?rev=#{doc['_rev']}", destination
+    end
+    
     # Compact the database, removing old document revisions and optimizing space use.
     def compact!
       CouchRest.post "#{@root}/_compact"
