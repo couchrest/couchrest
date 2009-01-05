@@ -15,10 +15,22 @@ module CouchRest
       "js"    => "test/javascript",
       "txt"   => "text/plain"
     }
+
+    # Generate an application in the given directory.
+    # This is a class method because it doesn't depend on 
+    # specifying a database.
+    def self.generate_app(app_dir)      
+      templatedir = File.join(File.expand_path(File.dirname(__FILE__)), 'template-app')
+      FileUtils.cp_r(templatedir, app_dir)
+    end
+     
+    # instance methods
      
     def initialize(dbname, host="http://127.0.0.1:5984")
       @db = CouchRest.new(host).database(dbname)
     end
+    
+    # maintain the correspondence between an fs and couch
     
     def push_app(appdir, appname)
       libs = []
@@ -58,15 +70,6 @@ module CouchRest
         end
       end
       return fields
-    end
-    
-    
-    # Generate an application in the given directory.
-    # This is a class method because it doesn't depend on 
-    # specifying a database.
-    def self.generate_app(app_dir)      
-      templatedir = File.join(File.expand_path(File.dirname(__FILE__)), 'template-app')
-      FileUtils.cp_r(templatedir, app_dir)
     end
     
     def push_directory(push_dir, docid=nil)
