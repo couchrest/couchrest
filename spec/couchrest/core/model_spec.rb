@@ -22,6 +22,7 @@ class WithTemplateAndUniqueID < CouchRest::Model
     'more-template' => [1,2,3]
   })
   key_accessor :preset
+  key_accessor :has_no_default
 end
 
 class Question < CouchRest::Model
@@ -222,9 +223,30 @@ describe CouchRest::Model do
   describe "a model with template values" do
     before(:all) do
       @tmpl = WithTemplateAndUniqueID.new
+      @tmpl2 = WithTemplateAndUniqueID.new(:preset => 'not_value', 'important-field' => '1')
     end
     it "should have fields set when new" do
       @tmpl.preset.should == 'value'
+    end
+    it "shouldn't override explicitly set values" do
+      @tmpl2.preset.should == 'not_value'
+    end
+    it "shouldn't override existing documents" do
+      @tmpl2.save
+      tmpl2_reloaded = WithTemplateAndUniqueID.get(@tmpl2.id)
+      @tmpl2.preset.should == 'not_value'
+      tmpl2_reloaded.preset.should == 'not_value'
+    end
+    it "shouldn't fill in existing documents" do
+      @tmpl2.save
+      # If user adds a new default value, shouldn't be retroactively applied to
+      # documents upon fetching
+      WithTemplateAndUniqueID.set_default({:has_no_default => 'giraffe'})
+      
+      tmpl2_reloaded = WithTemplateAndUniqueID.get(@tmpl2.id)
+      @tmpl2.has_no_default.should be_nil
+      tmpl2_reloaded.has_no_default.should be_nil
+      WithTemplateAndUniqueID.new.has_no_default.should == 'giraffe'
     end
   end
   

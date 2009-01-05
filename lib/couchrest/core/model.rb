@@ -506,9 +506,10 @@ module CouchRest
     private
 
     def apply_defaults
+      return unless new_document?
       if self.class.default
         self.class.default.each do |k,v|
-          self[k] = v
+          self[k] = v unless self.key?(k.to_s)
         end
       end
     end
