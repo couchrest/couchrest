@@ -24,37 +24,37 @@ describe CouchRest::FileManager do
   end
 end
 
-describe CouchRest::FileManager, "generating an app" do
-  before(:all) do
-    @appdir = FIXTURE_PATH + '/couchapp/template-app'
-    `rm -rf #{@appdir}`
-    `mkdir -p #{@appdir}`
-    CouchRest::FileManager.generate_app(@appdir)
-  end
-  it "should create an attachments directory" do
-    Dir["#{@appdir}/*"].select{|x|x =~ /_attachments/}.length.should == 1  
-  end
-  it "should create a views directory" do
-    Dir["#{@appdir}/*"].select{|x|x =~ /views/}.length.should == 1  
-  end
-  it "should create a foo directory" do
-    Dir["#{@appdir}/*"].select{|x|x =~ /foo/}.length.should == 1  
-  end
-  it "should create index.html" do
-    html = File.open("#{@appdir}/_attachments/index.html").read
-    html.should match(/DOCTYPE/)
-  end
-  it "should create bar.txt" do
-    html = File.open("#{@appdir}/foo/bar.txt").read
-    html.should match(/Couchapp will/)
-  end
-  it "should create an example view" do
-    map = File.open("#{@appdir}/views/example/map.js").read
-    map.should match(/function\(doc\)/)
-    reduce = File.open("#{@appdir}/views/example/reduce.js").read
-    reduce.should match(/rereduce/)
-  end
-end
+# describe CouchRest::FileManager, "generating an app" do
+#   before(:all) do
+#     @appdir = FIXTURE_PATH + '/couchapp/template-app'
+#     `rm -rf #{@appdir}`
+#     `mkdir -p #{@appdir}`
+#     CouchRest::FileManager.generate_app(@appdir)
+#   end
+#   it "should create an attachments directory" do
+#     Dir["#{@appdir}/*"].select{|x|x =~ /_attachments/}.length.should == 1  
+#   end
+#   it "should create a views directory" do
+#     Dir["#{@appdir}/*"].select{|x|x =~ /views/}.length.should == 1  
+#   end
+#   it "should create a foo directory" do
+#     Dir["#{@appdir}/*"].select{|x|x =~ /foo/}.length.should == 1  
+#   end
+#   it "should create index.html" do
+#     html = File.open("#{@appdir}/_attachments/index.html").read
+#     html.should match(/DOCTYPE/)
+#   end
+#   it "should create bar.txt" do
+#     html = File.open("#{@appdir}/foo/bar.txt").read
+#     html.should match(/Couchapp will/)
+#   end
+#   it "should create an example view" do
+#     map = File.open("#{@appdir}/views/example/map.js").read
+#     map.should match(/function\(doc\)/)
+#     reduce = File.open("#{@appdir}/views/example/reduce.js").read
+#     reduce.should match(/rereduce/)
+#   end
+# end
 
 describe CouchRest::FileManager, "pushing an app" do
   before(:all) do
