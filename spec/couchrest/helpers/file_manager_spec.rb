@@ -32,7 +32,7 @@ describe CouchRest::FileManager, "generating an app" do
     CouchRest::FileManager.generate_app(@appdir)
   end
   it "should create an attachments directory" do
-    Dir["#{@appdir}/*"].select{|x|x =~ /attachments/}.length.should == 1  
+    Dir["#{@appdir}/*"].select{|x|x =~ /_attachments/}.length.should == 1  
   end
   it "should create a views directory" do
     Dir["#{@appdir}/*"].select{|x|x =~ /views/}.length.should == 1  

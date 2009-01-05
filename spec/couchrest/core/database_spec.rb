@@ -29,8 +29,8 @@ describe CouchRest::Database do
       rs = @db.temp_view(@temp_view, :key => "wild")
       rs['rows'].length.should == 1
     end
-    it "should work with a count" do
-      rs = @db.temp_view(@temp_view, :count => 1)
+    it "should work with a limit" do
+      rs = @db.temp_view(@temp_view, :limit => 1)
       rs['rows'].length.should == 1
     end
     it "should work with multi-keys" do
@@ -42,9 +42,9 @@ describe CouchRest::Database do
   describe "map/reduce query with _temp_view in Javascript" do
     before(:each) do
       @db.bulk_save([
-          {"beverage" => "beer", :count => 4},
-          {"beverage" => "beer", :count => 2},
-          {"beverage" => "tea", :count => 3}
+          {"beverage" => "beer", :limit => 4},
+          {"beverage" => "beer", :limit => 2},
+          {"beverage" => "tea", :limit => 3}
         ])
     end
     it "should return the result of the temporary function" do
@@ -109,8 +109,8 @@ describe CouchRest::Database do
       rs = @db.view('first/test', :key => "wild")
       rs['rows'].length.should == 1
     end
-    it "should work with a count" do
-      rs = @db.view('first/test', :count => 1)
+    it "should work with a limit" do
+      rs = @db.view('first/test', :limit => 1)
       rs['rows'].length.should == 1
     end
     it "should work with multi-keys" do

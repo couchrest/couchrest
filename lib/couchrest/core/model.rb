@@ -61,7 +61,7 @@ module CouchRest
   # * The most recent 20 articles. Remember that the <tt>view_by :date</tt>
   #   has the default option <tt>:descending => true</tt>.
   #  
-  #     Article.by_date :count => 20
+  #     Article.by_date :limit => 20
   #  
   # * The raw CouchDB view reduce result for the custom <tt>:tags</tt> view.
   #   In this case we'll get a count of the number of articles tagged "ruby".
@@ -131,7 +131,7 @@ module CouchRest
       # opts<Hash>::
       # View options, see <tt>CouchRest::Database#view</tt> options for more info.
       def first opts = {}
-        first_instance = self.all(opts.merge!(:count => 1))
+        first_instance = self.all(opts.merge!(:limit => 1))
         first_instance.empty? ? nil : first_instance.first
       end
       

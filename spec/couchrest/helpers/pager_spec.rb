@@ -28,7 +28,7 @@ describe CouchRest::Pager do
       end
       @db.bulk_save(@docs)
     end
-    it "should yield total_docs / count times" do
+    it "should yield total_docs / limit times" do
       n = 0
       @pager.all_docs(10) do |doc|
         n += 1
@@ -76,7 +76,7 @@ describe CouchRest::Pager do
     end
     
     it "should have a view" do
-      @db.view('magic/number', :count => 10)['rows'][0]['key'].should == 0
+      @db.view('magic/number', :limit => 10)['rows'][0]['key'].should == 0
     end
     
     it "should yield once per key" do
