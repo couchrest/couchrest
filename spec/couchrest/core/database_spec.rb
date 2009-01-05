@@ -42,9 +42,9 @@ describe CouchRest::Database do
   describe "map/reduce query with _temp_view in Javascript" do
     before(:each) do
       @db.bulk_save([
-          {"beverage" => "beer", :limit => 4},
-          {"beverage" => "beer", :limit => 2},
-          {"beverage" => "tea", :limit => 3}
+          {"beverage" => "beer", :count => 4},
+          {"beverage" => "beer", :count => 2},
+          {"beverage" => "tea", :count => 3}
         ])
     end
     it "should return the result of the temporary function" do
