@@ -63,7 +63,7 @@ describe CouchRest::FileManager, "pushing an app" do
     @db.delete! rescue nil
     @db = @cr.create_db(TESTDB) rescue nil
     
-    @appdir = FIXTURE_PATH + '/couchapp/template-app'
+    @appdir = FIXTURE_PATH + '/generated-app'
 
     `rm -rf #{@appdir}`
     `mkdir -p #{@appdir}`

@@ -20,7 +20,7 @@ module CouchRest
     # This is a class method because it doesn't depend on 
     # specifying a database.
     def self.generate_app(app_dir)      
-      templatedir = File.join(File.expand_path(File.dirname(__FILE__)), 'template-app')
+      templatedir = File.join(File.expand_path(File.dirname(__FILE__)), 'app-template')
       FileUtils.cp_r(templatedir, app_dir)
     end
      
