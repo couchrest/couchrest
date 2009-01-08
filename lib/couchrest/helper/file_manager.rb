@@ -172,7 +172,7 @@ module CouchRest
     
     # process requires
     def process_require(f_string)
-      f_string.gsub /(\/\/|#)\ ?!require (.*)/ do
+      f_string.gsub /(\/\/|#)\ ?!code (.*)/ do
         fields = $2.split('.')
         library = @doc
         fields.each do |field|
@@ -188,7 +188,7 @@ module CouchRest
 
       # process includes
       included = {}
-      f_string.gsub /(\/\/|#)\ ?!include (.*)/ do
+      f_string.gsub /(\/\/|#)\ ?!json (.*)/ do
         fields = $2.split('.')
         library = @doc
         include_to = included
@@ -214,7 +214,8 @@ module CouchRest
         varstrings = included.collect do |k, v|
           "var #{k} = #{v.to_json};"
         end
-        f_string.sub /(\/\/|#)\ ?!include (.*)/, varstrings.join("\n")
+        # just replace the first instance of the macro
+        f_string.sub /(\/\/|#)\ ?!json (.*)/, varstrings.join("\n")
       end
       
       rval
