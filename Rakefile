@@ -5,10 +5,10 @@ require 'rake/gempackagetask'
 
 spec = Gem::Specification.new do |s|
   s.name = "couchrest"
-  s.version = "0.11.1"
+  s.version = "0.11.2"
   s.date = "2008-11-22"
   s.summary = "Lean and RESTful interface to CouchDB."
-  s.email = "jchris@grabb.it"
+  s.email = "jchris@apache.org"
   s.homepage = "http://github.com/jchris/couchrest"
   s.description = "CouchRest provides a simple interface on top of CouchDB's RESTful HTTP API, as well as including some utility scripts for managing views and attachments."
   s.has_rdoc = true

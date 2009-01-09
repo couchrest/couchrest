@@ -1,11 +1,10 @@
 Gem::Specification.new do |s|
+  s.extra_rdoc_files = ["README.rdoc", "LICENSE", "THANKS"]
   s.date = "Sat Nov 22 00:00:00 -0800 2008"
+  s.executables = ["couchdir", "couchapp"]
   s.authors = ["J. Chris Anderson"]
-  s.require_paths = ["lib"]
   s.required_rubygems_version = ">= 0"
-  s.has_rdoc = "true"
-  s.specification_version = 2
-  s.loaded = "false"
+  s.version = "0.11.2"
   s.files = ["LICENSE",
  "README.rdoc",
  "Rakefile",
@@ -40,27 +39,26 @@ Gem::Specification.new do |s|
  "lib/couchrest/core/server.rb",
  "lib/couchrest/core/view.rb",
  "lib/couchrest/helper",
+ "lib/couchrest/helper/app-template",
+ "lib/couchrest/helper/app-template/_attachments",
+ "lib/couchrest/helper/app-template/_attachments/index.html",
+ "lib/couchrest/helper/app-template/foo",
+ "lib/couchrest/helper/app-template/foo/bar.txt",
+ "lib/couchrest/helper/app-template/forms",
+ "lib/couchrest/helper/app-template/forms/example-form.js",
+ "lib/couchrest/helper/app-template/lib",
+ "lib/couchrest/helper/app-template/lib/helpers",
+ "lib/couchrest/helper/app-template/lib/helpers/math.js",
+ "lib/couchrest/helper/app-template/lib/helpers/template.js",
+ "lib/couchrest/helper/app-template/lib/templates",
+ "lib/couchrest/helper/app-template/lib/templates/example.html",
+ "lib/couchrest/helper/app-template/views",
+ "lib/couchrest/helper/app-template/views/example",
+ "lib/couchrest/helper/app-template/views/example/map.js",
+ "lib/couchrest/helper/app-template/views/example/reduce.js",
  "lib/couchrest/helper/file_manager.rb",
  "lib/couchrest/helper/pager.rb",
  "lib/couchrest/helper/streamer.rb",
- "lib/couchrest/helper/template-app",
- "lib/couchrest/helper/template-app/_attachments",
- "lib/couchrest/helper/template-app/_attachments/index.html",
- "lib/couchrest/helper/template-app/foo",
- "lib/couchrest/helper/template-app/foo/bar.txt",
- "lib/couchrest/helper/template-app/forms",
- "lib/couchrest/helper/template-app/forms/example-form.js",
- "lib/couchrest/helper/template-app/lib",
- "lib/couchrest/helper/template-app/lib/helpers",
- "lib/couchrest/helper/template-app/lib/helpers/math.js",
- "lib/couchrest/helper/template-app/lib/helpers/template.js",
- "lib/couchrest/helper/template-app/lib/templates",
- "lib/couchrest/helper/template-app/lib/templates/example.html",
- "lib/couchrest/helper/template-app/views",
- "lib/couchrest/helper/template-app/views/example",
- "lib/couchrest/helper/template-app/views/example/map.js",
- "lib/couchrest/helper/template-app/views/example/reduce.js",
- "lib/couchrest/helper/templates",
  "lib/couchrest/monkeypatches.rb",
  "lib/couchrest.rb",
  "spec/couchapp_spec.rb",
@@ -88,21 +86,60 @@ Gem::Specification.new do |s|
  "spec/fixtures/views/test_view/test-reduce.js",
  "spec/spec.opts",
  "spec/spec_helper.rb",
+ "spec/tmp/couchapp-test",
+ "spec/tmp/couchapp-test/my-app",
+ "spec/tmp/couchapp-test/my-app/_attachments",
+ "spec/tmp/couchapp-test/my-app/_attachments/index.html",
+ "spec/tmp/couchapp-test/my-app/foo",
+ "spec/tmp/couchapp-test/my-app/foo/bar.txt",
+ "spec/tmp/couchapp-test/my-app/forms",
+ "spec/tmp/couchapp-test/my-app/forms/example-form.js",
+ "spec/tmp/couchapp-test/my-app/lib",
+ "spec/tmp/couchapp-test/my-app/lib/helpers",
+ "spec/tmp/couchapp-test/my-app/lib/helpers/math.js",
+ "spec/tmp/couchapp-test/my-app/lib/helpers/template.js",
+ "spec/tmp/couchapp-test/my-app/lib/templates",
+ "spec/tmp/couchapp-test/my-app/lib/templates/example.html",
+ "spec/tmp/couchapp-test/my-app/views",
+ "spec/tmp/couchapp-test/my-app/views/example",
+ "spec/tmp/couchapp-test/my-app/views/example/map.js",
+ "spec/tmp/couchapp-test/my-app/views/example/reduce.js",
+ "spec/tmp/generated-app",
+ "spec/tmp/generated-app/app-template",
+ "spec/tmp/generated-app/app-template/_attachments",
+ "spec/tmp/generated-app/app-template/_attachments/index.html",
+ "spec/tmp/generated-app/app-template/foo",
+ "spec/tmp/generated-app/app-template/foo/bar.txt",
+ "spec/tmp/generated-app/app-template/forms",
+ "spec/tmp/generated-app/app-template/forms/example-form.js",
+ "spec/tmp/generated-app/app-template/lib",
+ "spec/tmp/generated-app/app-template/lib/helpers",
+ "spec/tmp/generated-app/app-template/lib/helpers/math.js",
+ "spec/tmp/generated-app/app-template/lib/helpers/template.js",
+ "spec/tmp/generated-app/app-template/lib/templates",
+ "spec/tmp/generated-app/app-template/lib/templates/example.html",
+ "spec/tmp/generated-app/app-template/views",
+ "spec/tmp/generated-app/app-template/views/example",
+ "spec/tmp/generated-app/app-template/views/example/map.js",
+ "spec/tmp/generated-app/app-template/views/example/reduce.js",
+ "spec/tmp/generated-app/forms",
+ "spec/tmp/generated-app/test.json",
  "utils/remap.rb",
  "utils/subset.rb"]
-  s.email = "jchris@grabb.it"
-  s.required_ruby_version = ">= 0"
-  s.version = "0.11.1"
-  s.rubygems_version = "1.3.1"
-  s.homepage = "http://github.com/jchris/couchrest"
-  s.extra_rdoc_files = ["README.rdoc", "LICENSE", "THANKS"]
-  s.platform = "ruby"
+  s.has_rdoc = "true"
+  s.specification_version = 2
+  s.loaded = "false"
+  s.email = "jchris@apache.org"
   s.name = "couchrest"
+  s.required_ruby_version = ">= 0"
+  s.bindir = "bin"
+  s.rubygems_version = "1.2.0"
+  s.homepage = "http://github.com/jchris/couchrest"
+  s.platform = "ruby"
   s.summary = "Lean and RESTful interface to CouchDB."
-  s.executables = ["couchdir", "couchapp"]
   s.description = "CouchRest provides a simple interface on top of CouchDB's RESTful HTTP API, as well as including some utility scripts for managing views and attachments."
   s.add_dependency "json", [">= 1.1.2"]
   s.add_dependency "rest-client", [">= 0.5"]
   s.add_dependency "extlib", [">= 0.9.6"]
-  s.bindir = "bin"
+  s.require_paths = ["lib"]
 end
