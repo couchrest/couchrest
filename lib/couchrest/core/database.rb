@@ -165,8 +165,17 @@ module CouchRest
     
     # DELETE the document from CouchDB that has the given <tt>_id</tt> and
     # <tt>_rev</tt>.
-    def delete doc
+    #
+    # If <tt>bulk</tt> is true (false by default) the deletion is recorded for bulk-saving (bulk-deletion :) later.
+    # Bulk saving happens automatically when #bulk_save_cache limit is exceded, or on the next non bulk save.
+    def delete (doc, bulk = false)
       raise ArgumentError, "_id and _rev required for deleting" unless doc['_id'] && doc['_rev']
+      
+      if bulk
+        @bulk_save_cache << { '_id' => doc['_id'], '_rev' => doc['_rev'], '_deleted' => true }
+        return bulk_save if @bulk_save_cache.length >= @bulk_save_cache_limit
+        return { "ok" => true } # Mimic the non-deferred version
+      end
       
       slug = CGI.escape(doc['_id'])
       CouchRest.delete "#{@root}/#{slug}?rev=#{doc['_rev']}"

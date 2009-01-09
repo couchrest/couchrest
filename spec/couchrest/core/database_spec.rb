@@ -472,6 +472,14 @@ describe CouchRest::Database do
     it "should fail without an _id" do
       lambda{@db.delete({"not"=>"a real doc"})}.should raise_error(ArgumentError)
     end
+    it "should defer actual deletion when using bulk save" do
+      doc = @db.get(@docid)
+      @db.delete doc, true
+      lambda{@db.get @docid}.should_not raise_error
+      @db.bulk_save
+      lambda{@db.get @docid}.should raise_error
+    end
+    
   end
   
   describe "COPY existing document" do
