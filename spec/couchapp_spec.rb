@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/spec_helper'
 
 describe "couchapp" do
   before(:all) do
-    @fixdir = FIXTURE_PATH + '/couchapp-test'
+    @fixdir = SCRATCH_PATH + '/couchapp-test'
     @couchapp = File.expand_path(File.dirname(__FILE__)) + '/../bin/couchapp'
     `rm -rf #{@fixdir}`
     `mkdir -p #{@fixdir}`
