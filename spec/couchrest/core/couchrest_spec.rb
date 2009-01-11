@@ -188,4 +188,14 @@ describe CouchRest do
     end
   end
 
+  describe "using a proxy for RestClient connections" do
+    it "should set proxy url for RestClient" do
+      CouchRest.proxy 'http://localhost:8888/'
+      proxy_uri = URI.parse(RestClient.proxy)
+      proxy_uri.host.should eql( 'localhost' )
+      proxy_uri.port.should eql( 8888 )
+      CouchRest.proxy nil
+    end
+  end
+
 end

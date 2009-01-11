@@ -78,6 +78,11 @@ module CouchRest
       }
     end
 
+    # set proxy for RestClient to use
+    def proxy url
+      RestClient.proxy = url
+    end
+
     # ensure that a database exists
     # creates it if it isn't already there
     # returns it after it's been created
