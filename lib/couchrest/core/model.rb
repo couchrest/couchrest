@@ -4,9 +4,9 @@ require 'digest/md5'
 require File.dirname(__FILE__) + '/document'
 require 'mime/types'
 
-# = CouchRest::Model - ORM, the CouchDB way
+# = CouchRest::Model - Document modeling, the CouchDB way
 module CouchRest
-  # = CouchRest::Model - ORM, the CouchDB way
+  # = CouchRest::Model - Document modeling, the CouchDB way
   #    
   # CouchRest::Model provides an ORM-like interface for CouchDB documents. It
   # avoids all usage of <tt>method_missing</tt>, and tries to strike a balance
@@ -550,11 +550,12 @@ module CouchRest
       return unless new_document?
       if self.class.default
         self.class.default.each do |k,v|
-          self[k] = v unless self.key?(k.to_s)
-          if v.class == Proc
-            self[k.to_s] = v.call
-          else
-            self[k.to_s] = Marshal.load(Marshal.dump(v))
+          unless self.key?(k.to_s)
+            if v.class == Proc
+              self[k.to_s] = v.call
+            else
+              self[k.to_s] = Marshal.load(Marshal.dump(v))
+            end
           end
         end
       end
