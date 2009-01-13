@@ -218,9 +218,6 @@ module CouchRest
         before(:save) do
           self['updated_at'] = Time.now
           self['created_at'] = self['updated_at'] if new_document?
-        end                  
-        before(:update) do   
-          self['updated_at'] = Time.now
         end
       end
 
@@ -481,7 +478,7 @@ module CouchRest
 
     # Overridden to set the unique ID.
     def save bulk = false
-      set_unique_id if self.respond_to?(:set_unique_id)
+      set_unique_id if new_document? && self.respond_to?(:set_unique_id)
       super(bulk)
     end
     
