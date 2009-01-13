@@ -547,20 +547,6 @@ module CouchRest
       "#{database.root}/#{self.id}/#{attachment_name}"
     end
 
-    protected
-
-    # Saves a document for the first time, after running the before(:create)
-    # callbacks, and applying the unique_id.
-    def create
-      set_unique_id if respond_to?(:set_unique_id) # hack
-      save_doc
-    end
-
-    # Saves the document and runs the :update callbacks.
-    def update
-      save_doc
-    end
-
     private
 
     def apply_defaults
