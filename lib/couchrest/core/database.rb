@@ -75,7 +75,7 @@ module CouchRest
     
     # GET a document from CouchDB, by id. Returns a Ruby Hash.
     def get id
-      slug = /^_design\/(.*)/ =~ id ? "_design/#{CGI.escape($1)}" : CGI.escape(id) 
+      slug = escape_docid(id)
       hash = CouchRest.get("#{@root}/#{slug}")
       doc = if /^_design/ =~ hash["_id"]
         Design.new(hash)
@@ -87,15 +87,15 @@ module CouchRest
     end
     
     # GET an attachment directly from CouchDB
-    def fetch_attachment doc, name
-      doc = CGI.escape(doc)
+    def fetch_attachment docid, name
+      slug = escape_docid(docid)        
       name = CGI.escape(name)
-      RestClient.get "#{@root}/#{doc}/#{name}"
+      RestClient.get "#{@root}/#{slug}/#{name}"
     end
     
     # PUT an attachment directly to CouchDB
     def put_attachment doc, name, file, options = {}
-      docid = CGI.escape(doc['_id'])
+      docid = escape_docid(doc['_id'])
       name = CGI.escape(name)
       uri = if doc['_rev']
         "#{@root}/#{docid}/#{name}?rev=#{doc['_rev']}"
@@ -127,7 +127,7 @@ module CouchRest
         bulk_save
       end
       result = if doc['_id']
-        slug = CGI.escape(doc['_id'])
+        slug = escape_docid(doc['_id'])        
         CouchRest.put "#{@root}/#{slug}", doc
       else
         begin
@@ -168,7 +168,7 @@ module CouchRest
     def delete doc
       raise ArgumentError, "_id and _rev required for deleting" unless doc['_id'] && doc['_rev']
       
-      slug = CGI.escape(doc['_id'])
+      slug = escape_docid(doc['_id'])        
       CouchRest.delete "#{@root}/#{slug}?rev=#{doc['_rev']}"
     end
     
@@ -177,7 +177,7 @@ module CouchRest
     # hash with a '_rev' key
     def copy doc, dest
       raise ArgumentError, "_id is required for copying" unless doc['_id']
-      slug = CGI.escape(doc['_id'])
+      slug = escape_docid(doc['_id'])        
       destination = if dest.respond_to?(:has_key?) && dest['_id'] && dest['_rev']
         "#{dest['_id']}?rev=#{dest['_rev']}"
       else
@@ -191,7 +191,7 @@ module CouchRest
     # hash with a '_rev' key
     def move doc, dest
       raise ArgumentError, "_id and _rev are required for moving" unless doc['_id'] && doc['_rev']
-      slug = CGI.escape(doc['_id'])
+      slug = escape_docid(doc['_id'])        
       destination = if dest.respond_to?(:has_key?) && dest['_id'] && dest['_rev']
         "#{dest['_id']}?rev=#{dest['_rev']}"
       else
@@ -213,8 +213,8 @@ module CouchRest
 
     private
 
-    def escape_docid id
-      
+    def escape_docid id      
+      /^_design\/(.*)/ =~ id ? "_design/#{CGI.escape($1)}" : CGI.escape(id) 
     end
 
     def encode_attachments attachments
