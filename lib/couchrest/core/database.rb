@@ -75,7 +75,7 @@ module CouchRest
     
     # GET a document from CouchDB, by id. Returns a Ruby Hash.
     def get id
-      slug = CGI.escape(id) 
+      slug = /^_design\/(.*)/ =~ id ? "_design/#{CGI.escape($1)}" : CGI.escape(id) 
       hash = CouchRest.get("#{@root}/#{slug}")
       doc = if /^_design/ =~ hash["_id"]
         Design.new(hash)
@@ -212,6 +212,10 @@ module CouchRest
     end
 
     private
+
+    def escape_docid id
+      
+    end
 
     def encode_attachments attachments
       attachments.each do |k,v|

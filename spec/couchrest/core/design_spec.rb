@@ -74,7 +74,7 @@ describe CouchRest::Design do
       @des = @db.get "_design/test"
     end
     it "should be a Design" do
-      @des.should be_an_instance_of CouchRest::Design
+      @des.should be_an_instance_of(CouchRest::Design)
     end
     it "should have a modifiable name" do
       @des.name.should == "test"
