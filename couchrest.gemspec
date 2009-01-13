@@ -64,6 +64,7 @@ Gem::Specification.new do |s|
  "spec/fixtures",
  "spec/fixtures/attachments",
  "spec/fixtures/attachments/couchdb.png",
+ "spec/fixtures/attachments/README",
  "spec/fixtures/attachments/test.html",
  "spec/fixtures/views",
  "spec/fixtures/views/lib.js",
@@ -128,7 +129,7 @@ Gem::Specification.new do |s|
   s.description = "CouchRest provides a simple interface on top of CouchDB's RESTful HTTP API, as well as including some utility scripts for managing views and attachments."
   s.add_dependency "json", [">= 1.1.2"]
   s.add_dependency "rest-client", [">= 0.5"]
-  s.add_dependency "extlib", [">= 0.9.6"]
   s.add_dependency "mime-types", [">= 1.15"]
+  s.add_dependency "extlib", [">= 0.9.6"]
   s.require_paths = ["lib"]
 end

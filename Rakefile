@@ -22,6 +22,7 @@ spec = Gem::Specification.new do |s|
   s.executables << 'couchdir'
   s.add_dependency("json", ">= 1.1.2")
   s.add_dependency("rest-client", ">= 0.5")
+  s.add_dependency("mime-types", ">= 1.15")
   s.add_dependency("extlib", ">= 0.9.6")
 end
 
