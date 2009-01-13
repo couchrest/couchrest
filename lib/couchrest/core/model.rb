@@ -510,6 +510,11 @@ module CouchRest
       if self.class.default
         self.class.default.each do |k,v|
           self[k] = v unless self.key?(k.to_s)
+          if v.class == Proc
+            self[k.to_s] = v.call
+          else
+            self[k.to_s] = Marshal.load(Marshal.dump(v))
+          end
         end
       end
     end
