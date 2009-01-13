@@ -1,7 +1,12 @@
 require 'rubygems'
 require 'extlib'
 require 'digest/md5'
+<<<<<<< HEAD:lib/couchrest/core/model.rb
 require File.dirname(__FILE__) + '/document'
+=======
+require 'mime/types'
+
+>>>>>>> CRUD for attachments in CouchRest::Model instance:lib/couchrest/core/model.rb
 # = CouchRest::Model - ORM, the CouchDB way
 module CouchRest
   # = CouchRest::Model - ORM, the CouchDB way
@@ -500,6 +505,45 @@ module CouchRest
       result['ok']
     end
 
+    # creates a file attachment to the current doc
+    def create_attachment(file, attachment_name)
+      return if self['_attachments'] && self['_attachments'][attachment_name] && !self['_attachments'][attachment_name].empty?
+      self['_attachments'] ||= {}
+      set_attachment_attr(file, attachment_name)
+    end
+    
+    # reads the data from an attachment
+    def read_attachment(attachment_name)
+      Base64.decode64(database.fetch_attachment(self.id, attachment_name))
+    end
+    
+    # modifies a file attachment on the current doc
+    def update_attachment(file, attachment_name)
+      return unless self['_attachments'] && self['_attachments'][attachment_name]
+      delete_attachment(attachment_name)
+      set_attachment_attr(file, attachment_name)
+    end
+    
+    # deletes a file attachment from the current doc
+    def delete_attachment(attachment_name)
+      return unless self['_attachments']
+      self['_attachments'].delete attachment_name
+    end
+
+    protected
+
+    # Saves a document for the first time, after running the before(:create)
+    # callbacks, and applying the unique_id.
+    def create
+      set_unique_id if respond_to?(:set_unique_id) # hack
+      save_doc
+    end
+
+    # Saves the document and runs the :update callbacks.
+    def update
+      save_doc
+    end
+
     private
 
     def apply_defaults
@@ -536,6 +580,22 @@ module CouchRest
           end
         end
       end
+    end
+
+    def encode_attachment(data)
+      Base64.encode64(data).gsub(/\r|\n/,'')
+    end
+    
+    def get_mime_type(file)
+      MIME::Types.type_for(file.path).empty? ? 
+        'text\/plain' : MIME::Types.type_for(file.path).content_type.gsub(/\//,'\/')
+    end
+
+    def set_attachment_attr(file, attachment_name)
+      self['_attachments'][attachment_name] = {
+        'content-type' => get_mime_type(file),
+        'data'         => encode_attachment(file.read)
+      }
     end
 
     include ::Extlib::Hook
