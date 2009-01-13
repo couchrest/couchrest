@@ -4,7 +4,7 @@ Gem::Specification.new do |s|
   s.executables = ["couchdir"]
   s.authors = ["J. Chris Anderson"]
   s.required_rubygems_version = ">= 0"
-  s.version = "0.12.0"
+  s.version = "0.12.1"
   s.files = ["LICENSE",
  "README.md",
  "Rakefile",

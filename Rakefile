@@ -3,9 +3,11 @@ require "rake/rdoctask"
 require 'spec/rake/spectask'
 require 'rake/gempackagetask'
 
+require File.join(File.expand_path(File.dirname(__FILE__)),'lib','couchrest')
+
 spec = Gem::Specification.new do |s|
   s.name = "couchrest"
-  s.version = "0.12.0"
+  s.version = CouchRest::VERSION
   s.date = "2008-11-22"
   s.summary = "Lean and RESTful interface to CouchDB."
   s.email = "jchris@apache.org"
