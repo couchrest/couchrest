@@ -1,14 +1,14 @@
 Gem::Specification.new do |s|
-  s.extra_rdoc_files = ["README.rdoc", "LICENSE", "THANKS"]
+  s.extra_rdoc_files = ["README.md", "LICENSE", "THANKS.md"]
   s.date = "Sat Nov 22 00:00:00 -0800 2008"
   s.executables = ["couchdir"]
   s.authors = ["J. Chris Anderson"]
   s.required_rubygems_version = ">= 0"
   s.version = "0.12.0"
   s.files = ["LICENSE",
- "README.rdoc",
+ "README.md",
  "Rakefile",
- "THANKS",
+ "THANKS.md",
  "bin/couchdir",
  "examples/model",
  "examples/model/example.rb",
