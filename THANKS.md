@@ -9,8 +9,9 @@ changes. A list of these people is included below.
  * [Matt Aimonetti](http://merbist.com/about/)
  * [Greg Borenstein](http://ideasfordozens.com)
  * [Geoffrey Grosenbach](http://nubyonrails.com/)
- * Simon Rozet (simon /at/ rozet /dot/ name)
+ * [Jonathan S. Katz](http://github.com/jkatz)
  * [Matt Lyon](http://mattly.tumblr.com/)
+ * Simon Rozet (simon /at/ rozet /dot/ name)
  
 Patches are welcome. The primary source for this software project is [on Github](http://github.com/jchris/couchrest/tree/master)
 
