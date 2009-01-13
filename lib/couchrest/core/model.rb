@@ -1,12 +1,9 @@
 require 'rubygems'
 require 'extlib'
 require 'digest/md5'
-<<<<<<< HEAD:lib/couchrest/core/model.rb
 require File.dirname(__FILE__) + '/document'
-=======
 require 'mime/types'
 
->>>>>>> CRUD for attachments in CouchRest::Model instance:lib/couchrest/core/model.rb
 # = CouchRest::Model - ORM, the CouchDB way
 module CouchRest
   # = CouchRest::Model - ORM, the CouchDB way
