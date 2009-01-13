@@ -1,9 +1,18 @@
 require 'rake'
 require "rake/rdoctask"
-require 'spec/rake/spectask'
 require 'rake/gempackagetask'
-
 require File.join(File.expand_path(File.dirname(__FILE__)),'lib','couchrest')
+
+
+begin
+  require 'spec/rake/spectask'
+rescue LoadError
+  puts <<-EOS
+To use rspec for testing you must install rspec gem:
+    gem install rspec
+EOS
+  exit(0)
+end
 
 spec = Gem::Specification.new do |s|
   s.name = "couchrest"
@@ -28,41 +37,48 @@ spec = Gem::Specification.new do |s|
   s.add_dependency("extlib", ">= 0.9.6")
 end
 
-::Rake::GemPackageTask.new(spec) { |p| p.gem_spec = spec }
 
-desc "Update Github Gemspec"
+desc "create .gemspec file (useful for github)"
 task :gemspec do
-  skip_fields = %w(new_platform original_platform)
-  integer_fields = %w(specification_version)
-
-  result = "Gem::Specification.new do |s|\n"
-  spec.instance_variables.each do |ivar|
-    value = spec.instance_variable_get(ivar)
-    name  = ivar.split("@").last
-    next if skip_fields.include?(name) || value.nil? || value == "" || (value.respond_to?(:empty?) && value.empty?)
-    if name == "dependencies"
-      value.each do |d|
-        dep, *ver = d.to_s.split(" ")
-        result <<  "  s.add_dependency #{dep.inspect}, [#{ /\(([^\,]*)/ . match(ver.join(" "))[1].inspect}]\n"
-      end
-    else        
-      case value
-      when Array
-        value =  name != "files" ? value.inspect : value.inspect.split(",").join(",\n")
-      when Fixnum
-        # leave as-is
-      when String
-        value = value.to_i if integer_fields.include?(name)
-        value = value.inspect
-      else
-        value = value.to_s.inspect
-      end
-      result << "  s.#{name} = #{value}\n"
-    end
+  filename = "#{spec.name}.gemspec"
+  File.open(filename, "w") do |f|
+    f.puts spec.to_ruby
   end
-  result << "end"
-  File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w"){|f| f << result}
 end
+
+# desc "Update Github Gemspec"
+# task :gemspec do
+#   skip_fields = %w(new_platform original_platform)
+#   integer_fields = %w(specification_version)
+# 
+#   result = "Gem::Specification.new do |s|\n"
+#   spec.instance_variables.each do |ivar|
+#     value = spec.instance_variable_get(ivar)
+#     name  = ivar.split("@").last
+#     next if skip_fields.include?(name) || value.nil? || value == "" || (value.respond_to?(:empty?) && value.empty?)
+#     if name == "dependencies"
+#       value.each do |d|
+#         dep, *ver = d.to_s.split(" ")
+#         result <<  "  s.add_dependency #{dep.inspect}, [#{ /\(([^\,]*)/ . match(ver.join(" "))[1].inspect}]\n"
+#       end
+#     else        
+#       case value
+#       when Array
+#         value =  name != "files" ? value.inspect : value.inspect.split(",").join(",\n")
+#       when Fixnum
+#         # leave as-is
+#       when String
+#         value = value.to_i if integer_fields.include?(name)
+#         value = value.inspect
+#       else
+#         value = value.to_s.inspect
+#       end
+#       result << "  s.#{name} = #{value}\n"
+#     end
+#   end
+#   result << "end"
+#   File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w"){|f| f << result}
+# end
 
 desc "Run all specs"
 Spec::Rake::SpecTask.new('spec') do |t|
