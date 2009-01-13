@@ -109,3 +109,22 @@ describe "destroying a document from a db" do
     lambda{@doc.destroy}.should raise_error(ArgumentError)
   end
 end
+
+
+describe "destroying a document from a db using bulk save" do
+  before(:all) do
+    @db = reset_test_db!
+    @resp = @db.save({
+      "key" => "value"
+    })
+    @doc = @db.get @resp['id']
+  end
+  it "should defer actual deletion" do
+    @doc.destroy(true)
+    @doc['_id'].should == nil
+    @doc['_rev'].should == nil
+    lambda{@db.get @resp['id']}.should_not raise_error
+    @db.bulk_save
+    lambda{@db.get @resp['id']}.should raise_error
+  end
+end

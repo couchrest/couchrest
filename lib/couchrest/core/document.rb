@@ -45,9 +45,11 @@ module CouchRest
     # Deletes the document from the database. Runs the :delete callbacks.
     # Removes the <tt>_id</tt> and <tt>_rev</tt> fields, preparing the
     # document to be saved to a new <tt>_id</tt>.
-    def destroy
+    # If <tt>bulk</tt> is <tt>true</tt> (defaults to false) the document won't 
+    # actually be deleted from the db until bulk save.
+    def destroy(bulk = false)
       raise ArgumentError, "doc.database required to destroy" unless database
-      result = database.delete self
+      result = database.delete(self, bulk)
       if result['ok']
         self['_rev'] = nil
         self['_id'] = nil
