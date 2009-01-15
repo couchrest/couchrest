@@ -6,8 +6,7 @@ which I find to be concise, clear, and well designed. CouchRest lightly wraps
 CouchDB's HTTP API, managing JSON serialization, and remembering the URI-paths
 to CouchDB's API endpoints so you don't have to.
 
-CouchRest's lighweight is designed to make a simple base for application and
-framework-specific object oriented APIs.
+CouchRest is designed to make a simple base for application and framework-specific object oriented APIs. CouchRest is Object-Mapper agnostic, the parsed JSON it returns from CouchDB shows up as subclasses of Ruby's Hash. Naked JSON, just as it was mean to be.
 
 ## Easy Install
 

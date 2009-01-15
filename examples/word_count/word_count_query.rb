@@ -1,22 +1,23 @@
-require File.dirname(__FILE__) + '/../../couchrest'
+require 'rubygems'
+require 'couchrest'
 
 couch = CouchRest.new("http://127.0.0.1:5984")
 db = couch.database('word-count-example')
 
 puts "Now that we've parsed all those books into CouchDB, the queries we can run are incredibly flexible."
 puts "\nThe simplest query we can run is the total word count for all words in all documents:"
-
-puts db.view('word_count/count').inspect
+puts "this will take a few minutes the first time. if it times out, just rerun this script in a few few minutes."
+puts db.view('word_count/words').inspect
 
 puts "\nWe can also narrow the query down to just one word, across all documents. Here is the count for 'flight' in all three books:"
 
 word = 'flight'
 params = {
   :startkey => [word], 
-  :endkey => [word,'Z']
+  :endkey => [word,{}]
   }
 
-puts db.view('word_count/count',params).inspect
+puts db.view('word_count/words',params).inspect
 
 puts "\nWe scope the query using startkey and endkey params to take advantage of CouchDB's collation ordering. Here are the params for the last query:"
 puts params.inspect
@@ -28,7 +29,7 @@ params = {
   :key => [word, title]
   }
   
-puts db.view('word_count/count',params).inspect
+puts db.view('word_count/words',params).inspect
 
 
 puts "\nHere are the params for 'flight' in the da-vinci book:"
