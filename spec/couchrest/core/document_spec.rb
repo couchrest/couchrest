@@ -128,3 +128,86 @@ describe "destroying a document from a db using bulk save" do
     lambda{@db.get @resp['id']}.should raise_error
   end
 end
+
+describe "copying a document" do
+  before :each do
+    @db = reset_test_db!
+    @resp = @db.save({'key' => 'value'})
+    @docid = 'new-location'
+    @doc = @db.get(@resp['id'])
+  end
+  describe "to a new location" do
+    it "should work" do
+      @doc.copy @docid
+      newdoc = @db.get(@docid)
+      newdoc['key'].should == 'value'
+    end
+    it "should fail without a database" do
+      lambda{CouchRest::Document.new({"not"=>"a real doc"}).copy}.should raise_error(ArgumentError)
+    end
+  end
+  describe "to an existing location" do
+    before :each do
+      @db.save({'_id' => @docid, 'will-exist' => 'here'})
+    end
+    it "should fail without a rev" do
+      lambda{@doc.copy @docid}.should raise_error(RestClient::RequestFailed)
+    end
+    it "should succeed with a rev" do
+      @to_be_overwritten = @db.get(@docid)
+      @doc.copy "#{@docid}?rev=#{@to_be_overwritten['_rev']}"
+      newdoc = @db.get(@docid)
+      newdoc['key'].should == 'value'
+    end
+    it "should succeed given the doc to overwrite" do
+      @to_be_overwritten = @db.get(@docid)
+      @doc.copy @to_be_overwritten
+      newdoc = @db.get(@docid)
+      newdoc['key'].should == 'value'
+    end
+  end
+end
+
+describe "MOVE existing document" do
+  before :each do
+    @db = reset_test_db!
+    @resp = @db.save({'key' => 'value'})
+    @docid = 'new-location'
+    @doc = @db.get(@resp['id'])
+  end
+  describe "to a new location" do
+    it "should work" do
+      @doc.move @docid
+      newdoc = @db.get(@docid)
+      newdoc['key'].should == 'value'
+      lambda {@db.get(@resp['id'])}.should raise_error(RestClient::ResourceNotFound)
+    end
+    it "should fail without a database" do
+      lambda{CouchRest::Document.new({"not"=>"a real doc"}).move}.should raise_error(ArgumentError)
+      lambda{CouchRest::Document.new({"_id"=>"not a real doc"}).move}.should raise_error(ArgumentError)
+    end
+  end
+  describe "to an existing location" do
+    before :each do
+      @db.save({'_id' => @docid, 'will-exist' => 'here'})
+    end
+    it "should fail without a rev" do
+      lambda{@doc.move @docid}.should raise_error(RestClient::RequestFailed)
+      lambda{@db.get(@resp['id'])}.should_not raise_error
+    end
+    it "should succeed with a rev" do
+      @to_be_overwritten = @db.get(@docid)
+      @doc.move "#{@docid}?rev=#{@to_be_overwritten['_rev']}"
+      newdoc = @db.get(@docid)
+      newdoc['key'].should == 'value'
+      lambda {@db.get(@resp['id'])}.should raise_error(RestClient::ResourceNotFound)
+    end
+    it "should succeed given the doc to overwrite" do
+      @to_be_overwritten = @db.get(@docid)
+      @doc.move @to_be_overwritten
+      newdoc = @db.get(@docid)
+      newdoc['key'].should == 'value'
+      lambda {@db.get(@resp['id'])}.should raise_error(RestClient::ResourceNotFound)
+    end
+  end
+end

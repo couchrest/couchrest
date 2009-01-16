@@ -56,6 +56,18 @@ module CouchRest
       end
       result['ok']
     end
+    
+    def copy(dest)
+      raise ArgumentError, "doc.database required to copy" unless database
+      result = database.copy(self, dest)
+      result['ok']
+    end
+    
+    def move(dest)
+      raise ArgumentError, "doc.database required to copy" unless database
+      result = database.move(self, dest)
+      result['ok']
+    end
 
   end
 
