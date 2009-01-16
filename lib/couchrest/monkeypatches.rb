@@ -22,3 +22,17 @@ class Time
   #   fallback
   # end
 end
+
+module RestClient
+  def self.copy(url, headers={})
+    Request.execute(:method => :copy,
+      :url => url,
+      :headers => headers)
+  end
+  
+  def self.move(url, headers={})
+    Request.execute(:method => :move,
+    :url => url,
+    :headers => headers)
+  end
+end

@@ -492,7 +492,6 @@ describe CouchRest::Database do
       it "should work" do
         @db.copy @doc, @docid
         newdoc = @db.get(@docid)
-        debugger
         newdoc['artist'].should == 'Zappa'
       end
       it "should fail without an _id" do
