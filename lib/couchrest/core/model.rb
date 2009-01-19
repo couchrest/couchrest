@@ -439,6 +439,7 @@ module CouchRest
             saved['views'][name] = view
           end
           database.save(saved)
+          self.design_doc = saved
         else
           design_doc['_id'] = did
           design_doc.delete('_rev')
