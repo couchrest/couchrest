@@ -15,7 +15,6 @@
 require "rubygems"
 require 'json'
 require 'rest_client'
-# require 'extlib'
 
 $:.unshift File.dirname(__FILE__) unless
   $:.include?(File.dirname(__FILE__)) ||
@@ -26,7 +25,7 @@ require 'couchrest/monkeypatches'
 
 # = CouchDB, close to the metal
 module CouchRest
-  VERSION = '0.12.2'
+  VERSION = '0.12.3'
   
   autoload :Server,       'couchrest/core/server'
   autoload :Database,     'couchrest/core/database'

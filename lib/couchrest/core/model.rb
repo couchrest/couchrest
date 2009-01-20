@@ -1,5 +1,10 @@
 require 'rubygems'
-require 'extlib'
+begin
+  require 'extlib'
+rescue 
+  puts "CouchRest::Model requires extlib. This is left out of the gemspec on purpose."
+  raise
+end
 require 'digest/md5'
 require File.dirname(__FILE__) + '/document'
 require 'mime/types'
