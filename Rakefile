@@ -25,12 +25,10 @@ spec = Gem::Specification.new do |s|
   s.has_rdoc = true
   s.authors = ["J. Chris Anderson"]
   s.files = %w( LICENSE README.md Rakefile THANKS.md ) + 
-    Dir["{bin,examples,lib,spec,utils}/**/*"] - 
+    Dir["{examples,lib,spec,utils}/**/*"] - 
     Dir["spec/tmp"]
   s.extra_rdoc_files = %w( README.md LICENSE THANKS.md )
   s.require_path = "lib"
-  s.bindir = 'bin'
-  s.executables << 'couchdir'
   s.add_dependency("json", ">= 1.1.2")
   s.add_dependency("rest-client", ">= 0.5")
   s.add_dependency("mime-types", ">= 1.15")
