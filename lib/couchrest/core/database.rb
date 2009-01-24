@@ -149,16 +149,18 @@ module CouchRest
     # missing ids, supply one from the uuid cache.
     #
     # If called with no arguments, bulk saves the cache of documents to be bulk saved.
-    def bulk_save (docs = nil)
+    def bulk_save(docs = nil, use_uuids = true)
       if docs.nil?
         docs = @bulk_save_cache
         @bulk_save_cache = []
       end
-      ids, noids = docs.partition{|d|d['_id']}
-      uuid_count = [noids.length, @server.uuid_batch_count].max
-      noids.each do |doc|
-        nextid = @server.next_uuid(uuid_count) rescue nil
-        doc['_id'] = nextid if nextid
+      if (use_uuids) 
+        ids, noids = docs.partition{|d|d['_id']}
+        uuid_count = [noids.length, @server.uuid_batch_count].max
+        noids.each do |doc|
+          nextid = @server.next_uuid(uuid_count) rescue nil
+          doc['_id'] = nextid if nextid
+        end
       end
       CouchRest.post "#{@root}/_bulk_docs", {:docs => docs}
     end
