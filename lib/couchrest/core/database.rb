@@ -50,7 +50,7 @@ module CouchRest
     def slow_view funcs, params = {}
       keys = params.delete(:keys)
       funcs = funcs.merge({:keys => keys}) if keys
-      url = CouchRest.paramify_url "#{@root}/_slow_view", params
+      url = CouchRest.paramify_url "#{@root}/_temp_view", params
       JSON.parse(RestClient.post(url, funcs.to_json, {"Content-Type" => 'application/json'}))
     end
     
