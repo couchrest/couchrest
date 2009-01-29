@@ -37,6 +37,8 @@ module CouchRest
   autoload :FileManager,  'couchrest/helper/file_manager'
   autoload :Streamer,     'couchrest/helper/streamer'
   
+  require File.join(File.dirname(__FILE__), 'couchrest', 'mixins')
+  
   # The CouchRest module methods handle the basic JSON serialization 
   # and deserialization, as well as query parameters. The module also includes
   # some helpers for tasks like instantiating a new Database or Server instance.
