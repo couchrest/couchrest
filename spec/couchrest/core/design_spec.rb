@@ -62,7 +62,7 @@ describe CouchRest::Design do
   describe "from a saved document" do
     before(:each) do
       @db = reset_test_db!
-      @db.save({
+      @db.save_doc({
         "_id" => "_design/test",
         "views" => {
           "by_name" => {

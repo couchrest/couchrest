@@ -60,7 +60,7 @@ describe CouchRest::Pager do
         @docs << ({:number => (i % 10)})
       end
       @db.bulk_save(@docs)
-      @db.save({
+      @db.save_doc({
         '_id' => '_design/magic',
         'views' => {
           'number' => {

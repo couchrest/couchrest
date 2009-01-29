@@ -365,7 +365,7 @@ module CouchRest
         ddocs = all_design_doc_versions
         ddocs["rows"].each do |row|
           if (row['id'] != design_doc_id)
-            database.delete({
+            database.delete_doc({
               "_id" => row['id'],
               "_rev" => row['value']['rev']
             })
@@ -485,9 +485,11 @@ module CouchRest
     alias :new_record? :new_document? 
 
     # Overridden to set the unique ID.
+    # Returns a boolean value
     def save bulk = false
       set_unique_id if new_document? && self.respond_to?(:set_unique_id)
-      super(bulk)
+      result = database.save_doc(self, bulk)
+      result["ok"] == true
     end
     
     # Saves the document to the db using create or update. Raises an exception
@@ -500,7 +502,7 @@ module CouchRest
     # Removes the <tt>_id</tt> and <tt>_rev</tt> fields, preparing the
     # document to be saved to a new <tt>_id</tt>.
     def destroy
-      result = database.delete self
+      result = database.delete_doc self
       if result['ok']
         self['_rev'] = nil
         self['_id'] = nil
