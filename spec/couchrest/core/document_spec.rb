@@ -42,7 +42,7 @@ describe CouchRest::Document, "saving using a database" do
   before(:all) do
     @doc = CouchRest::Document.new("key" => [1,2,3], :more => "values")    
     @db = reset_test_db!    
-    @resp = @db.save(@doc)
+    @resp = @db.save_doc(@doc)
   end
   it "should apply the database" do
     @doc.database.should == @db    
@@ -71,7 +71,7 @@ end
 describe "getting from a database" do
   before(:all) do
     @db = reset_test_db!
-    @resp = @db.save({
+    @resp = @db.save_doc({
       "key" => "value"
     })
     @doc = @db.get @resp['id']
@@ -95,7 +95,7 @@ end
 describe "destroying a document from a db" do
   before(:all) do
     @db = reset_test_db!
-    @resp = @db.save({
+    @resp = @db.save_doc({
       "key" => "value"
     })
     @doc = @db.get @resp['id']
@@ -114,7 +114,7 @@ end
 describe "destroying a document from a db using bulk save" do
   before(:all) do
     @db = reset_test_db!
-    @resp = @db.save({
+    @resp = @db.save_doc({
       "key" => "value"
     })
     @doc = @db.get @resp['id']
@@ -132,7 +132,7 @@ end
 describe "copying a document" do
   before :each do
     @db = reset_test_db!
-    @resp = @db.save({'key' => 'value'})
+    @resp = @db.save_doc({'key' => 'value'})
     @docid = 'new-location'
     @doc = @db.get(@resp['id'])
   end
@@ -148,7 +148,7 @@ describe "copying a document" do
   end
   describe "to an existing location" do
     before :each do
-      @db.save({'_id' => @docid, 'will-exist' => 'here'})
+      @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
     end
     it "should fail without a rev" do
       lambda{@doc.copy @docid}.should raise_error(RestClient::RequestFailed)
@@ -171,7 +171,7 @@ end
 describe "MOVE existing document" do
   before :each do
     @db = reset_test_db!
-    @resp = @db.save({'key' => 'value'})
+    @resp = @db.save_doc({'key' => 'value'})
     @docid = 'new-location'
     @doc = @db.get(@resp['id'])
   end
@@ -189,7 +189,7 @@ describe "MOVE existing document" do
   end
   describe "to an existing location" do
     before :each do
-      @db.save({'_id' => @docid, 'will-exist' => 'here'})
+      @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
     end
     it "should fail without a rev" do
       lambda{@doc.move @docid}.should raise_error(RestClient::RequestFailed)

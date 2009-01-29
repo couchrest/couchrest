@@ -38,7 +38,7 @@ module CouchRest
     # If <tt>bulk</tt> is <tt>true</tt> (defaults to false) the document is cached for bulk save.
     def save(bulk = false)
       raise ArgumentError, "doc.database required for saving" unless database
-      result = database.save self, bulk
+      result = database.save_doc self, bulk
       result['ok']
     end
 
@@ -49,7 +49,7 @@ module CouchRest
     # actually be deleted from the db until bulk save.
     def destroy(bulk = false)
       raise ArgumentError, "doc.database required to destroy" unless database
-      result = database.delete(self, bulk)
+      result = database.delete_doc(self, bulk)
       if result['ok']
         self['_rev'] = nil
         self['_id'] = nil
@@ -59,13 +59,13 @@ module CouchRest
     
     def copy(dest)
       raise ArgumentError, "doc.database required to copy" unless database
-      result = database.copy(self, dest)
+      result = database.copy_doc(self, dest)
       result['ok']
     end
     
     def move(dest)
       raise ArgumentError, "doc.database required to copy" unless database
-      result = database.move(self, dest)
+      result = database.move_doc(self, dest)
       result['ok']
     end
 

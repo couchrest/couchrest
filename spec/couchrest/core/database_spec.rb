@@ -61,7 +61,7 @@ describe CouchRest::Database do
           emit(doc.word,null);
         }
       }'}}
-      @db.save({
+      @db.save_doc({
         "_id" => "_design/test",
         :views => @view
       })
@@ -80,7 +80,7 @@ describe CouchRest::Database do
   
   describe "select from an existing view" do
     before(:each) do
-      r = @db.save({
+      r = @db.save_doc({
         "_id" => "_design/first", 
         :views => {
           :test => {
@@ -129,9 +129,9 @@ describe CouchRest::Database do
 
   describe "GET (document by id) when the doc exists" do
     before(:each) do
-      @r = @db.save({'lemons' => 'from texas', 'and' => 'spain'})
+      @r = @db.save_doc({'lemons' => 'from texas', 'and' => 'spain'})
       @docid = "http://example.com/stuff.cgi?things=and%20stuff"
-      @db.save({'_id' => @docid, 'will-exist' => 'here'})
+      @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
     end
     it "should get the document" do
       doc = @db.get(@r['id'])
@@ -176,7 +176,7 @@ describe CouchRest::Database do
     end
     
     it "in the case of an id conflict should not insert anything" do
-      @r = @db.save({'lemons' => 'from texas', 'and' => 'how', "_id" => "oneB"})
+      @r = @db.save_doc({'lemons' => 'from texas', 'and' => 'how', "_id" => "oneB"})
       
       lambda do
       rs = @db.bulk_save([
@@ -192,7 +192,7 @@ describe CouchRest::Database do
     end
 
     it "should empty the bulk save cache if no documents are given" do
-      @db.save({"_id" => "bulk_cache_1", "val" => "test"}, true)
+      @db.save_doc({"_id" => "bulk_cache_1", "val" => "test"}, true)
       lambda do
         @db.get('bulk_cache_1')
       end.should raise_error(RestClient::ResourceNotFound)
@@ -201,7 +201,7 @@ describe CouchRest::Database do
     end
 
     it "should raise an error that is useful for recovery" do
-      @r = @db.save({"_id" => "taken", "field" => "stuff"})
+      @r = @db.save_doc({"_id" => "taken", "field" => "stuff"})
       begin
         rs = @db.bulk_save([
             {"_id" => "taken", "wild" => "and random"},
@@ -220,13 +220,13 @@ describe CouchRest::Database do
       @db.documents["total_rows"].should == 0
     end
     it "should create the document and return the id" do
-      r = @db.save({'lemons' => 'from texas', 'and' => 'spain'})
+      r = @db.save_doc({'lemons' => 'from texas', 'and' => 'spain'})
       r2 = @db.get(r['id'])
       r2["lemons"].should == "from texas"
     end
     it "should use PUT with UUIDs" do
       CouchRest.should_receive(:put).and_return({"ok" => true, "id" => "100", "rev" => "55"})
-      r = @db.save({'just' => ['another document']})      
+      r = @db.save_doc({'just' => ['another document']})      
     end
     
   end
@@ -260,7 +260,7 @@ describe CouchRest::Database do
           }
         }
       }
-      @db.save(@doc)
+      @db.save_doc(@doc)
     end
     it "should save and be indicated" do
       doc = @db.get("mydocwithattachment")
@@ -284,10 +284,10 @@ describe CouchRest::Database do
           }
         }
       }
-      @db.save(doc)
+      @db.save_doc(doc)
       doc = @db.get('mydocwithattachment')
       doc['field'] << 'another value'
-      @db.save(doc)
+      @db.save_doc(doc)
     end
     
     it 'should be there' do
@@ -314,7 +314,7 @@ describe CouchRest::Database do
           }
         }
       }
-      @db.save(@doc)
+      @db.save_doc(@doc)
     end
     it "should save and be indicated" do
       doc = @db.get("mydocwithattachment")
@@ -343,7 +343,7 @@ describe CouchRest::Database do
           }
         }
       }
-      @docid = @db.save(@doc)['id']
+      @docid = @db.save_doc(@doc)['id']
     end
     it "should save and be indicated" do
       doc = @db.get(@docid)
@@ -358,15 +358,15 @@ describe CouchRest::Database do
   describe "PUT (new document with url id)" do
     it "should create the document" do
       @docid = "http://example.com/stuff.cgi?things=and%20stuff"
-      @db.save({'_id' => @docid, 'will-exist' => 'here'})
-      lambda{@db.save({'_id' => @docid})}.should raise_error(RestClient::Request::RequestFailed)
+      @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
+      lambda{@db.save_doc({'_id' => @docid})}.should raise_error(RestClient::Request::RequestFailed)
       @db.get(@docid)['will-exist'].should == 'here'
     end
   end
   
   describe "PUT (new document with id)" do
     it "should start without the document" do
-      # r = @db.save({'lemons' => 'from texas', 'and' => 'spain'})
+      # r = @db.save_doc({'lemons' => 'from texas', 'and' => 'spain'})
       @db.documents['rows'].each do |doc|
         doc['id'].should_not == 'my-doc'
       end
@@ -375,17 +375,17 @@ describe CouchRest::Database do
       # or instead make it return something with a fancy <=> method
     end
     it "should create the document" do
-      @db.save({'_id' => 'my-doc', 'will-exist' => 'here'})
-      lambda{@db.save({'_id' => 'my-doc'})}.should raise_error(RestClient::Request::RequestFailed)
+      @db.save_doc({'_id' => 'my-doc', 'will-exist' => 'here'})
+      lambda{@db.save_doc({'_id' => 'my-doc'})}.should raise_error(RestClient::Request::RequestFailed)
     end
   end
   
   describe "PUT (existing document with rev)" do
     before(:each) do
-      @db.save({'_id' => 'my-doc', 'will-exist' => 'here'})
+      @db.save_doc({'_id' => 'my-doc', 'will-exist' => 'here'})
       @doc = @db.get('my-doc')
       @docid = "http://example.com/stuff.cgi?things=and%20stuff"
-      @db.save({'_id' => @docid, 'now' => 'save'})
+      @db.save_doc({'_id' => @docid, 'now' => 'save'})
     end
     it "should start with the document" do
       @doc['will-exist'].should == 'here'
@@ -394,18 +394,18 @@ describe CouchRest::Database do
     it "should save with url id" do
       doc = @db.get(@docid)
       doc['yaml'] = ['json', 'word.']
-      @db.save doc
+      @db.save_doc doc
       @db.get(@docid)['yaml'].should == ['json', 'word.']
     end
     it "should fail to resave without the rev" do
       @doc['them-keys'] = 'huge'
       @doc['_rev'] = 'wrong'
-      # @db.save(@doc)
-      lambda {@db.save(@doc)}.should raise_error
+      # @db.save_doc(@doc)
+      lambda {@db.save_doc(@doc)}.should raise_error
     end
     it "should update the document" do
       @doc['them-keys'] = 'huge'
-      @db.save(@doc)
+      @db.save_doc(@doc)
       now = @db.get('my-doc')
       now['them-keys'].should == 'huge'
     end
@@ -414,7 +414,7 @@ describe CouchRest::Database do
   describe "cached bulk save" do
     it "stores documents in a database-specific cache" do
       td = {"_id" => "btd1", "val" => "test"}
-      @db.save(td, true)
+      @db.save_doc(td, true)
       @db.instance_variable_get("@bulk_save_cache").should == [td]
       
     end
@@ -423,8 +423,8 @@ describe CouchRest::Database do
       @db.bulk_save_cache_limit = 3
       td1 = {"_id" => "td1", "val" => true}
       td2 = {"_id" => "td2", "val" => 4}
-      @db.save(td1, true)
-      @db.save(td2, true)
+      @db.save_doc(td1, true)
+      @db.save_doc(td2, true)
       lambda do
         @db.get(td1["_id"])
       end.should raise_error(RestClient::ResourceNotFound)
@@ -432,7 +432,7 @@ describe CouchRest::Database do
         @db.get(td2["_id"])
       end.should raise_error(RestClient::ResourceNotFound)
       td3 = {"_id" => "td3", "val" => "foo"}
-      @db.save(td3, true)
+      @db.save_doc(td3, true)
       @db.get(td1["_id"])["val"].should == td1["val"]
       @db.get(td2["_id"])["val"].should == td2["val"]
       @db.get(td3["_id"])["val"].should == td3["val"]
@@ -442,11 +442,11 @@ describe CouchRest::Database do
       td1 = {"_id" => "blah", "val" => true}
       td2 = {"_id" => "steve", "val" => 3}
       @db.bulk_save_cache_limit = 50
-      @db.save(td1, true)
+      @db.save_doc(td1, true)
       lambda do
         @db.get(td1["_id"])
       end.should raise_error(RestClient::ResourceNotFound)
-      @db.save(td2)
+      @db.save_doc(td2)
       @db.get(td1["_id"])["val"].should == td1["val"]
       @db.get(td2["_id"])["val"].should == td2["val"]
     end
@@ -454,27 +454,27 @@ describe CouchRest::Database do
 
   describe "DELETE existing document" do
     before(:each) do
-      @r = @db.save({'lemons' => 'from texas', 'and' => 'spain'})
+      @r = @db.save_doc({'lemons' => 'from texas', 'and' => 'spain'})
       @docid = "http://example.com/stuff.cgi?things=and%20stuff"
-      @db.save({'_id' => @docid, 'will-exist' => 'here'})
+      @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
     end
     it "should work" do
       doc = @db.get(@r['id'])
       doc['and'].should == 'spain'
-      @db.delete doc
+      @db.delete_doc doc
       lambda{@db.get @r['id']}.should raise_error
     end
     it "should work with uri id" do
       doc = @db.get(@docid)
-      @db.delete doc
+      @db.delete_doc doc
       lambda{@db.get @docid}.should raise_error
     end
     it "should fail without an _id" do
-      lambda{@db.delete({"not"=>"a real doc"})}.should raise_error(ArgumentError)
+      lambda{@db.delete_doc({"not"=>"a real doc"})}.should raise_error(ArgumentError)
     end
     it "should defer actual deletion when using bulk save" do
       doc = @db.get(@docid)
-      @db.delete doc, true
+      @db.delete_doc doc, true
       lambda{@db.get @docid}.should_not raise_error
       @db.bulk_save
       lambda{@db.get @docid}.should raise_error
@@ -484,13 +484,13 @@ describe CouchRest::Database do
   
   describe "COPY existing document" do
     before :each do
-      @r = @db.save({'artist' => 'Zappa', 'title' => 'Muffin Man'})
+      @r = @db.save_doc({'artist' => 'Zappa', 'title' => 'Muffin Man'})
       @docid = 'tracks/zappa/muffin-man'
       @doc = @db.get(@r['id'])
     end
     describe "to a new location" do
       it "should work" do
-        @db.copy @doc, @docid
+        @db.copy_doc @doc, @docid
         newdoc = @db.get(@docid)
         newdoc['artist'].should == 'Zappa'
       end
@@ -500,20 +500,20 @@ describe CouchRest::Database do
     end
     describe "to an existing location" do
       before :each do
-        @db.save({'_id' => @docid, 'will-exist' => 'here'})
+        @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
       end
       it "should fail without a rev" do
-        lambda{@db.copy @doc, @docid}.should raise_error(RestClient::RequestFailed)
+        lambda{@db.copy_doc @doc, @docid}.should raise_error(RestClient::RequestFailed)
       end
       it "should succeed with a rev" do
         @to_be_overwritten = @db.get(@docid)
-        @db.copy @doc, "#{@docid}?rev=#{@to_be_overwritten['_rev']}"
+        @db.copy_doc @doc, "#{@docid}?rev=#{@to_be_overwritten['_rev']}"
         newdoc = @db.get(@docid)
         newdoc['artist'].should == 'Zappa'
       end
       it "should succeed given the doc to overwrite" do
         @to_be_overwritten = @db.get(@docid)
-        @db.copy @doc, @to_be_overwritten
+        @db.copy_doc @doc, @to_be_overwritten
         newdoc = @db.get(@docid)
         newdoc['artist'].should == 'Zappa'
       end
@@ -522,13 +522,13 @@ describe CouchRest::Database do
   
   describe "MOVE existing document" do
     before :each do
-      @r = @db.save({'artist' => 'Zappa', 'title' => 'Muffin Man'})
+      @r = @db.save_doc({'artist' => 'Zappa', 'title' => 'Muffin Man'})
       @docid = 'tracks/zappa/muffin-man'
       @doc = @db.get(@r['id'])
     end
     describe "to a new location" do
       it "should work" do
-        @db.move @doc, @docid
+        @db.move_doc @doc, @docid
         newdoc = @db.get(@docid)
         newdoc['artist'].should == 'Zappa'
         lambda {@db.get(@r['id'])}.should raise_error(RestClient::ResourceNotFound)
@@ -540,22 +540,22 @@ describe CouchRest::Database do
     end
     describe "to an existing location" do
       before :each do
-        @db.save({'_id' => @docid, 'will-exist' => 'here'})
+        @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
       end
       it "should fail without a rev" do
-        lambda{@db.move @doc, @docid}.should raise_error(RestClient::RequestFailed)
+        lambda{@db.move_doc @doc, @docid}.should raise_error(RestClient::RequestFailed)
         lambda{@db.get(@r['id'])}.should_not raise_error
       end
       it "should succeed with a rev" do
         @to_be_overwritten = @db.get(@docid)
-        @db.move @doc, "#{@docid}?rev=#{@to_be_overwritten['_rev']}"
+        @db.move_doc @doc, "#{@docid}?rev=#{@to_be_overwritten['_rev']}"
         newdoc = @db.get(@docid)
         newdoc['artist'].should == 'Zappa'
         lambda {@db.get(@r['id'])}.should raise_error(RestClient::ResourceNotFound)
       end
       it "should succeed given the doc to overwrite" do
         @to_be_overwritten = @db.get(@docid)
-        @db.move @doc, @to_be_overwritten
+        @db.move_doc @doc, @to_be_overwritten
         newdoc = @db.get(@docid)
         newdoc['artist'].should == 'Zappa'
         lambda {@db.get(@r['id'])}.should raise_error(RestClient::ResourceNotFound)
@@ -566,7 +566,7 @@ describe CouchRest::Database do
   
   it "should list documents" do
     5.times do
-      @db.save({'another' => 'doc', 'will-exist' => 'anywhere'})
+      @db.save_doc({'another' => 'doc', 'will-exist' => 'anywhere'})
     end
     ds = @db.documents
     ds['rows'].should be_an_instance_of(Array)
@@ -577,7 +577,7 @@ describe CouchRest::Database do
   describe "documents / _all_docs" do
     before(:each) do
       9.times do |i|
-        @db.save({'_id' => "doc#{i}",'another' => 'doc', 'will-exist' => 'here'})
+        @db.save_doc({'_id' => "doc#{i}",'another' => 'doc', 'will-exist' => 'here'})
       end
     end
     it "should list documents with keys and such" do
@@ -623,6 +623,41 @@ describe CouchRest::Database do
       # r['ok'].should == true
       @cr.databases.should_not include('couchrest-test')
     end
+  end
+  
+  describe "creating a database" do
+    before(:each) do
+      @db = @cr.database('couchrest-test-db_to_create')
+      @db.delete!
+    end
+    
+    it "should just work fine" do
+      @cr.databases.should_not include('couchrest-test-db_to_create')
+      @db.create!
+      @cr.databases.should include('couchrest-test-db_to_create')
+    end
+  end
+  
+  describe "recreating a database" do
+    before(:each) do
+      @db = @cr.database('couchrest-test-db_to_create')
+      @db2 = @cr.database('couchrest-test-db_to_recreate')
+      @cr.databases.include?(@db.name) ? nil : @db.create!
+      @cr.databases.include?(@db2.name) ? @db2.delete! : nil
+    end
+    
+    it "should drop and recreate a database" do
+       @cr.databases.should include(@db.name)
+       @db.recreate!
+       @cr.databases.should include(@db.name)
+    end
+    
+    it "should recreate a db even tho it doesn't exist" do
+      @cr.databases.should_not include(@db2.name)
+      @db2.recreate!
+      @cr.databases.should include(@db2.name)
+    end
+    
   end
 
 
