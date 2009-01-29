@@ -3,7 +3,7 @@ require "base64"
 
 module CouchRest
   class Database
-    attr_reader :server, :host, :name, :root
+    attr_reader :server, :host, :name, :root, :uri
     attr_accessor :bulk_save_cache_limit
      
     # Create a CouchRest::Database adapter for the supplied CouchRest::Server
@@ -13,11 +13,11 @@ module CouchRest
     # server<CouchRest::Server>:: database host
     # name<String>:: database name
     #
-    def initialize server, name
+    def initialize(server, name)
       @name = name
       @server = server
       @host = server.uri
-      @root = "#{host}/#{name}"
+      @uri = @root = "#{host}/#{name}"
       @streamer = Streamer.new(self)
       @bulk_save_cache = []
       @bulk_save_cache_limit = 50
@@ -25,18 +25,18 @@ module CouchRest
     
     # returns the database's uri
     def to_s
-      @root
+      @uri
     end
     
     # GET the database info from CouchDB
     def info
-      CouchRest.get @root
+      CouchRest.get @uri
     end
     
     # Query the <tt>_all_docs</tt> view. Accepts all the same arguments as view.
-    def documents params = {}
+    def documents(params = {})
       keys = params.delete(:keys)
-      url = CouchRest.paramify_url "#{@root}/_all_docs", params
+      url = CouchRest.paramify_url "#{@uri}/_all_docs", params
       if keys
         CouchRest.post(url, {:keys => keys})
       else
@@ -47,10 +47,10 @@ module CouchRest
     # POST a temporary view function to CouchDB for querying. This is not
     # recommended, as you don't get any performance benefit from CouchDB's
     # materialized views. Can be quite slow on large databases.
-    def slow_view funcs, params = {}
+    def slow_view(funcs, params = {})
       keys = params.delete(:keys)
       funcs = funcs.merge({:keys => keys}) if keys
-      url = CouchRest.paramify_url "#{@root}/_temp_view", params
+      url = CouchRest.paramify_url "#{@uri}/_temp_view", params
       JSON.parse(RestClient.post(url, funcs.to_json, {"Content-Type" => 'application/json'}))
     end
     
@@ -59,9 +59,9 @@ module CouchRest
   
     # Query a CouchDB view as defined by a <tt>_design</tt> document. Accepts
     # paramaters as described in http://wiki.apache.org/couchdb/HttpViewApi
-    def view name, params = {}, &block
+    def view(name, params = {}, &block)
       keys = params.delete(:keys)
-      url = CouchRest.paramify_url "#{@root}/_view/#{name}", params
+      url = CouchRest.paramify_url "#{@uri}/_view/#{name}", params
       if keys
         CouchRest.post(url, {:keys => keys})
       else
@@ -74,9 +74,9 @@ module CouchRest
     end
     
     # GET a document from CouchDB, by id. Returns a Ruby Hash.
-    def get id
+    def get(id)
       slug = escape_docid(id)
-      hash = CouchRest.get("#{@root}/#{slug}")
+      hash = CouchRest.get("#{@uri}/#{slug}")
       doc = if /^_design/ =~ hash["_id"]
         Design.new(hash)
       else
@@ -87,20 +87,20 @@ module CouchRest
     end
     
     # GET an attachment directly from CouchDB
-    def fetch_attachment docid, name
+    def fetch_attachment(docid, name)
       slug = escape_docid(docid)        
       name = CGI.escape(name)
-      RestClient.get "#{@root}/#{slug}/#{name}"
+      RestClient.get "#{@uri}/#{slug}/#{name}"
     end
     
     # PUT an attachment directly to CouchDB
-    def put_attachment doc, name, file, options = {}
+    def put_attachment(doc, name, file, options = {})
       docid = escape_docid(doc['_id'])
       name = CGI.escape(name)
       uri = if doc['_rev']
-        "#{@root}/#{docid}/#{name}?rev=#{doc['_rev']}"
+        "#{@uri}/#{docid}/#{name}?rev=#{doc['_rev']}"
       else
-        "#{@root}/#{docid}/#{name}"
+        "#{@uri}/#{docid}/#{name}"
       end
         
       JSON.parse(RestClient.put(uri, file, options))
@@ -115,7 +115,7 @@ module CouchRest
     #
     # If <tt>bulk</tt> is true (false by default) the document is cached for bulk-saving later.
     # Bulk saving happens automatically when #bulk_save_cache limit is exceded, or on the next non bulk save.
-    def save (doc, bulk = false)
+    def save_doc(doc, bulk = false)
       if doc['_attachments']
         doc['_attachments'] = encode_attachments(doc['_attachments'])
       end
@@ -128,13 +128,13 @@ module CouchRest
       end
       result = if doc['_id']
         slug = escape_docid(doc['_id'])        
-        CouchRest.put "#{@root}/#{slug}", doc
+        CouchRest.put "#{@uri}/#{slug}", doc
       else
         begin
           slug = doc['_id'] = @server.next_uuid
-          CouchRest.put "#{@root}/#{slug}", doc
+          CouchRest.put "#{@uri}/#{slug}", doc
         rescue #old version of couchdb
-          CouchRest.post @root, doc
+          CouchRest.post @uri, doc
         end
       end
       if result['ok']
@@ -144,6 +144,13 @@ module CouchRest
       end
       result
     end
+    
+    ### DEPRECATION NOTICE
+    def save(doc, bulk=false)
+      puts "CouchRest::Database's save method is being deprecated, please use save_doc instead"
+      save_doc(doc, bulk)
+    end
+    
     
     # POST an array of documents to CouchDB. If any of the documents are
     # missing ids, supply one from the uuid cache.
@@ -162,7 +169,7 @@ module CouchRest
           doc['_id'] = nextid if nextid
         end
       end
-      CouchRest.post "#{@root}/_bulk_docs", {:docs => docs}
+      CouchRest.post "#{@uri}/_bulk_docs", {:docs => docs}
     end
     
     # DELETE the document from CouchDB that has the given <tt>_id</tt> and
@@ -170,7 +177,7 @@ module CouchRest
     #
     # If <tt>bulk</tt> is true (false by default) the deletion is recorded for bulk-saving (bulk-deletion :) later.
     # Bulk saving happens automatically when #bulk_save_cache limit is exceded, or on the next non bulk save.
-    def delete (doc, bulk = false)
+    def delete_doc(doc, bulk = false)
       raise ArgumentError, "_id and _rev required for deleting" unless doc['_id'] && doc['_rev']      
       if bulk
         @bulk_save_cache << { '_id' => doc['_id'], '_rev' => doc['_rev'], '_deleted' => true }
@@ -178,13 +185,19 @@ module CouchRest
         return { "ok" => true } # Mimic the non-deferred version
       end
       slug = escape_docid(doc['_id'])        
-      CouchRest.delete "#{@root}/#{slug}?rev=#{doc['_rev']}"
+      CouchRest.delete "#{@uri}/#{slug}?rev=#{doc['_rev']}"
+    end
+    
+    ### DEPRECATION NOTICE
+    def delete(doc, bulk=false)
+      puts "CouchRest::Database's delete method is being deprecated, please use delete_doc instead"
+      delete_doc(doc, bulk)
     end
     
     # COPY an existing document to a new id. If the destination id currently exists, a rev must be provided.
     # <tt>dest</tt> can take one of two forms if overwriting: "id_to_overwrite?rev=revision" or the actual doc
     # hash with a '_rev' key
-    def copy doc, dest
+    def copy_doc(doc, dest)
       raise ArgumentError, "_id is required for copying" unless doc['_id']
       slug = escape_docid(doc['_id'])        
       destination = if dest.respond_to?(:has_key?) && dest['_id'] && dest['_rev']
@@ -192,13 +205,19 @@ module CouchRest
       else
         dest
       end
-      CouchRest.copy "#{@root}/#{slug}", destination
+      CouchRest.copy "#{@uri}/#{slug}", destination
+    end
+    
+    ### DEPRECATION NOTICE
+    def copy(doc, dest)
+      puts "CouchRest::Database's copy method is being deprecated, please use copy_doc instead"
+      copy_doc(doc, dest)
     end
     
     # MOVE an existing document to a new id. If the destination id currently exists, a rev must be provided.
     # <tt>dest</tt> can take one of two forms if overwriting: "id_to_overwrite?rev=revision" or the actual doc
     # hash with a '_rev' key
-    def move doc, dest
+    def move_doc(doc, dest)
       raise ArgumentError, "_id and _rev are required for moving" unless doc['_id'] && doc['_rev']
       slug = escape_docid(doc['_id'])        
       destination = if dest.respond_to?(:has_key?) && dest['_id'] && dest['_rev']
@@ -206,27 +225,48 @@ module CouchRest
       else
         dest
       end
-      CouchRest.move "#{@root}/#{slug}?rev=#{doc['_rev']}", destination
+      CouchRest.move "#{@uri}/#{slug}?rev=#{doc['_rev']}", destination
+    end
+    
+    ### DEPRECATION NOTICE
+    def move(doc, dest)
+      puts "CouchRest::Database's move method is being deprecated, please use move_doc instead"
+      move_doc(doc, dest)
     end
     
     # Compact the database, removing old document revisions and optimizing space use.
     def compact!
-      CouchRest.post "#{@root}/_compact"
+      CouchRest.post "#{@uri}/_compact"
+    end
+    
+    # Create the database
+    def create!
+      bool = server.create_db(@name) rescue false
+      bool && true
+    end
+    
+    # Delete and re create the database
+    def recreate!
+      delete!
+      create!
+    rescue RestClient::ResourceNotFound
+    ensure
+      create!
     end
 
     # DELETE the database itself. This is not undoable and could be rather
     # catastrophic. Use with care!
     def delete!
-      CouchRest.delete @root
+      CouchRest.delete @uri
     end
 
     private
 
-    def escape_docid id      
+    def escape_docid(id)    
       /^_design\/(.*)/ =~ id ? "_design/#{CGI.escape($1)}" : CGI.escape(id) 
     end
 
-    def encode_attachments attachments
+    def encode_attachments(attachments)
       attachments.each do |k,v|
         next if v['stub']
         v['data'] = base64(v['data'])
@@ -234,7 +274,7 @@ module CouchRest
       attachments
     end
 
-    def base64 data
+    def base64(data)
       Base64.encode64(data).gsub(/\s/,'')
     end
   end
