@@ -31,7 +31,7 @@ Quick Start:
 
     # with !, it creates the database if it doesn't already exist
     @db = CouchRest.database!("http://127.0.0.1:5984/couchrest-test")
-    response = @db.save({:key => 'value', 'another key' => 'another value'})
+    response = @db.save_doc({:key => 'value', 'another key' => 'another value'})
     doc = @db.get(response['id'])
     puts doc.inspect
 
@@ -47,7 +47,7 @@ Bulk Save:
 
 Creating and Querying Views:
 
-    @db.save({
+    @db.save_doc({
       "_id" => "_design/first", 
       :views => {
         :test => {
