@@ -35,6 +35,12 @@ module CouchRest
           first_instance.empty? ? nil : first_instance.first
         end
         
+        # Load a document from the database by id
+        def get(id)
+          doc = database.get id
+          new(doc)
+        end
+        
       end
       
     end

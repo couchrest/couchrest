@@ -64,7 +64,7 @@ module CouchRest
     # Takes a hash as argument, and applies the values by using writer methods
     # for each key. It doesn't save the document at the end. Raises a NoMethodError if the corresponding methods are
     # missing. In case of error, no attributes are changed.    
-    def update_attributes_without_saving hash
+    def update_attributes_without_saving(hash)
       hash.each do |k, v|
         raise NoMethodError, "#{k}= method not available, use key_accessor or key_writer :#{k}" unless self.respond_to?("#{k}=")
       end      
@@ -76,7 +76,7 @@ module CouchRest
     # Takes a hash as argument, and applies the values by using writer methods
     # for each key. Raises a NoMethodError if the corresponding methods are
     # missing. In case of error, no attributes are changed.
-    def update_attributes hash
+    def update_attributes(hash)
       update_attributes_without_saving hash
       save
     end
@@ -86,7 +86,7 @@ module CouchRest
     
     # Overridden to set the unique ID.
     # Returns a boolean value
-    def save bulk = false
+    def save(bulk = false)
       set_unique_id if new_document? && self.respond_to?(:set_unique_id)
       result = database.save_doc(self, bulk)
       result["ok"] == true
