@@ -30,6 +30,9 @@ describe CouchRest::Document do
   end
 
   describe  "default database" do
+    before(:each) do
+      Video.use_database nil
+    end
     it "should be set using use_database on the model" do
       Video.new.database.should be_nil
       Video.use_database @db
@@ -59,9 +62,11 @@ describe CouchRest::Document do
       @doc.rev.should be_nil
       @doc.id.should be_nil
     end
+    
     it "should freak out when saving without a database" do
       lambda{@doc.save}.should raise_error(ArgumentError)
     end
+    
   end
 
   # move to database spec
