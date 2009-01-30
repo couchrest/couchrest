@@ -37,6 +37,8 @@ module CouchRest
   autoload :FileManager,  'couchrest/helper/file_manager'
   autoload :Streamer,     'couchrest/helper/streamer'
   
+  autoload :ExtendedDocument,     'couchrest/more/extended_document'
+  
   require File.join(File.dirname(__FILE__), 'couchrest', 'mixins')
   
   # The CouchRest module methods handle the basic JSON serialization 

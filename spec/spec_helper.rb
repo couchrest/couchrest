@@ -1,20 +1,21 @@
 require "rubygems"
 require "spec" # Satisfies Autotest and anyone else not using the Rake tasks
 
-require File.dirname(__FILE__) + '/../lib/couchrest'
+require File.join(File.dirname(__FILE__), '/../lib/couchrest')
 
 unless defined?(FIXTURE_PATH)
-  FIXTURE_PATH = File.dirname(__FILE__) + '/fixtures' 
-  SCRATCH_PATH = File.dirname(__FILE__) + '/tmp'
+  FIXTURE_PATH = File.join(File.dirname(__FILE__), '/fixtures')
+  SCRATCH_PATH = File.join(File.dirname(__FILE__), '/tmp')
 
   COUCHHOST = "http://127.0.0.1:5984"
-  TESTDB = 'couchrest-test'
+  TESTDB    = 'couchrest-test'
+  TEST_SERVER    = CouchRest.new
+  TEST_SERVER.default_database = TESTDB
 end
 
 def reset_test_db!
-  cr = CouchRest.new(COUCHHOST)
+  cr = TEST_SERVER
   db = cr.database(TESTDB)
-  db.delete! rescue nil
-  db = cr.create_db(TESTDB) rescue nin
+  db.recreate! rescue nil
   db
 end
