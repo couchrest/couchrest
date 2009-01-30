@@ -1,6 +1,6 @@
 module CouchRest
   class Response < Hash
-    def initialize keys = {}
+    def initialize(keys = {})
       keys.each do |k,v|
         self[k.to_s] = v
       end
