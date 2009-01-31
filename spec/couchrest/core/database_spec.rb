@@ -624,6 +624,37 @@ describe CouchRest::Database do
       @cr.databases.should_not include('couchrest-test')
     end
   end
+  
+  describe "replicating a database" do
+    before do
+      @db.save({'_id' => 'test_doc', 'some-value' => 'foo'})
+      @other_db = @cr.database 'couchrest-test-replication'
+      @other_db.delete! rescue nil
+      @other_db = @cr.create_db 'couchrest-test-replication'
+    end
+
+    describe "via pulling" do
+      before do
+        @other_db.replicate_from @db
+      end
+      
+      it "contains the document from the original database" do
+        doc = @other_db.get('test_doc')
+        doc['some-value'].should == 'foo'
+      end
+    end
+    
+    describe "via pushing" do
+      before do
+        @db.replicate_to @other_db
+      end
+      
+      it "copies the document to the other database" do
+        doc = @other_db.get('test_doc')
+        doc['some-value'].should == 'foo'
+      end
+    end
+  end
 
 
 end

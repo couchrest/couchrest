@@ -213,7 +213,19 @@ module CouchRest
     def compact!
       CouchRest.post "#{@root}/_compact"
     end
-
+    
+    # Replicates via "pulling" from another database to this database. Makes no attempt to deal with conflicts.
+    def replicate_from other_db
+      raise ArgumentError, "must provide a CouchReset::Database" unless other_db.kind_of?(CouchRest::Database)
+      CouchRest.post "#{@host}/_replicate", :source => other_db.root, :target => name
+    end
+    
+    # Replicates via "pushing" to another database. Makes no attempt to deal with conflicts.
+    def replicate_to other_db
+      raise ArgumentError, "must provide a CouchReset::Database" unless other_db.kind_of?(CouchRest::Database)
+      CouchRest.post "#{@host}/_replicate", :target => other_db.root, :source => name
+    end
+    
     # DELETE the database itself. This is not undoable and could be rather
     # catastrophic. Use with care!
     def delete!
