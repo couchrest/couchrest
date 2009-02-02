@@ -57,12 +57,18 @@ module CouchRest
       result['ok']
     end
     
+    # copies the document to a new id. If the destination id currently exists, a rev must be provided.
+    # <tt>dest</tt> can take one of two forms if overwriting: "id_to_overwrite?rev=revision" or the actual doc
+    # hash with a '_rev' key
     def copy(dest)
       raise ArgumentError, "doc.database required to copy" unless database
       result = database.copy(self, dest)
       result['ok']
     end
     
+    # moves the document to a new id. If the destination id currently exists, a rev must be provided.
+    # <tt>dest</tt> can take one of two forms if overwriting: "id_to_overwrite?rev=revision" or the actual doc
+    # hash with a '_rev' key
     def move(dest)
       raise ArgumentError, "doc.database required to copy" unless database
       result = database.move(self, dest)
