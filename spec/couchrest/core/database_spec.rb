@@ -699,6 +699,7 @@ describe CouchRest::Database do
         doc['some-value'].should == 'foo'
       end
     end
+  end
 
   describe "creating a database" do
     before(:each) do
