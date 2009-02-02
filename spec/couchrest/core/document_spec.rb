@@ -211,3 +211,68 @@ describe "MOVE existing document" do
     end
   end
 end
+
+describe "dealing with attachments" do
+  before do
+    @db = reset_test_db!
+    @attach = "<html><head><title>My Doc</title></head><body><p>Has words.</p></body></html>"
+    response = @db.save({'key' => 'value'})
+    @doc = @db.get(response['id'])
+  end
+  
+  def append_attachment(name='test.html', attach=@attach)
+    @doc['_attachments'] ||= {}
+    @doc['_attachments'][name] = {
+      'type' => 'text/html',
+      'data' => attach
+    }
+    @doc.save
+    @rev = @doc['_rev']
+  end
+  
+  describe "PUTing an attachment directly to the doc" do
+    before do
+      @doc.put_attachment('test.html', @attach)
+    end
+    
+    it "is there" do
+      @db.fetch_attachment(@doc, 'test.html').should == @attach
+    end
+    
+    it "updates the revision" do
+      @doc['_rev'].should_not == @rev
+    end
+    
+    it "updates attachments" do
+      @attach2 = "<html><head><title>My Doc</title></head><body><p>Is Different.</p></body></html>"
+      @doc.put_attachment('test.html', @attach2)
+      @db.fetch_attachment(@doc, 'test.html').should == @attach2
+    end
+  end
+  
+  describe "fetching an attachment from a doc directly" do
+    before do
+      append_attachment
+    end
+    
+    it "pulls the attachment" do
+      @doc.fetch_attachment('test.html').should == @attach
+    end
+  end
+  
+  describe "deleting an attachment from a doc directly" do
+    before do
+      append_attachment
+      @doc.delete_attachment('test.html')
+    end
+    
+    it "removes it" do
+      lambda { @db.fetch_attachment(@doc, 'test.html').should }.should raise_error(RestClient::ResourceNotFound)
+    end
+    
+    it "updates the revision" do
+      @doc['_rev'].should_not == @rev
+    end
+  end
+  
+end
