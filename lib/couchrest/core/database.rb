@@ -87,23 +87,21 @@ module CouchRest
     end
     
     # GET an attachment directly from CouchDB
-    def fetch_attachment docid, name
-      slug = escape_docid(docid)        
-      name = CGI.escape(name)
-      RestClient.get "#{@root}/#{slug}/#{name}"
+    def fetch_attachment doc, name
+      docid = doc.respond_to?(:has_key?) ? doc['_id'] : doc
+      RestClient.get uri_for_attachment({'_id' => docid}, name)
     end
     
     # PUT an attachment directly to CouchDB
     def put_attachment doc, name, file, options = {}
-      docid = escape_docid(doc['_id'])
-      name = CGI.escape(name)
-      uri = if doc['_rev']
-        "#{@root}/#{docid}/#{name}?rev=#{doc['_rev']}"
-      else
-        "#{@root}/#{docid}/#{name}"
-      end
-        
+      uri = uri_for_attachment(doc, name)
       JSON.parse(RestClient.put(uri, file, options))
+    end
+    
+    # DELETE an attachment directly from CouchDB
+    def delete_attachment doc, name
+      uri = uri_for_attachment(doc, name)
+      JSON.parse(RestClient.delete(uri))
     end
     
     # Save a document to CouchDB. This will use the <tt>_id</tt> field from
@@ -233,7 +231,14 @@ module CouchRest
     end
 
     private
-
+    
+    def uri_for_attachment doc, name
+      docid = escape_docid(doc['_id'])
+      name = CGI.escape(name)
+      rev = "?rev=#{doc['_rev']}" if doc['_rev']
+      "#{@root}/#{docid}/#{name}#{rev}"
+    end
+    
     def escape_docid id      
       /^_design\/(.*)/ =~ id ? "_design/#{CGI.escape($1)}" : CGI.escape(id) 
     end
