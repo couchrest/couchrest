@@ -30,6 +30,14 @@ module CouchRest
       @@database
     end
     
+    def id
+      self['_id']
+    end
+    
+    def rev
+      self['_rev']
+    end
+    
     # copies the document to a new id. If the destination id currently exists, a rev must be provided.
     # <tt>dest</tt> can take one of two forms if overwriting: "id_to_overwrite?rev=revision" or the actual doc
     # hash with a '_rev' key
@@ -67,6 +75,7 @@ module CouchRest
     
     # saves an attachment directly to couchdb
     def put_attachment(name, file, options={})
+      raise ArgumentError, "doc must be saved" unless self.rev
       raise ArgumentError, "doc.database required to put_attachment" unless database
       result = database.put_attachment(self, name, file, options)
       self['_rev'] = result['rev']
@@ -75,6 +84,7 @@ module CouchRest
     
     # returns an attachment's data
     def fetch_attachment(name)
+      raise ArgumentError, "doc must be saved" unless self.rev
       raise ArgumentError, "doc.database required to put_attachment" unless database
       database.fetch_attachment(self, name)
     end

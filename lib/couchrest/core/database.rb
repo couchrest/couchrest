@@ -87,27 +87,28 @@ module CouchRest
     end
     
     # GET an attachment directly from CouchDB
-    def fetch_attachment(docid, name)
-      slug = escape_docid(docid)        
-      name = CGI.escape(name)
-      RestClient.get "#{@uri}/#{slug}/#{name}"
+    def fetch_attachment(doc, name)
+      # slug = escape_docid(docid)        
+      # name = CGI.escape(name)
+
+      uri = uri_for_attachment(doc, name)
+      
+      RestClient.get uri
+      # "#{@uri}/#{slug}/#{name}"
     end
     
     # PUT an attachment directly to CouchDB
     def put_attachment(doc, name, file, options = {})
       docid = escape_docid(doc['_id'])
       name = CGI.escape(name)
-      uri = if doc['_rev']
-        "#{@uri}/#{docid}/#{name}?rev=#{doc['_rev']}"
-      else
-        "#{@uri}/#{docid}/#{name}"
-      end        
+      uri = uri_for_attachment(doc, name)       
       JSON.parse(RestClient.put(uri, file, options))
     end
     
     # DELETE an attachment directly from CouchDB
     def delete_attachment doc, name
       uri = uri_for_attachment(doc, name)
+      # this needs a rev
       JSON.parse(RestClient.delete(uri))
     end
     
@@ -280,9 +281,17 @@ module CouchRest
     private
     
     def uri_for_attachment doc, name
-      docid = escape_docid(doc['_id'])
+      if doc.is_a?(String)
+        puts "CouchRest::Database#fetch_attachment will eventually require a doc as the first argument, not a doc.id"
+        docid = doc
+        rev = nil
+      else
+        docid = doc['_id']
+        rev = doc['_rev']
+      end
+      docid = escape_docid(docid)
       name = CGI.escape(name)
-      rev = "?rev=#{doc['_rev']}" if doc['_rev']
+      rev = "?rev=#{doc['_rev']}" if rev
       "#{@root}/#{docid}/#{name}#{rev}"
     end
     
