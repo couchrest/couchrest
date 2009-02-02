@@ -230,7 +230,31 @@ describe CouchRest::Database do
     end
     
   end
-
+  
+  describe "fetch_attachment" do
+    before do
+      @attach = "<html><head><title>My Doc</title></head><body><p>Has words.</p></body></html>"
+      @doc = {
+        "_id" => "mydocwithattachment",
+        "field" => ["some value"],
+        "_attachments" => {
+          "test.html" => {
+            "type" => "text/html",
+            "data" => @attach
+          }
+        }
+      }
+      @db.save(@doc)
+    end
+    
+    it "should get the attachment with the doc's _id" do
+      @db.fetch_attachment("mydocwithattachment", "test.html").should == @attach
+    end
+    it "should get the attachment with the doc itself" do
+      @db.fetch_attachment(@db.get('mydocwithattachment'), 'test.html').should == @attach
+    end
+  end
+  
   describe "PUT attachment from file" do
     before(:each) do
       filename = FIXTURE_PATH + '/attachments/couchdb.png'
@@ -328,6 +352,27 @@ describe CouchRest::Database do
     it "should be there" do
       attachment = @db.fetch_attachment("mydocwithattachment","other.html")
       attachment.should == @attach2
+    end
+  end
+  
+  describe "DELETE an attachment directly from the database" do
+    before(:each) do
+      doc = {
+        '_id' => 'mydocwithattachment',
+        '_attachments' => {
+          'test.html' => {
+            'type' => 'text/html',
+            'data' => "<html><head><title>My Doc</title></head><body><p>Has words.</p></body></html>"
+          }
+        }
+      }
+      @db.save(doc)
+      @doc = @db.get('mydocwithattachment')
+    end
+    it "should delete the attachment" do
+      lambda { @db.fetch_attachment('mydocwithattachment','test.html') }.should_not raise_error
+      @db.delete_attachment(@doc, "test.html")
+      lambda { @db.fetch_attachment('mydocwithattachment','test.html') }.should raise_error(RestClient::ResourceNotFound)
     end
   end
 
@@ -625,6 +670,37 @@ describe CouchRest::Database do
     end
   end
   
+  describe "replicating a database" do
+    before do
+      @db.save({'_id' => 'test_doc', 'some-value' => 'foo'})
+      @other_db = @cr.database 'couchrest-test-replication'
+      @other_db.delete! rescue nil
+      @other_db = @cr.create_db 'couchrest-test-replication'
+    end
+
+    describe "via pulling" do
+      before do
+        @other_db.replicate_from @db
+      end
+      
+      it "contains the document from the original database" do
+        doc = @other_db.get('test_doc')
+        doc['some-value'].should == 'foo'
+      end
+    end
+    
+    describe "via pushing" do
+      before do
+        @db.replicate_to @other_db
+      end
+      
+      it "copies the document to the other database" do
+        doc = @other_db.get('test_doc')
+        doc['some-value'].should == 'foo'
+      end
+    end
+  end
+
   describe "creating a database" do
     before(:each) do
       @db = @cr.database('couchrest-test-db_to_create')
