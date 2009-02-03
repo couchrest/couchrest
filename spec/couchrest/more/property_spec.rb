@@ -2,6 +2,7 @@ require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 
 # check the following file to see how to use the spec'd features.
 require File.join(FIXTURE_PATH, 'more', 'card')
+require File.join(FIXTURE_PATH, 'more', 'invoice')
 
 describe "ExtendedDocument properties" do
   
@@ -33,11 +34,37 @@ describe "ExtendedDocument properties" do
     @card.family_name.should == @card.last_name
   end
   
-  it "should be able to be validated" do
-    pending("need to add validation") do
+  describe "validation" do
+    
+    before(:each) do
+      @invoice = Invoice.new(:client_name => "matt", :employee_name => "Chris", :location => "San Diego, CA")
+    end
+    
+    it "should be able to be validated" do
       @card.should be_valid
     end
-    #Card.property(:company, :required => true)
+    
+    it "should let you validate the presence of an attribute" do
+      @card.first_name = nil
+      @card.should_not be_valid
+      @card.errors.should_not be_empty
+      @card.errors.on(:first_name).should == ["First name must not be blank"]
+    end
+    
+    it "should validate the presence of 2 attributes" do
+      @invoice.clear
+      @invoice.should_not be_valid
+      @invoice.errors.should_not be_empty
+      @invoice.errors.on(:client_name).should == ["Client name must not be blank"]
+      @invoice.errors.on(:employee_name).should_not be_empty
+    end
+    
+    it "should let you set an error message" do
+      @invoice.location = nil
+      @invoice.valid?
+      @invoice.errors.on(:location).first.should == "Hey stupid!, you forgot the location"
+    end
+  
   end
   
 end
