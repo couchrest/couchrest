@@ -244,7 +244,7 @@ describe CouchRest::Database do
           }
         }
       }
-      @db.save(@doc)
+      @db.save_doc(@doc)
     end
     
     it "should get the attachment with the doc's _id" do
@@ -366,7 +366,7 @@ describe CouchRest::Database do
           }
         }
       }
-      @db.save(doc)
+      @db.save_doc(doc)
       @doc = @db.get('mydocwithattachment')
     end
     it "should delete the attachment" do
@@ -672,7 +672,7 @@ describe CouchRest::Database do
   
   describe "replicating a database" do
     before do
-      @db.save({'_id' => 'test_doc', 'some-value' => 'foo'})
+      @db.save_doc({'_id' => 'test_doc', 'some-value' => 'foo'})
       @other_db = @cr.database 'couchrest-test-replication'
       @other_db.delete! rescue nil
       @other_db = @cr.create_db 'couchrest-test-replication'

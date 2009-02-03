@@ -33,4 +33,10 @@ describe "ExtendedDocument properties" do
     @card.family_name.should == @card.last_name
   end
   
+  it "should be able to be validated" do
+    pending("need to add validation") do
+      @card.should be_valid
+    end
+  end
+  
 end

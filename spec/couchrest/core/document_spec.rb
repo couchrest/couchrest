@@ -142,10 +142,6 @@ describe CouchRest::Document do
     end
   end
 
-  describe  "bulk saving" do
-    before :all do
-      @db = reset_test_db!
-    end
 
   describe "destroying a document from a db using bulk save" do
     before(:all) do
@@ -247,12 +243,13 @@ describe CouchRest::Document do
       end
     end
   end
+end
 
 describe "dealing with attachments" do
   before do
     @db = reset_test_db!
     @attach = "<html><head><title>My Doc</title></head><body><p>Has words.</p></body></html>"
-    response = @db.save({'key' => 'value'})
+    response = @db.save_doc({'key' => 'value'})
     @doc = @db.get(response['id'])
   end
   

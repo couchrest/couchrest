@@ -1,3 +1,3 @@
 mixins_dir = File.join(File.dirname(__FILE__), 'mixins')
 
-require File.join(mixins_dir, 'views')
+require File.join(mixins_dir, 'attachments')
