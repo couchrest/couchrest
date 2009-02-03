@@ -16,7 +16,7 @@ module CouchRest
   class ExtendedDocument < Document
     include CouchRest::Mixins::DocumentQueries
     include CouchRest::Mixins::DocumentProperties
-    include CouchRest::Mixins::ExtendedViews
+    include CouchRest::Mixins::Views
     include CouchRest::Mixins::DesignDoc
 
     

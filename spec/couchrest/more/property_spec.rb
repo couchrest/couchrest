@@ -37,6 +37,7 @@ describe "ExtendedDocument properties" do
     pending("need to add validation") do
       @card.should be_valid
     end
+    #Card.property(:company, :required => true)
   end
   
 end
