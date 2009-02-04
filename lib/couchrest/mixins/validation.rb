@@ -46,7 +46,7 @@ module CouchRest
     def self.included(base)
       base.extend(ClassMethods)
       base.class_eval <<-EOS, __FILE__, __LINE__
-        if (method_defined?(:save) && method_defined?(:_run_save_callbacks))
+        if method_defined?(:_run_save_callbacks)
           save_callback :before, :check_validations
         end
       EOS
