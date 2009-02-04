@@ -50,7 +50,6 @@ module CouchRest
       ##
       #
       # @example [Usage]
-      #   require 'dm-validations'
       #
       #   class Page
       #

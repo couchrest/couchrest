@@ -1,11 +1,3 @@
-require 'rubygems'
-begin
-  gem 'extlib'
-  require 'extlib'
-rescue 
-  puts "CouchRest::Model requires extlib. This is left out of the gemspec on purpose."
-  raise
-end
 require 'mime/types'
 require File.join(File.dirname(__FILE__), "property")
 require File.join(File.dirname(__FILE__), '..', 'mixins', 'extended_document_mixins')
@@ -18,16 +10,25 @@ module CouchRest
     include CouchRest::Mixins::DocumentProperties
     include CouchRest::Mixins::Views
     include CouchRest::Mixins::DesignDoc
-
+    include CouchRest::Callbacks
+    
+    # Callbacks
+    define_callbacks :save
+    define_callbacks :destroy
     
     # Automatically set <tt>updated_at</tt> and <tt>created_at</tt> fields
     # on the document whenever saving occurs. CouchRest uses a pretty
     # decent time format by default. See Time#to_json
     def self.timestamps!
-      before(:save) do
-        self['updated_at'] = Time.now
-        self['created_at'] = self['updated_at'] if new_document?
-      end
+      class_eval <<-EOS, __FILE__, __LINE__
+        property(:updated_at, :read_only => true)
+        property(:created_at, :read_only => true)
+        
+        save_callback :before do |object|
+          object['updated_at'] = Time.now
+          object['created_at'] = object['updated_at'] if object.new_document?
+        end
+      EOS
     end
   
     # Name a method that will be called before the document is first saved,
@@ -84,9 +85,19 @@ module CouchRest
     # for compatibility with old-school frameworks
     alias :new_record? :new_document?
     
+    # Trigger the callbacks (before, after, around)
+    # and save the document
+    def save(bulk = false)
+      caught = catch(:halt)  do
+        _run_save_callbacks do
+          save_without_callbacks(bulk)
+        end
+      end
+    end
+    
     # Overridden to set the unique ID.
     # Returns a boolean value
-    def save(bulk = false)
+    def save_without_callbacks(bulk = false)
       set_unique_id if new_document? && self.respond_to?(:set_unique_id)
       result = database.save_doc(self, bulk)
       result["ok"] == true
@@ -102,13 +113,17 @@ module CouchRest
     # Removes the <tt>_id</tt> and <tt>_rev</tt> fields, preparing the
     # document to be saved to a new <tt>_id</tt>.
     def destroy
-      result = database.delete_doc self
-      if result['ok']
-        self['_rev'] = nil
-        self['_id'] = nil
+      caught = catch(:halt)  do
+        _run_destroy_callbacks do
+          result = database.delete_doc self
+          if result['ok']
+            self['_rev'] = nil
+            self['_id'] = nil
+          end
+          result['ok']
+        end
       end
-      result['ok']
     end
-      
+    
   end
 end

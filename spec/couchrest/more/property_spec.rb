@@ -34,6 +34,14 @@ describe "ExtendedDocument properties" do
     @card.family_name.should == @card.last_name
   end
   
+  it "should be auto timestamped" do
+    @card.created_at.should be_nil
+    @card.updated_at.should be_nil
+    @card.save
+    @card.created_at.should_not be_nil
+    @card.updated_at.should_not be_nil
+  end
+  
   describe "validation" do
     
     before(:each) do
@@ -63,6 +71,13 @@ describe "ExtendedDocument properties" do
       @invoice.location = nil
       @invoice.valid?
       @invoice.errors.on(:location).first.should == "Hey stupid!, you forgot the location"
+    end
+    
+    it "should validate before saving" do
+      @invoice.location = nil
+      @invoice.should_not be_valid
+      @invoice.save.should be_false
+      @invoice.should be_new_document
     end
   
   end

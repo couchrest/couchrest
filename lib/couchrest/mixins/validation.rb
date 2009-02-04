@@ -21,9 +21,6 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'rubygems'
-require 'pathname'
-
 class Object
   def validatable?
     false
@@ -48,8 +45,20 @@ module CouchRest
     
     def self.included(base)
       base.extend(ClassMethods)
+      base.class_eval <<-EOS, __FILE__, __LINE__
+        if (method_defined?(:save) && method_defined?(:_run_save_callbacks))
+          save_callback :before, :check_validations
+        end
+      EOS
     end
 
+    # Ensures the object is valid for the context provided, and otherwise
+    # throws :halt and returns false.
+    #
+    def check_validations(context = :default)
+      throw(:halt, false) unless context.nil? || valid?(context)
+    end
+    
     # Return the ValidationErrors
     #
     def errors
@@ -128,7 +137,7 @@ module CouchRest
       # include CouchRest::Validation::ValidatesWithBlock
       # include CouchRest::Validation::ValidatesIsUnique
       # include CouchRest::Validation::AutoValidate
-
+      
       # Return the set of contextual validators or create a new one
       #
       def validators

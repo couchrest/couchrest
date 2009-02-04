@@ -10,6 +10,8 @@ class Card < CouchRest::ExtendedDocument
   property :last_name,        :alias     => :family_name
   property :read_only_value,  :read_only => true
   
+  timestamps!
+  
   # Validation
   validates_present :first_name
   
