@@ -27,10 +27,14 @@ class Object
   end
 end
 
+require 'pathname'
+require File.join(File.dirname(__FILE__), '..', 'support', 'class')
+
 dir = File.join(Pathname(__FILE__).dirname.expand_path, '..', 'validation')
 
 require File.join(dir, 'validation_errors')
 require File.join(dir, 'contextual_validators')
+require File.join(dir, 'auto_validate')
 
 require File.join(dir, 'validators', 'generic_validator')
 require File.join(dir, 'validators', 'required_field_validator')
@@ -50,6 +54,13 @@ module CouchRest
           save_callback :before, :check_validations
         end
       EOS
+      base.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+        def self.define_property(name, options={})
+          super
+          auto_generate_validations(properties.last)
+          autovalidation_check = true
+        end
+      RUBY_EVAL
     end
 
     # Ensures the object is valid for the context provided, and otherwise
@@ -136,7 +147,7 @@ module CouchRest
       include CouchRest::Validation::ValidatesWithMethod
       # include CouchRest::Validation::ValidatesWithBlock
       # include CouchRest::Validation::ValidatesIsUnique
-      # include CouchRest::Validation::AutoValidate
+      include CouchRest::Validation::AutoValidate
       
       # Return the set of contextual validators or create a new one
       #

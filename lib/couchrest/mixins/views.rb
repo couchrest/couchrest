@@ -4,7 +4,6 @@ module CouchRest
       
       def self.included(base)
         base.extend(ClassMethods)
-        # extlib is required for the following code
         base.send(:class_inheritable_accessor, :design_doc)
         base.send(:class_inheritable_accessor, :design_doc_slug_cache)
         base.send(:class_inheritable_accessor, :design_doc_fresh)

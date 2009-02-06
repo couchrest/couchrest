@@ -66,7 +66,7 @@ module CouchRest
       # Returns false for other property types.
       # Returns false for non-properties.
       def boolean_type?(property)
-        property ? property.primitive == TrueClass : false
+        property ? property.type == TrueClass : false
       end
 
     end # class RequiredFieldValidator

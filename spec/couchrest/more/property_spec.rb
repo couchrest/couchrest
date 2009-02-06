@@ -1,8 +1,7 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
-
-# check the following file to see how to use the spec'd features.
 require File.join(FIXTURE_PATH, 'more', 'card')
 require File.join(FIXTURE_PATH, 'more', 'invoice')
+require File.join(FIXTURE_PATH, 'more', 'service')
 
 describe "ExtendedDocument properties" do
   
@@ -37,6 +36,8 @@ describe "ExtendedDocument properties" do
   it "should be auto timestamped" do
     @card.created_at.should be_nil
     @card.updated_at.should be_nil
+    # :emo:hack for autospec
+    Card.use_database(TEST_SERVER.default_database) if @card.database.nil?
     @card.save
     @card.created_at.should_not be_nil
     @card.updated_at.should_not be_nil
@@ -49,7 +50,7 @@ describe "ExtendedDocument properties" do
     end
     
     it "should be able to be validated" do
-      @card.should be_valid
+      @card.valid?.should == true
     end
     
     it "should let you validate the presence of an attribute" do
@@ -80,6 +81,33 @@ describe "ExtendedDocument properties" do
       @invoice.should be_new_document
     end
   
+  end
+  
+  describe "autovalidation" do
+    before(:each) do
+      @service = Service.new(:name => "Coumpound analysis", :price => 3_000)
+    end
+    
+    it "should be valid" do
+      @service.should be_valid
+    end
+    
+    describe "property :name, :length => 4...20" do
+      it "should autovalidate the presence when length is set" do
+        @service.name = nil
+        @service.should_not be_valid
+        @service.errors.should_not be_nil
+        @service.errors.on(:name).first.should == "Name must not be blank"
+      end
+    
+      it "should autovalidate the correct length" do
+        @service.name = "a"
+        @service.should_not be_valid
+        @service.errors.should_not be_nil
+        @service.errors.on(:name).first.should == "Name must be between 4 and 19 characters long"
+      end
+    end
+    
   end
   
 end

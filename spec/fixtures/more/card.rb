@@ -15,4 +15,6 @@ class Card < CouchRest::ExtendedDocument
   # Validation
   validates_present :first_name
   
+  auto_validate!
+  
 end

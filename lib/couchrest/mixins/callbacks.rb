@@ -1,3 +1,5 @@
+require File.join(File.dirname(__FILE__), '..', 'support', 'class')
+
 # Extracted from ActiveSupport::Callbacks written by Yehuda Katz
 # http://github.com/wycats/rails/raw/18b405f154868204a8f332888871041a7bad95e1/activesupport/lib/active_support/callbacks.rb
 

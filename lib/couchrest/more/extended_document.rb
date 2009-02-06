@@ -1,3 +1,10 @@
+begin
+  require 'extlib'
+rescue 
+  puts "CouchRest::ExtendedDocument still requires extlib (not for much longer). This is left out of the gemspec on purpose."
+  raise
+end
+
 require 'mime/types'
 require File.join(File.dirname(__FILE__), "property")
 require File.join(File.dirname(__FILE__), '..', 'mixins', 'extended_document_mixins')
@@ -6,11 +13,11 @@ module CouchRest
   
   # Same as CouchRest::Document but with properties and validations
   class ExtendedDocument < Document
-    include CouchRest::Mixins::DocumentQueries
+    include CouchRest::Callbacks
     include CouchRest::Mixins::DocumentProperties
+    include CouchRest::Mixins::DocumentQueries
     include CouchRest::Mixins::Views
     include CouchRest::Mixins::DesignDoc
-    include CouchRest::Callbacks
     
     # Callbacks
     define_callbacks :save
@@ -98,6 +105,7 @@ module CouchRest
     # Overridden to set the unique ID.
     # Returns a boolean value
     def save_without_callbacks(bulk = false)
+      raise ArgumentError, "a document requires database to be saved to" unless database
       set_unique_id if new_document? && self.respond_to?(:set_unique_id)
       result = database.save_doc(self, bulk)
       result["ok"] == true

@@ -7,23 +7,27 @@ module CouchRest
       end
       
       module ClassMethods
+        
         # Stores the class properties
         def properties
           @@properties ||= []
         end
-
-        # This is not a thread safe operation, if you have to set new properties at runtime
-        # make sure to use a mutex.
+        
         def property(name, options={})
-          unless properties.map{|p| p.name}.include?(name.to_s)
-            property = CouchRest::Property.new(name, options.delete(:type), options)
-            create_property_getter(property) 
-            create_property_setter(property) unless property.read_only == true
-            properties << property 
-          end
+          define_property(name, options) unless properties.map{|p| p.name}.include?(name.to_s)
         end
         
         protected
+        
+          # This is not a thread safe operation, if you have to set new properties at runtime
+          # make sure to use a mutex.
+          def define_property(name, options={})
+            property = CouchRest::Property.new(name, options.delete(:type), options)
+            create_property_getter(property) 
+            create_property_setter(property) unless property.read_only == true
+            properties << property
+          end
+          
           # defines the getter for the property
           def create_property_getter(property)
             meth = property.name

@@ -75,7 +75,7 @@ module CouchRest
       # @param <Symbol> field_name the name of the field that caused the error
       # @param <String> message    the message to add
       def add(field_name, message)
-        (errors[field_name] ||= []) << message
+        (errors[field_name.to_sym] ||= []) << message
       end
 
       # Collect all errors into a single list.

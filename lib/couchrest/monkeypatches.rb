@@ -1,3 +1,6 @@
+require File.join(File.dirname(__FILE__), 'support', 'class')
+require File.join(File.dirname(__FILE__), 'support', 'blank')
+
 # This file must be loaded after the JSON gem and any other library that beats up the Time class.
 class Time
   # This date format sorts lexicographically
