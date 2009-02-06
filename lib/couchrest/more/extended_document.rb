@@ -14,14 +14,24 @@ module CouchRest
   # Same as CouchRest::Document but with properties and validations
   class ExtendedDocument < Document
     include CouchRest::Callbacks
-    include CouchRest::Mixins::DocumentProperties
     include CouchRest::Mixins::DocumentQueries
+    include CouchRest::Mixins::DocumentProperties
     include CouchRest::Mixins::Views
     include CouchRest::Mixins::DesignDoc
     
     # Callbacks
     define_callbacks :save
     define_callbacks :destroy
+    
+    def initialize(keys={})
+      super
+      apply_defaults # defined in CouchRest::Mixins::DocumentProperties
+      # cast_keys
+      unless self['_id'] && self['_rev']
+        self['couchrest-type'] = self.class.to_s
+      end
+    end
+    
     
     # Automatically set <tt>updated_at</tt> and <tt>created_at</tt> fields
     # on the document whenever saving occurs. CouchRest uses a pretty

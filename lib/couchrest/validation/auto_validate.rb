@@ -117,7 +117,6 @@ module CouchRest
             opts[:maximum] = len
           end
           # validates_length property.name, opts
-          p "dude: #{options_with_message(opts, property, :length)}"
           validates_length property.name, options_with_message(opts, property, :length)
         end
 
