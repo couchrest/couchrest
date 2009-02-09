@@ -1,10 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-# require File.join(FIXTURE_PATH, 'more', 'card')
-# require File.join(FIXTURE_PATH, 'more', 'invoice')
-# require File.join(FIXTURE_PATH, 'more', 'service')
-
-
 class WithDefaultValues < CouchRest::ExtendedDocument
   use_database TEST_SERVER.default_database
   property :preset, :default => {:right => 10, :top_align => false}

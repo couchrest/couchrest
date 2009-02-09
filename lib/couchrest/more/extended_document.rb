@@ -15,7 +15,7 @@ module CouchRest
   class ExtendedDocument < Document
     include CouchRest::Callbacks
     include CouchRest::Mixins::DocumentQueries
-    include CouchRest::Mixins::DocumentProperties
+    include CouchRest::Mixins::Properties
     include CouchRest::Mixins::Views
     include CouchRest::Mixins::DesignDoc
     
@@ -25,8 +25,8 @@ module CouchRest
     
     def initialize(keys={})
       super
-      apply_defaults # defined in CouchRest::Mixins::DocumentProperties
-      # cast_keys
+      apply_defaults # defined in CouchRest::Mixins::Properties
+      cast_keys      # defined in CouchRest::Mixins::Properties
       unless self['_id'] && self['_rev']
         self['couchrest-type'] = self.class.to_s
       end

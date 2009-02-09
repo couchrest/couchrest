@@ -1,7 +1,8 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 require File.join(FIXTURE_PATH, 'more', 'card')
 require File.join(FIXTURE_PATH, 'more', 'invoice')
-require File.join(FIXTURE_PATH, 'more', 'service')
+require File.join(FIXTURE_PATH, 'more', 'service.rb')
+
 
 describe "ExtendedDocument properties" do
   
@@ -36,7 +37,7 @@ describe "ExtendedDocument properties" do
   it "should be auto timestamped" do
     @card.created_at.should be_nil
     @card.updated_at.should be_nil
-    # :emo:hack for autospec
+    # :emo: hack for autospec
     Card.use_database(TEST_SERVER.default_database) if @card.database.nil?
     @card.save
     @card.created_at.should_not be_nil
@@ -52,14 +53,14 @@ describe "ExtendedDocument properties" do
     it "should be able to be validated" do
       @card.valid?.should == true
     end
-    
+
     it "should let you validate the presence of an attribute" do
       @card.first_name = nil
       @card.should_not be_valid
       @card.errors.should_not be_empty
       @card.errors.on(:first_name).should == ["First name must not be blank"]
     end
-    
+
     it "should validate the presence of 2 attributes" do
       @invoice.clear
       @invoice.should_not be_valid
@@ -84,6 +85,7 @@ describe "ExtendedDocument properties" do
   end
   
   describe "autovalidation" do
+    
     before(:each) do
       @service = Service.new(:name => "Coumpound analysis", :price => 3_000)
     end
@@ -92,7 +94,12 @@ describe "ExtendedDocument properties" do
       @service.should be_valid
     end
     
+    it "should not respond to properties not setup" do
+      @service.respond_to?(:client_name).should be_false
+    end
+    
     describe "property :name, :length => 4...20" do
+      
       it "should autovalidate the presence when length is set" do
         @service.name = nil
         @service.should_not be_valid

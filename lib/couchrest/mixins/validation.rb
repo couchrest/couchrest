@@ -126,10 +126,7 @@ module CouchRest
       self.respond_to?(name, true) ? self.send(name) : nil
     end
 
-    # Get the corresponding Resource property, if it exists.
-    #
-    # Note: CouchRest validations can be used on non-CouchRest resources.
-    # In such cases, the return value will be nil.
+    # Get the corresponding Object property, if it exists.
     def validation_property(field_name)
       properties.find{|p| p.name == field_name}
     end

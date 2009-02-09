@@ -107,7 +107,7 @@ module CouchRest
         end
 
         # length
-        if property.type == String
+        if property.type == "String"
           # XXX: maybe length should always return a Range, with the min defaulting to 1
           # 52 being the max set 
           len = property.options.fetch(:length, property.options.fetch(:size, 52))
@@ -145,7 +145,7 @@ module CouchRest
         end
 
         # numeric validator
-        if Integer == property.type
+        if "Integer" == property.type
           opts[:integer_only] = true
           # validates_is_number property.name, opts
           validates_is_number property.name, options_with_message(opts, property, :is_number)

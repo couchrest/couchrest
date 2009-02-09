@@ -39,6 +39,7 @@ module CouchRest
   autoload :Streamer,     'couchrest/helper/streamer'
   
   autoload :ExtendedDocument,     'couchrest/more/extended_document'
+  autoload :CastedModel,          'couchrest/more/casted_model'
   
   require File.join(File.dirname(__FILE__), 'couchrest', 'mixins')
   
@@ -47,6 +48,23 @@ module CouchRest
   # some helpers for tasks like instantiating a new Database or Server instance.
   class << self
 
+    # extracted from Extlib
+    #
+    # Constantize tries to find a declared constant with the name specified
+    # in the string. It raises a NameError when the name is not in CamelCase
+    # or is not initialized.
+    #
+    # @example
+    # "Module".constantize #=> Module
+    # "Class".constantize #=> Class
+    def constantize(camel_cased_word)
+      unless /\A(?:::)?([A-Z]\w*(?:::[A-Z]\w*)*)\z/ =~ camel_cased_word
+        raise NameError, "#{camel_cased_word.inspect} is not a valid constant name!"
+      end
+
+      Object.module_eval("::#{$1}", __FILE__, __LINE__)
+    end
+    
     # todo, make this parse the url and instantiate a Server or Database instance
     # depending on the specificity.
     def new(*opts)
