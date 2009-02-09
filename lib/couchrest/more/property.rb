@@ -21,7 +21,7 @@ module CouchRest
         @alias              = options.delete(:alias)      if options[:alias]
         @default            = options.delete(:default)    if options[:default]
         @casted             = options[:casted] ? true : false
-        @init_method        = options[:send] ? options.delete[:send] : 'new'
+        @init_method        = options[:send] ? options.delete(:send) : 'new'
         @options            = options
       end
     

@@ -852,4 +852,5 @@ describe CouchRest::Model do
       @obj.attachment_url(@attachment_name).should == "#{Basic.database}/#{@obj.id}/#{@attachment_name}"
     end
   end
+  
 end

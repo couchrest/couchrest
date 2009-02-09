@@ -35,7 +35,6 @@ module CouchRest
       
       def cast_keys
         return unless self.class.properties
-        # TODO move the argument checking to the cast method for early crashes
         self.class.properties.each do |property|
           next unless property.casted
           key = self.has_key?(property.name) ? property.name : property.name.to_sym
@@ -44,17 +43,19 @@ module CouchRest
             klass = ::CouchRest.constantize(target[0])
             
             self[property.name] = self[key].collect do |value|
-              obj = ( (property.init_method == 'send') && klass == Time) ? Time.parse(value) : klass.send(property.init_method, value)
+              # Auto parse Time objects
+              obj = ( (property.init_method == 'new') && klass == Time) ? Time.parse(value) : klass.send(property.init_method, value)
               obj.casted_by = self if obj.respond_to?(:casted_by)
               obj
             end
           else
-            # Let people use :send as a Time parse arg
-            self[property.name] = if ((property.init_method != 'send') && target == 'Time') 
-              Time.parse(self[property.init_method])
+            # Auto parse Time objects
+            self[property.name] = if ((property.init_method == 'new') && target == 'Time') 
+              self[key].is_a?(String) ? Time.parse(self[key].dup) : self[key]
             else
+              # Let people use :send as a Time parse arg
               klass = ::CouchRest.constantize(target)
-              klass.send(property.init_method, self[property.name])
+              klass.send(property.init_method, self[key])
             end
             self[key].casted_by = self if self[key].respond_to?(:casted_by)
           end
@@ -73,7 +74,7 @@ module CouchRest
           # make sure to use a mutex.
           def define_property(name, options={})
             # check if this property is going to casted
-            options[:casted] = true if options[:cast_as]
+            options[:casted] = options[:cast_as] ? options[:cast_as] : false
             property = CouchRest::Property.new(name, (options.delete(:cast_as) || options.delete(:type)), options)
             create_property_getter(property) 
             create_property_setter(property) unless property.read_only == true

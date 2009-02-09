@@ -38,8 +38,8 @@ module CouchRest
     # decent time format by default. See Time#to_json
     def self.timestamps!
       class_eval <<-EOS, __FILE__, __LINE__
-        property(:updated_at, :read_only => true)
-        property(:created_at, :read_only => true)
+        property(:updated_at, :read_only => true, :cast_as => 'Time')
+        property(:created_at, :read_only => true, :cast_as => 'Time')
         
         save_callback :before do |object|
           object['updated_at'] = Time.now
