@@ -25,7 +25,7 @@ module CouchRest
           # let's make sure we have a default and we can assign the value
           if property.default && (self.respond_to?("#{key}=") || self.key?(key))
               if property.default.class == Proc
-                self[key] = v.call
+                self[key] = property.default.call
               else
                 self[key] = Marshal.load(Marshal.dump(property.default))
               end
