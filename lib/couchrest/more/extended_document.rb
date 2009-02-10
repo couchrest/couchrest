@@ -14,10 +14,13 @@ module CouchRest
   # Same as CouchRest::Document but with properties and validations
   class ExtendedDocument < Document
     include CouchRest::Callbacks
-    include CouchRest::Mixins::DocumentQueries
-    include CouchRest::Mixins::Properties
+    include CouchRest::Mixins::DocumentQueries    
     include CouchRest::Mixins::Views
     include CouchRest::Mixins::DesignDoc
+    
+    def self.inherited(subklass)
+      subklass.send(:include, CouchRest::Mixins::Properties)
+    end
     
     # Callbacks
     define_callbacks :save
@@ -38,8 +41,8 @@ module CouchRest
     # decent time format by default. See Time#to_json
     def self.timestamps!
       class_eval <<-EOS, __FILE__, __LINE__
-        property(:updated_at, :read_only => true, :cast_as => 'Time')
-        property(:created_at, :read_only => true, :cast_as => 'Time')
+        property(:updated_at, :read_only => true, :cast_as => 'Time', :auto_validation => false)
+        property(:created_at, :read_only => true, :cast_as => 'Time', :auto_validation => false)
         
         save_callback :before do |object|
           object['updated_at'] = Time.now
@@ -115,7 +118,7 @@ module CouchRest
     # Overridden to set the unique ID.
     # Returns a boolean value
     def save_without_callbacks(bulk = false)
-      raise ArgumentError, "a document requires database to be saved to" unless database
+      raise ArgumentError, "a document requires a database to be saved to" unless database
       set_unique_id if new_document? && self.respond_to?(:set_unique_id)
       result = database.save_doc(self, bulk)
       result["ok"] == true

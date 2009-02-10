@@ -1,14 +1,14 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-class WithDefaultValues < CouchRest::ExtendedDocument
-  use_database TEST_SERVER.default_database
-  property :preset,       :default => {:right => 10, :top_align => false}
-  property :set_by_proc,  :default => Proc.new{Time.now},       :cast_as => 'Time'
-  property :name
-  timestamps!
-end
-
 describe "ExtendedDocument" do
+  
+  class WithDefaultValues < CouchRest::ExtendedDocument
+    use_database TEST_SERVER.default_database
+    property :preset,       :default => {:right => 10, :top_align => false}
+    property :set_by_proc,  :default => Proc.new{Time.now},       :cast_as => 'Time'
+    property :name
+    timestamps!
+  end
   
   before(:each) do
     @obj = WithDefaultValues.new
@@ -32,6 +32,7 @@ describe "ExtendedDocument" do
     it "should define the updated_at and created_at getters and set the values" do
       @obj.save
       obj = WithDefaultValues.get(@obj.id)
+      obj.should be_an_instance_of(WithDefaultValues)
       obj.created_at.should be_an_instance_of(Time)
       obj.updated_at.should be_an_instance_of(Time)
       obj.created_at.to_s.should == @obj.updated_at.to_s

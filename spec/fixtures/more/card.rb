@@ -1,6 +1,8 @@
 class Card < CouchRest::ExtendedDocument  
   # Include the validation module to get access to the validation methods
   include CouchRest::Validation
+  # set the auto_validation before defining the properties
+  auto_validate!
   
   # Set the default database to use
   use_database TEST_SERVER.default_database
@@ -14,7 +16,5 @@ class Card < CouchRest::ExtendedDocument
   
   # Validation
   validates_present :first_name
-  
-  auto_validate!
   
 end

@@ -48,6 +48,19 @@ module CouchRest
   module Validation
     
     def self.included(base)
+      base.cattr_accessor(:auto_validation)
+      base.class_eval <<-EOS, __FILE__, __LINE__
+          # Turn off auto validation by default
+          @@auto_validation = false
+          
+          # Force the auto validation for the class properties
+          # This feature is still not fully ported over,
+          # test are lacking, so please use with caution
+          def self.auto_validate!
+            self.auto_validation = true
+          end
+      EOS
+      
       base.extend(ClassMethods)
       base.class_eval <<-EOS, __FILE__, __LINE__
         if method_defined?(:_run_save_callbacks)
@@ -164,7 +177,7 @@ module CouchRest
         context = opts.delete(:when) if opts.has_key?(:when)
         context = opts.delete(:group) if opts.has_key?(:group)
         opts[:context] = context
-        opts.mergs!(defaults) unless defaults.nil?
+        opts.merge!(defaults) unless defaults.nil?
         opts
       end
       
@@ -197,7 +210,7 @@ module CouchRest
       #
       def add_validator_to_context(opts, fields, klazz)
         fields.each do |field|
-          validator = klazz.new(field, opts)
+          validator = klazz.new(field.to_sym, opts)
           if opts[:context].is_a?(Symbol)
             unless validators.context(opts[:context]).include?(validator)
               validators.context(opts[:context]) << validator

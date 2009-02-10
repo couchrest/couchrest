@@ -6,22 +6,20 @@ module CouchRest
   class Property
     # flag letting us know if we already checked the autovalidation settings
     attr_accessor :autovalidation_check
+    @@autovalidation_check = false
   end
 
   module Validation
-    module AutoValidate
+    module AutoValidate      
       
-      # Turn off auto validation by default
-      def auto_validation
-        @@auto_validation ||= false
-      end
-      
-      # Force the auto validation for the class properties
-      # This feature is still not fully ported over,
-      # test are lacking, so please use with caution
-      def auto_validate!
-        @@auto_validation = true
-      end
+      # # Force the auto validation for the class properties
+      # # This feature is still not fully ported over,
+      # # test are lacking, so please use with caution
+      # def auto_validate!
+      #   require 'ruby-debug'
+      #   debugger
+      #   auto_validation = true
+      # end
       
       # adds message for validator
       def options_with_message(base_options, property, validator_name)
@@ -93,9 +91,7 @@ module CouchRest
       #       It is just shortcut if only one validation option is set
       #
       def auto_generate_validations(property)
-        return unless property.options
-        return unless property.autovalidation_check || auto_validation || (property.options && property.options.has_key?(:auto_validation)  && property.options[:auto_validation])
-
+        return unless (property.autovalidation_check && self.auto_validation && (property.options && property.options.has_key?(:auto_validation) && property.options[:auto_validation]))
         # value is set by the storage system
         opts = {}
         opts[:context] = property.options[:validates] if property.options.has_key?(:validates)

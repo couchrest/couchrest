@@ -39,7 +39,8 @@ describe "ExtendedDocument properties" do
     @card.updated_at.should be_nil
     # :emo: hack for autospec
     Card.use_database(TEST_SERVER.default_database) if @card.database.nil?
-    @card.save
+    @card.save #.should be_true
+    p @card.errors
     @card.created_at.should_not be_nil
     @card.updated_at.should_not be_nil
   end
@@ -65,14 +66,17 @@ describe "ExtendedDocument properties" do
       @invoice.clear
       @invoice.should_not be_valid
       @invoice.errors.should_not be_empty
-      @invoice.errors.on(:client_name).should == ["Client name must not be blank"]
+      @invoice.errors.on(:client_name).first.should == "Client name must not be blank"
       @invoice.errors.on(:employee_name).should_not be_empty
     end
     
     it "should let you set an error message" do
       @invoice.location = nil
       @invoice.valid?
-      @invoice.errors.on(:location).first.should == "Hey stupid!, you forgot the location"
+      # require 'ruby-debug'
+      # debugger
+      # p @invoice.class.validators.map{|v| v.message}.inspect
+      @invoice.errors.on(:location).should == ["Hey stupid!, you forgot the location"]
     end
     
     it "should validate before saving" do
