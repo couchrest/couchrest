@@ -118,7 +118,7 @@ module CouchRest
     # Overridden to set the unique ID.
     # Returns a boolean value
     def save_without_callbacks(bulk = false)
-      raise ArgumentError, "a document requires a database to be saved to" unless database
+      raise ArgumentError, "a document requires a database to be saved to (The document or the #{self.class} default database were not set)" unless database
       set_unique_id if new_document? && self.respond_to?(:set_unique_id)
       result = database.save_doc(self, bulk)
       result["ok"] == true

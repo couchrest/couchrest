@@ -37,10 +37,7 @@ describe "ExtendedDocument properties" do
   it "should be auto timestamped" do
     @card.created_at.should be_nil
     @card.updated_at.should be_nil
-    # :emo: hack for autospec
-    Card.use_database(TEST_SERVER.default_database) if @card.database.nil?
-    @card.save #.should be_true
-    p @card.errors
+    @card.save.should be_true
     @card.created_at.should_not be_nil
     @card.updated_at.should_not be_nil
   end
@@ -73,9 +70,6 @@ describe "ExtendedDocument properties" do
     it "should let you set an error message" do
       @invoice.location = nil
       @invoice.valid?
-      # require 'ruby-debug'
-      # debugger
-      # p @invoice.class.validators.map{|v| v.message}.inspect
       @invoice.errors.on(:location).should == ["Hey stupid!, you forgot the location"]
     end
     
@@ -108,7 +102,7 @@ describe "ExtendedDocument properties" do
         @service.name = nil
         @service.should_not be_valid
         @service.errors.should_not be_nil
-        @service.errors.on(:name).first.should == "Name must not be blank"
+        @service.errors.on(:name).first.should == "Name must be between 4 and 19 characters long"
       end
     
       it "should autovalidate the correct length" do

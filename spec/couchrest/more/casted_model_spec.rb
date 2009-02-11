@@ -12,7 +12,6 @@ class DummyModel < CouchRest::ExtendedDocument
   property :casted_attribute, :cast_as => 'WithCastedModelMixin'
 end
 
-
 describe CouchRest::CastedModel do
   
   describe "A non hash class including CastedModel" do
@@ -59,7 +58,7 @@ describe CouchRest::CastedModel do
   describe "saved document with casted models" do
     before(:each) do
       @obj = DummyModel.new(:casted_attribute => {:name => 'whatever'})
-      @obj.save
+      @obj.save.should be_true
     end
     
     it "should be able to load with the casted models" do

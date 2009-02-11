@@ -4,18 +4,18 @@ module CouchRest
   class Document < Response
     include CouchRest::Mixins::Attachments
 
+    # def self.inherited(subklass)
+    #   subklass.send(:class_inheritable_accessor, :database)
+    # end
+    
+    class_inheritable_accessor :database
     attr_accessor :database
-    @@database = nil
     
     # override the CouchRest::Model-wide default_database
     # This is not a thread safe operation, do not change the model
     # database at runtime.
     def self.use_database(db)
-      @@database = db
-    end
-    
-    def self.database
-      @@database
+      self.database = db
     end
     
     def id

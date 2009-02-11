@@ -6,7 +6,7 @@ module CouchRest
   class Property
     # flag letting us know if we already checked the autovalidation settings
     attr_accessor :autovalidation_check
-    @@autovalidation_check = false
+    @autovalidation_check = false
   end
 
   module Validation
@@ -71,7 +71,7 @@ module CouchRest
       #       validator to be created for the property.  integer_only
       #       is set to true
       #
-      #   BigDecimal or Float type
+      #   Float type
       #       Using a Integer type causes a validates_is_number
       #       validator to be created for the property.  integer_only
       #       is set to false, and precision/scale match the property
@@ -91,13 +91,14 @@ module CouchRest
       #       It is just shortcut if only one validation option is set
       #
       def auto_generate_validations(property)
-        return unless (property.autovalidation_check && self.auto_validation && (property.options && property.options.has_key?(:auto_validation) && property.options[:auto_validation]))
+        return unless ((property.autovalidation_check != true) && self.auto_validation)
+        return if (property.options && (property.options.has_key?(:auto_validation) && !property.options[:auto_validation]) || property.read_only)
         # value is set by the storage system
         opts = {}
         opts[:context] = property.options[:validates] if property.options.has_key?(:validates)
 
         # presence
-        unless opts[:allow_nil]
+        if opts[:allow_nil] == false
           # validates_present property.name, opts
           validates_present property.name, options_with_message(opts, property, :presence)
         end
