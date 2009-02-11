@@ -13,7 +13,9 @@
 #    limitations under the License.
 
 require "rubygems"
+gem 'json'
 require 'json'
+gem 'rest-client'
 require 'rest_client'
 
 $:.unshift File.dirname(__FILE__) unless
@@ -25,7 +27,7 @@ require 'couchrest/monkeypatches'
 
 # = CouchDB, close to the metal
 module CouchRest
-  VERSION = '0.12.6'
+  VERSION = '0.13'
   
   autoload :Server,       'couchrest/core/server'
   autoload :Database,     'couchrest/core/database'
