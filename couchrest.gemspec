@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
   s.version = "0.13"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["J. Chris Anderson"]
+  s.authors = ["J. Chris Anderson", "Matt Aimonetti"]
   s.date = %q{2008-11-22}
   s.description = %q{CouchRest provides a simple interface on top of CouchDB's RESTful HTTP API, as well as including some utility scripts for managing views and attachments.}
   s.email = %q{jchris@apache.org}
