@@ -10,6 +10,7 @@ class DummyModel < CouchRest::ExtendedDocument
   use_database TEST_SERVER.default_database
   raise "Default DB not set" if TEST_SERVER.default_database.nil?
   property :casted_attribute, :cast_as => 'WithCastedModelMixin'
+  property :keywords,         :cast_as => ["String"]
 end
 
 describe CouchRest::CastedModel do
@@ -53,6 +54,18 @@ describe CouchRest::CastedModel do
     it "should know who casted it" do
       @casted_obj.casted_by.should == @obj
     end
+  end
+  
+  describe "casted as an array of a different type" do
+    before(:each) do
+      @obj = DummyModel.new(:keywords => ['couch', 'sofa', 'relax', 'canapé'])
+    end
+    
+    it "should cast the array propery" do
+      @obj.keywords.should be_an_instance_of(Array)
+      @obj.keywords.first.should == 'couch'
+    end
+    
   end
   
   describe "saved document with casted models" do

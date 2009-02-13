@@ -66,3 +66,34 @@ standard SQL alternatives. See the CouchRest::Model documentation for an
 example article class that illustrates usage.
 
 CouchRest::Model will be removed from this package.
+
+
+## CouchRest::ExtendedDocument
+
+### Callbacks
+
+`CouchRest::ExtendedDocuments` instances have 2 callbacks already defined for you:
+    `create_callback`, `save_callback`, `update_callback` and `destroy_callback`
+    
+In your document inherits from `CouchRest::ExtendedDocument`, define your callback as follows:
+
+    save_callback :before, :generate_slug_from_name
+    
+CouchRest uses a mixin you can find in lib/mixins/callbacks which is extracted from Rails 3, here are some simple usage examples:
+
+    save_callback :before, :before_method
+    save_callback :after,  :after_method, :if => :condition
+    save_callback :around {|r| stuff; yield; stuff }
+    
+Check the mixin or the ExtendedDocument class to see how to implement your own callbacks.
+
+### Casting
+
+Often, you will want to store multiple objects within a document, to be able to retrieve your objects when you load the document, 
+you can define some casting rules. 
+
+    property :casted_attribute, :cast_as => 'WithCastedModelMixin'
+    property :keywords,         :cast_as => ["String"]
+
+If you want to cast an array of instances from a specific Class, use the trick shown above ["ClassName"]
+

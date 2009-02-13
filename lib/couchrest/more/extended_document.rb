@@ -23,7 +23,9 @@ module CouchRest
     end
     
     # Callbacks
+    define_callbacks :create
     define_callbacks :save
+    define_callbacks :update
     define_callbacks :destroy
     
     def initialize(keys={})
@@ -106,11 +108,61 @@ module CouchRest
     alias :new_record? :new_document?
     
     # Trigger the callbacks (before, after, around)
+    # and create the document
+    # It's important to have a create callback since you can't check if a document
+    # was new after you saved it
+    #
+    # When creating a document, both the create and the save callbacks will be triggered.
+    def create(bulk = false)
+      caught = catch(:halt)  do
+        _run_create_callbacks do
+            _run_save_callbacks do
+              create_without_callbacks(bulk)
+          end
+        end
+      end
+    end
+    
+    # unlike save, create returns the newly created document
+    def create_without_callbacks(bulk =false)
+      raise ArgumentError, "a document requires a database to be created to (The document or the #{self.class} default database were not set)" unless database
+      set_unique_id if new_document? && self.respond_to?(:set_unique_id)
+      result = database.save_doc(self, bulk)
+      (result["ok"] == true) ? self : false
+    end
+    
+    # Creates the document in the db. Raises an exception
+    # if the document is not created properly.
+    def create!
+      raise "#{self.inspect} failed to save" unless self.create
+    end
+    
+    # Trigger the callbacks (before, after, around)
+    # only if the document isn't new
+    def update(bulk = false)
+      caught = catch(:halt)  do
+        if self.new_document?
+          save(bulk)
+        else
+          _run_update_callbacks do
+            _run_save_callbacks do
+              save_without_callbacks(bulk)
+            end
+          end
+        end
+      end
+    end
+    
+    # Trigger the callbacks (before, after, around)
     # and save the document
     def save(bulk = false)
       caught = catch(:halt)  do
-        _run_save_callbacks do
-          save_without_callbacks(bulk)
+        if self.new_document?
+          _run_save_callbacks do
+            save_without_callbacks(bulk)
+          end
+        else
+          update(bulk)
         end
       end
     end
@@ -124,7 +176,7 @@ module CouchRest
       result["ok"] == true
     end
     
-    # Saves the document to the db using create or update. Raises an exception
+    # Saves the document to the db using save. Raises an exception
     # if the document is not saved properly.
     def save!
       raise "#{self.inspect} failed to save" unless self.save

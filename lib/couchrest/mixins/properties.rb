@@ -40,8 +40,8 @@ module CouchRest
           key = self.has_key?(property.name) ? property.name : property.name.to_sym
           target = property.type
           if target.is_a?(Array)
+            next unless self[key]
             klass = ::CouchRest.constantize(target[0])
-            
             self[property.name] = self[key].collect do |value|
               # Auto parse Time objects
               obj = ( (property.init_method == 'new') && klass == Time) ? Time.parse(value) : klass.send(property.init_method, value)

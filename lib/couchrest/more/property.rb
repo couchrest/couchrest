@@ -7,13 +7,22 @@ module CouchRest
     # attribute to define
     def initialize(name, type = nil, options = {})
       @name = name.to_s
-      @type = type.nil? ? 'String' : type.to_s
+      parse_type(type)
       parse_options(options)
       self
     end
     
     
     private
+    
+      def parse_type(type)
+        if type.nil?
+          @type = 'String'
+        else
+          @type = type.is_a?(Array) ? [type.first.to_s] : type.to_s
+        end
+      end
+      
       def parse_options(options)
         return if options.empty?
         @validation_format  = options.delete(:format)     if options[:format]

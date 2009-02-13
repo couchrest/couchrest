@@ -23,7 +23,7 @@ spec = Gem::Specification.new do |s|
   s.homepage = "http://github.com/jchris/couchrest"
   s.description = "CouchRest provides a simple interface on top of CouchDB's RESTful HTTP API, as well as including some utility scripts for managing views and attachments."
   s.has_rdoc = true
-  s.authors = ["J. Chris Anderson"]
+  s.authors = ["J. Chris Anderson", "Matt Aimonetti"]
   s.files = %w( LICENSE README.md Rakefile THANKS.md ) + 
     Dir["{examples,lib,spec,utils}/**/*"] - 
     Dir["spec/tmp"]

@@ -56,47 +56,58 @@ module RestClient
     :url => url,
     :headers => headers)
   end
+
+#   class Request
+#     
+#     def establish_connection(uri)
+#       Thread.current[:connection].finish if (Thread.current[:connection] && Thread.current[:connection].started?)
+#       p net_http_class
+#       net = net_http_class.new(uri.host, uri.port)
+#       net.use_ssl = uri.is_a?(URI::HTTPS)
+#       net.verify_mode = OpenSSL::SSL::VERIFY_NONE
+#       Thread.current[:connection] = net
+#       Thread.current[:connection].start
+#       Thread.current[:connection]
+#     end
+#     
+#     def transmit(uri, req, payload)
+#       setup_credentials(req)
+#       
+#       Thread.current[:host] ||= uri.host
+#       Thread.current[:port] ||= uri.port
+#       
+#       if (Thread.current[:connection].nil? || (Thread.current[:host] != uri.host))
+#         p "establishing a connection"
+#         establish_connection(uri)
+#       end
+# 
+#       display_log request_log
+#       http = Thread.current[:connection]
+#       http.read_timeout = @timeout if @timeout
+#       
+#       begin
+#         res = http.request(req, payload)
+#       rescue
+#         p "Net::HTTP connection failed, reconnecting"
+#         establish_connection(uri)
+#         http = Thread.current[:connection]
+#         require 'ruby-debug'
+#         debugger
+#         req.body_stream = nil
+#         
+#         res = http.request(req, payload)
+#         display_log response_log(res)
+#         result res
+#       else
+#         display_log response_log(res)
+#         process_result res
+#       end
+#       
+#     rescue EOFError
+#       raise RestClient::ServerBrokeConnection
+#     rescue Timeout::Error
+#       raise RestClient::RequestTimeout
+#     end
+#   end
   
-  class Request 
-    def transmit(uri, req, payload)
-			setup_credentials(req)
-			
-			Thread.current[:host] ||= uri.host
-      Thread.current[:port] ||= uri.port
-
-			net = net_http_class.new(uri.host, uri.port)
-      
-      if Thread.current[:connection].nil? || Thread.current[:host] != uri.host
-        Thread.current[:connection].finish if (Thread.current[:connection] && Thread.current[:connection].started?)
-        net.use_ssl = uri.is_a?(URI::HTTPS)
-        net.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        Thread.current[:connection] = net
-        Thread.current[:connection].start
-      end
-
-			display_log request_log
-      http = Thread.current[:connection]
-
-      http.read_timeout = @timeout if @timeout
-      begin
-  			res = http.request(req, payload)
-  		rescue
-  		  # p "Net::HTTP connection failed, reconnecting"
-  		  Thread.current[:connection].finish
-  		  http = Thread.current[:connection] = net
-        Thread.current[:connection].start
-        res = http.request(req, payload)
-        display_log response_log(res)
-  			process_result res
-		  else
-  			display_log response_log(res)
-  			process_result res
-  		end
-			
-		rescue EOFError
-			raise RestClient::ServerBrokeConnection
-		rescue Timeout::Error
-			raise RestClient::RequestTimeout
-		end
-  end
 end
