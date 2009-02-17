@@ -72,6 +72,7 @@ describe CouchRest::CastedModel do
     before(:each) do
       @obj = DummyModel.new(:casted_attribute => {:name => 'whatever'})
       @obj.save.should be_true
+      @obj = DummyModel.get(@obj.id)
     end
     
     it "should be able to load with the casted models" do

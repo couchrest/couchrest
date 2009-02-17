@@ -74,6 +74,16 @@ module CouchRest
       end
     end
     
+    # Temp solution to make the view_by methods available
+    def self.method_missing(m, *args)
+      if has_view?(m)
+        query = args.shift || {}
+        view(m, query, *args)
+      else
+        super
+      end
+    end
+    
     ### instance methods
     
     # Returns the Class properties

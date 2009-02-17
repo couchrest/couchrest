@@ -90,9 +90,7 @@ module CouchRest
     def fetch_attachment(doc, name)
       # slug = escape_docid(docid)        
       # name = CGI.escape(name)
-
       uri = uri_for_attachment(doc, name)
-      
       RestClient.get uri
       # "#{@uri}/#{slug}/#{name}"
     end
@@ -177,6 +175,7 @@ module CouchRest
       end
       CouchRest.post "#{@uri}/_bulk_docs", {:docs => docs}
     end
+    alias :bulk_delete :bulk_save
     
     # DELETE the document from CouchDB that has the given <tt>_id</tt> and
     # <tt>_rev</tt>.

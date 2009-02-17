@@ -95,7 +95,7 @@ module CouchRest
         end
 
         # Dispatches to any named view.
-        def view name, query={}, &block
+        def view(name, query={}, &block)
           unless design_doc_fresh
             refresh_design_doc
           end
@@ -128,9 +128,9 @@ module CouchRest
 
         private
 
-        def fetch_view_with_docs name, opts, raw=false, &block
+        def fetch_view_with_docs(name, opts, raw=false, &block)
           if raw
-            fetch_view name, opts, &block
+            fetch_view(name, opts, &block)
           else
             begin
               view = fetch_view name, opts.merge({:include_docs => true}), &block
@@ -138,7 +138,7 @@ module CouchRest
             rescue
               # fallback for old versions of couchdb that don't 
               # have include_docs support
-              view = fetch_view name, opts, &block
+              view = fetch_view(name, opts, &block)
               view['rows'].collect{|r|new(database.get(r['id']))} if view['rows']
             end
           end

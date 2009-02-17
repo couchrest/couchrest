@@ -65,7 +65,7 @@ module CouchRest
       module ClassMethods
         
         def property(name, options={})
-          define_property(name, options) unless properties.map{|p| p.name}.include?(name.to_s)
+          define_property(name, options) unless self.properties.map{|p| p.name}.include?(name.to_s)
         end
         
         protected

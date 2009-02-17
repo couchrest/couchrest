@@ -16,7 +16,7 @@ module CouchRest
           unless design_doc_fresh
             refresh_design_doc
           end
-          view :all, opts, &block
+          view(:all, opts, &block)
         end
 
         # Load the first document that have the "couchrest-type" field equal to
