@@ -17,6 +17,7 @@ module CouchRest
     include CouchRest::Mixins::DocumentQueries    
     include CouchRest::Mixins::Views
     include CouchRest::Mixins::DesignDoc
+    include CouchRest::Mixins::ExtendedAttachments
     
     def self.inherited(subklass)
       subklass.send(:include, CouchRest::Mixins::Properties)
@@ -29,8 +30,8 @@ module CouchRest
     define_callbacks :destroy
     
     def initialize(keys={})
-      super
       apply_defaults # defined in CouchRest::Mixins::Properties
+      super
       cast_keys      # defined in CouchRest::Mixins::Properties
       unless self['_id'] && self['_rev']
         self['couchrest-type'] = self.class.to_s
@@ -195,10 +196,10 @@ module CouchRest
     # Deletes the document from the database. Runs the :destroy callbacks.
     # Removes the <tt>_id</tt> and <tt>_rev</tt> fields, preparing the
     # document to be saved to a new <tt>_id</tt>.
-    def destroy
+    def destroy(bulk=false)
       caught = catch(:halt)  do
         _run_destroy_callbacks do
-          result = database.delete_doc self
+          result = database.delete_doc(self, bulk)
           if result['ok']
             self['_rev'] = nil
             self['_id'] = nil

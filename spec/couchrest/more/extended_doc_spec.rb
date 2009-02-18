@@ -6,6 +6,7 @@ describe "ExtendedDocument" do
     use_database TEST_SERVER.default_database
     property :preset,       :default => {:right => 10, :top_align => false}
     property :set_by_proc,  :default => Proc.new{Time.now},       :cast_as => 'Time'
+    property :tags,         :default => []
     property :name
     timestamps!
   end
@@ -53,6 +54,16 @@ describe "ExtendedDocument" do
       @obj.set_by_proc.should be_an_instance_of(Time)
       @obj.set_by_proc.should == @obj.set_by_proc
       @obj.set_by_proc.should < Time.now
+    end
+    
+    it "should let you overwrite the default values" do
+      obj = WithDefaultValues.new(:preset => 'test')
+      obj.preset = 'test'
+    end
+    
+    it "should work with a default empty array" do
+      obj = WithDefaultValues.new(:tags => ['spec'])
+      obj.tags.should == ['spec']
     end
   end
   
