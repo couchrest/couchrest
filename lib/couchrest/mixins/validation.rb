@@ -43,6 +43,7 @@ require File.join(dir, 'validators', 'format_validator')
 require File.join(dir, 'validators', 'length_validator')
 require File.join(dir, 'validators', 'numeric_validator')
 require File.join(dir, 'validators', 'method_validator')
+require File.join(dir, 'validators', 'confirmation_validator')
 
 module CouchRest
   module Validation
@@ -147,7 +148,7 @@ module CouchRest
     module ClassMethods
       include CouchRest::Validation::ValidatesPresent
       include CouchRest::Validation::ValidatesAbsent
-      # include CouchRest::Validation::ValidatesIsConfirmed
+      include CouchRest::Validation::ValidatesIsConfirmed
       # include CouchRest::Validation::ValidatesIsPrimitive
       # include CouchRest::Validation::ValidatesIsAccepted
       include CouchRest::Validation::ValidatesFormat

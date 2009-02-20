@@ -27,7 +27,7 @@ require 'couchrest/monkeypatches'
 
 # = CouchDB, close to the metal
 module CouchRest
-  VERSION = '0.14'
+  VERSION = '0.14.1'
   
   autoload :Server,       'couchrest/core/server'
   autoload :Database,     'couchrest/core/database'
