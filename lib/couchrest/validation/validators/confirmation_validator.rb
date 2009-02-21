@@ -52,10 +52,6 @@ module CouchRest
         return true if @options[:allow_nil] && field_value.nil?
         return false if !@options[:allow_nil] && field_value.nil?
 
-        if target.class.properties.has_property?(field_name)
-          return true unless target.attribute_dirty?(field_name)
-        end
-
         confirm_value = target.instance_variable_get("@#{@confirm_field_name}")
         field_value == confirm_value
       end
