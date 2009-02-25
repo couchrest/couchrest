@@ -439,12 +439,10 @@ describe "ExtendedDocument" do
       result.should == true
     end
     it "should be resavable" do
-      pending "TO FIX" do
-        @dobj.destroy
-        @dobj.rev.should be_nil
-        @dobj.id.should be_nil
-        @dobj.save.should == true
-      end
+      @dobj.destroy
+      @dobj.rev.should be_nil
+      @dobj.id.should be_nil
+      @dobj.save.should == true
     end
     it "should make it go away" do
       @dobj.destroy

@@ -325,7 +325,7 @@ module CouchRest
     end
         
     module ClassMethods
-      CHAINS = {:before => :before, :around => :before, :after => :after}
+      CHAINS = {:before => :before, :around => :before, :after => :after} unless self.const_defined?("CHAINS")
       
       # Make the _run_save_callbacks method. The generated method takes
       # a block that it'll yield to. It'll call the before and around filters

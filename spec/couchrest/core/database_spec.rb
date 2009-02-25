@@ -247,9 +247,11 @@ describe CouchRest::Database do
       @db.save_doc(@doc)
     end
     
-    it "should get the attachment with the doc's _id" do
-      @db.fetch_attachment("mydocwithattachment", "test.html").should == @attach
-    end
+    # Depreacated
+    # it "should get the attachment with the doc's _id" do
+    #   @db.fetch_attachment("mydocwithattachment", "test.html").should == @attach
+    # end
+    
     it "should get the attachment with the doc itself" do
       @db.fetch_attachment(@db.get('mydocwithattachment'), 'test.html').should == @attach
     end
@@ -266,7 +268,8 @@ describe CouchRest::Database do
     it "should save the attachment to a new doc" do
       r = @db.put_attachment({'_id' => 'attach-this'}, 'couchdb.png', image = @file.read, {:content_type => 'image/png'})
       r['ok'].should == true
-      attachment = @db.fetch_attachment("attach-this","couchdb.png")
+      doc = @db.get("attach-this")
+      attachment = @db.fetch_attachment(doc,"couchdb.png")
       attachment.should == image
     end
   end
@@ -274,7 +277,7 @@ describe CouchRest::Database do
   describe "PUT document with attachment" do
     before(:each) do
       @attach = "<html><head><title>My Doc</title></head><body><p>Has words.</p></body></html>"
-      @doc = {
+      doc = {
         "_id" => "mydocwithattachment",
         "field" => ["some value"],
         "_attachments" => {
@@ -284,14 +287,14 @@ describe CouchRest::Database do
           }
         }
       }
-      @db.save_doc(@doc)
+      @db.save_doc(doc)
+      @doc = @db.get("mydocwithattachment")
     end
     it "should save and be indicated" do
-      doc = @db.get("mydocwithattachment")
-      doc['_attachments']['test.html']['length'].should == @attach.length
+      @doc['_attachments']['test.html']['length'].should == @attach.length
     end
     it "should be there" do
-      attachment = @db.fetch_attachment("mydocwithattachment","test.html")
+      attachment = @db.fetch_attachment(@doc,"test.html")
       attachment.should == @attach
     end
   end
@@ -309,14 +312,14 @@ describe CouchRest::Database do
         }
       }
       @db.save_doc(doc)
-      doc = @db.get('mydocwithattachment')
       doc['field'] << 'another value'
-      @db.save_doc(doc)
+      @db.save_doc(doc).should be_true
     end
     
     it 'should be there' do
-      attachment = @db.fetch_attachment('mydocwithattachment', 'test.html')
-      attachment.should == @attach
+      doc = @db.get('mydocwithattachment')
+      attachment = @db.fetch_attachment(doc, 'test.html')
+      Base64.decode64(attachment).should == @attach
     end
   end
 
@@ -339,18 +342,18 @@ describe CouchRest::Database do
         }
       }
       @db.save_doc(@doc)
+      @doc = @db.get("mydocwithattachment")
     end
     it "should save and be indicated" do
-      doc = @db.get("mydocwithattachment")
-      doc['_attachments']['test.html']['length'].should == @attach.length
-      doc['_attachments']['other.html']['length'].should == @attach2.length
+      @doc['_attachments']['test.html']['length'].should == @attach.length
+      @doc['_attachments']['other.html']['length'].should == @attach2.length
     end
     it "should be there" do
-      attachment = @db.fetch_attachment("mydocwithattachment","test.html")
+      attachment = @db.fetch_attachment(@doc,"test.html")
       attachment.should == @attach
     end
     it "should be there" do
-      attachment = @db.fetch_attachment("mydocwithattachment","other.html")
+      attachment = @db.fetch_attachment(@doc,"other.html")
       attachment.should == @attach2
     end
   end
@@ -370,9 +373,9 @@ describe CouchRest::Database do
       @doc = @db.get('mydocwithattachment')
     end
     it "should delete the attachment" do
-      lambda { @db.fetch_attachment('mydocwithattachment','test.html') }.should_not raise_error
+      lambda { @db.fetch_attachment(@doc,'test.html') }.should_not raise_error
       @db.delete_attachment(@doc, "test.html")
-      lambda { @db.fetch_attachment('mydocwithattachment','test.html') }.should raise_error(RestClient::ResourceNotFound)
+      lambda { @db.fetch_attachment(@doc,'test.html') }.should raise_error(RestClient::ResourceNotFound)
     end
   end
 
@@ -395,7 +398,8 @@ describe CouchRest::Database do
       doc['_attachments']['http://example.com/stuff.cgi?things=and%20stuff']['length'].should == @attach.length
     end
     it "should be there" do
-      attachment = @db.fetch_attachment(@docid,"http://example.com/stuff.cgi?things=and%20stuff")
+      doc = @db.get(@docid)
+      attachment = @db.fetch_attachment(doc,"http://example.com/stuff.cgi?things=and%20stuff")
       attachment.should == @attach
     end
   end

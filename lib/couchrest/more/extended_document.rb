@@ -1,4 +1,5 @@
 begin
+  # still required for Time parsing and pluralization in the validation
   require 'extlib'
 rescue 
   puts "CouchRest::ExtendedDocument still requires extlib (not for much longer). This is left out of the gemspec on purpose."

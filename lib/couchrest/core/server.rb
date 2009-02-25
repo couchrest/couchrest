@@ -79,7 +79,7 @@ module CouchRest
     def next_uuid(count = @uuid_batch_count)
       @uuids ||= []
       if @uuids.empty?
-        @uuids = CouchRest.post("#{@uri}/_uuids?count=#{count}")["uuids"]
+        @uuids = CouchRest.get("#{@uri}/_uuids?count=#{count}")["uuids"]
       end
       @uuids.pop
     end

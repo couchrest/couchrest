@@ -27,13 +27,13 @@ require 'couchrest/monkeypatches'
 
 # = CouchDB, close to the metal
 module CouchRest
-  VERSION = '0.15'
+  VERSION = '0.16' unless self.const_defined?("VERSION")
   
   autoload :Server,       'couchrest/core/server'
   autoload :Database,     'couchrest/core/database'
-  autoload :Response,      'couchrest/core/response'
+  autoload :Response,     'couchrest/core/response'
   autoload :Document,     'couchrest/core/document'
-  autoload :Design,     'couchrest/core/design'
+  autoload :Design,       'couchrest/core/design'
   autoload :View,         'couchrest/core/view'
   autoload :Model,        'couchrest/core/model'
   autoload :Pager,        'couchrest/helper/pager'

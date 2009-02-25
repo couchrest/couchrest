@@ -14,7 +14,7 @@ module CouchRest
 
       # reads the data from an attachment
       def read_attachment(attachment_name)
-        Base64.decode64(database.fetch_attachment(self.id, attachment_name))
+        Base64.decode64(database.fetch_attachment(self, attachment_name))
       end
 
       # modifies a file attachment on the current doc
