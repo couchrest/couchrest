@@ -279,7 +279,7 @@ module CouchRest
 
     private
     
-    def uri_for_attachment doc, name
+    def uri_for_attachment(doc, name)
       if doc.is_a?(String)
         puts "CouchRest::Database#fetch_attachment will eventually require a doc as the first argument, not a doc.id"
         docid = doc

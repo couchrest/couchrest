@@ -704,7 +704,7 @@ describe CouchRest::Database do
   describe "creating a database" do
     before(:each) do
       @db = @cr.database('couchrest-test-db_to_create')
-      @db.delete!
+      @db.delete! if @cr.databases.include?('couchrest-test-db_to_create')
     end
     
     it "should just work fine" do

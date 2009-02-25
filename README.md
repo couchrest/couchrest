@@ -59,13 +59,7 @@ Creating and Querying Views:
 
 ## CouchRest::Model
 
-CouchRest::Model is a module designed along the lines of DataMapper::Resource.
-By subclassing, suddenly you get all sorts of powerful sugar, so that working
-with CouchDB in your Rails or Merb app is no harder than working with the
-standard SQL alternatives. See the CouchRest::Model documentation for an
-example article class that illustrates usage.
-
-CouchRest::Model will be removed from this package.
+CouchRest::Model has been deprecated and replaced by CouchRest::ExtendedDocument
 
 
 ## CouchRest::ExtendedDocument

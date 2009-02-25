@@ -31,6 +31,7 @@ module CouchRest
     
     def initialize(keys={})
       apply_defaults # defined in CouchRest::Mixins::Properties
+      keys ||= {}
       super
       cast_keys      # defined in CouchRest::Mixins::Properties
       unless self['_id'] && self['_rev']
@@ -100,7 +101,7 @@ module CouchRest
     # missing. In case of error, no attributes are changed.    
     def update_attributes_without_saving(hash)
       hash.each do |k, v|
-        raise NoMethodError, "#{k}= method not available, use key_accessor or key_writer :#{k}" unless self.respond_to?("#{k}=")
+        raise NoMethodError, "#{k}= method not available, use property :#{k}" unless self.respond_to?("#{k}=")
       end      
       hash.each do |k, v|
         self.send("#{k}=",v)

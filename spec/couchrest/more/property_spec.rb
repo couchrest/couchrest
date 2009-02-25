@@ -1,7 +1,8 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 require File.join(FIXTURE_PATH, 'more', 'card')
 require File.join(FIXTURE_PATH, 'more', 'invoice')
-require File.join(FIXTURE_PATH, 'more', 'service.rb')
+require File.join(FIXTURE_PATH, 'more', 'service')
+require File.join(FIXTURE_PATH, 'more', 'event')
 
 
 describe "ExtendedDocument properties" do
@@ -43,7 +44,6 @@ describe "ExtendedDocument properties" do
   end
   
   describe "validation" do
-    
     before(:each) do
       @invoice = Invoice.new(:client_name => "matt", :employee_name => "Chris", :location => "San Diego, CA")
     end
@@ -79,11 +79,9 @@ describe "ExtendedDocument properties" do
       @invoice.save.should be_false
       @invoice.should be_new_document
     end
-  
   end
   
   describe "autovalidation" do
-    
     before(:each) do
       @service = Service.new(:name => "Coumpound analysis", :price => 3_000)
     end
@@ -112,7 +110,20 @@ describe "ExtendedDocument properties" do
         @service.errors.on(:name).first.should == "Name must be between 4 and 19 characters long"
       end
     end
-    
+  end
+  
+  describe "casting" do
+    describe "cast keys to any type" do
+      before(:all) do
+        event_doc = { :subject => "Some event", :occurs_at => Time.now }
+        e = Event.database.save_doc event_doc
+
+        @event = Event.get e['id']
+      end
+      it "should cast created_at to Time" do
+        @event['occurs_at'].should be_an_instance_of(Time)
+      end
+    end
   end
   
 end

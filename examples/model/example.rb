@@ -1,31 +1,38 @@
-require 'rubygems'
-require 'couchrest'
+require File.join(File.dirname(__FILE__), '..', '..', 'lib', 'couchrest')
 
 def show obj
   puts obj.inspect
   puts
 end
 
-CouchRest::Model.default_database = CouchRest.database!('couchrest-model-example')
+SERVER = CouchRest.new
+SERVER.default_database = 'couchrest-extendeddoc-example'
 
-class Author < CouchRest::Model
-  key_accessor :name
+class Author < CouchRest::ExtendedDocument
+  use_database SERVER.default_database
+  property :name
+  
   def drink_scotch
     puts "... glug type glug ... I'm #{name} ... type glug glug ..."
   end
 end
 
-class Post < CouchRest::Model
-  key_accessor :title, :body, :author
-
-  cast :author, :as => 'Author'
+class Post < CouchRest::ExtendedDocument
+  use_database SERVER.default_database
+  
+  property :title
+  property :body
+  property :author, :cast_as => 'Author'
 
   timestamps!
 end
 
-class Comment < CouchRest::Model
-  cast :commenter, :as => 'Author'
-
+class Comment < CouchRest::ExtendedDocument
+  use_database SERVER.default_database
+  
+  property :commenter, :cast_as => 'Author'
+  timestamps!
+  
   def post= post
     self["post_id"] = post.id
   end
@@ -33,7 +40,6 @@ class Comment < CouchRest::Model
     Post.get(self['post_id']) if self['post_id']
   end
   
-  timestamps!
 end
 
 puts "Act I: CRUD"
