@@ -124,9 +124,12 @@ module CouchRest
       cr.database(parsed[:database])
     end
     
-    def put uri, doc = nil
-      payload = doc.to_json if doc
-      JSON.parse(RestClient.put(uri, payload))
+    def put(uri, doc = nil)
+      begin
+        JSON.parse(RestClient.post(uri, payload))
+      rescue Exception => e
+        raise "Error while sending a POST request #{uri}\npayload: #{payload.inspect}\n#{e}"
+      end
     end
 
     def get(uri)
