@@ -129,8 +129,12 @@ module CouchRest
       JSON.parse(RestClient.put(uri, payload))
     end
 
-    def get uri
-      JSON.parse(RestClient.get(uri), :max_nesting => false)
+    def get(uri)
+      begin
+        JSON.parse(RestClient.get(uri), :max_nesting => false)
+      rescue => e
+        raise "Error while sending a GET request #{uri}\n: #{e}"
+      end
     end
   
     def post uri, doc = nil
