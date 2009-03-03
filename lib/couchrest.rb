@@ -125,10 +125,11 @@ module CouchRest
     end
     
     def put(uri, doc = nil)
+      payload = doc.to_json if doc
       begin
-        JSON.parse(RestClient.post(uri, payload))
+        JSON.parse(RestClient.put(uri, payload))
       rescue Exception => e
-        raise "Error while sending a POST request #{uri}\npayload: #{payload.inspect}\n#{e}"
+        raise "Error while sending a PUT request #{uri}\npayload: #{payload.inspect}\n#{e}"
       end
     end
 
@@ -142,7 +143,11 @@ module CouchRest
   
     def post uri, doc = nil
       payload = doc.to_json if doc
-      JSON.parse(RestClient.post(uri, payload))
+      begin
+        JSON.parse(RestClient.post(uri, payload))
+      rescue Exception => e
+        raise "Error while sending a POST request #{uri}\npayload: #{payload.inspect}\n#{e}"
+      end
     end
   
     def delete uri
