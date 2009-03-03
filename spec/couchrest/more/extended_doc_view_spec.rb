@@ -105,6 +105,9 @@ describe "ExtendedDocument views" do
 
   describe "a model with a compound key view" do
     before(:all) do
+      Article.design_doc_fresh = false
+      Article.by_user_id_and_date.each{|a| a.destroy(true)}
+      Article.database.bulk_delete
       written_at = Time.now - 24 * 3600 * 7
       @titles = ["uniq one", "even more interesting", "less fun", "not junk"]
       @user_ids = ["quentin", "aaron"]

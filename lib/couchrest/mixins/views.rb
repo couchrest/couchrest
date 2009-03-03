@@ -133,9 +133,8 @@ module CouchRest
             fetch_view(name, opts, &block)
           else
             begin
-              # auto load mentioned documents unless asked differently
-              opts.merge({:include_docs => true}) unless opts.has_key?(:include_docs)
-              view = fetch_view name, opts, &block
+              # auto load mentioned documents unless asked differently (didn't use merge! on a previous line to avoid duping the object)
+              view = fetch_view name, (opts.has_key?(:include_docs) ? opts : opts.merge({:include_docs => true})), &block
               view['rows'].collect{|r|new(r['doc'])} if view['rows']
             rescue
               # fallback for old versions of couchdb that don't 

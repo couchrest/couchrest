@@ -22,12 +22,13 @@ $:.unshift File.dirname(__FILE__) unless
   $:.include?(File.dirname(__FILE__)) ||
   $:.include?(File.expand_path(File.dirname(__FILE__)))
   
+$COUCHREST_DEBUG ||= false
   
 require 'couchrest/monkeypatches'
 
 # = CouchDB, close to the metal
 module CouchRest
-  VERSION = '0.17' unless self.const_defined?("VERSION")
+  VERSION    = '0.17' unless self.const_defined?("VERSION")
   
   autoload :Server,       'couchrest/core/server'
   autoload :Database,     'couchrest/core/database'
@@ -129,7 +130,11 @@ module CouchRest
       begin
         JSON.parse(RestClient.put(uri, payload))
       rescue Exception => e
-        raise "Error while sending a PUT request #{uri}\npayload: #{payload.inspect}\n#{e}"
+        if $COUCHREST_DEBUG == true
+          raise "Error while sending a PUT request #{uri}\npayload: #{payload.inspect}\n#{e}"
+        else
+          raise e
+        end
       end
     end
 
@@ -137,7 +142,11 @@ module CouchRest
       begin
         JSON.parse(RestClient.get(uri), :max_nesting => false)
       rescue => e
-        raise "Error while sending a GET request #{uri}\n: #{e}"
+        if $COUCHREST_DEBUG == true
+          raise "Error while sending a GET request #{uri}\n: #{e}"
+        else
+          raise e
+        end
       end
     end
   
@@ -146,7 +155,11 @@ module CouchRest
       begin
         JSON.parse(RestClient.post(uri, payload))
       rescue Exception => e
-        raise "Error while sending a POST request #{uri}\npayload: #{payload.inspect}\n#{e}"
+        if $COUCHREST_DEBUG == true
+          raise "Error while sending a POST request #{uri}\npayload: #{payload.inspect}\n#{e}"
+        else
+          raise e
+        end
       end
     end
   
