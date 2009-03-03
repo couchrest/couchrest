@@ -24,15 +24,17 @@ module CouchRest
       subklass.send(:include, CouchRest::Mixins::Properties)
     end
     
+    # Accessors
+    attr_accessor :casted_by
+    
     # Callbacks
     define_callbacks :create
     define_callbacks :save
     define_callbacks :update
     define_callbacks :destroy
     
-    def initialize(keys={})
+    def initialize(passed_keys={})
       apply_defaults # defined in CouchRest::Mixins::Properties
-      keys ||= {}
       super
       cast_keys      # defined in CouchRest::Mixins::Properties
       unless self['_id'] && self['_rev']

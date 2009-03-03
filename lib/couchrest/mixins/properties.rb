@@ -55,9 +55,14 @@ module CouchRest
             else
               # Let people use :send as a Time parse arg
               klass = ::CouchRest.constantize(target)
+              # I'm not convince we should or should not create a new instance if we are casting a doc/extended doc without default value and nothing was passed
+              # unless (property.casted && 
+              #   (klass.superclass == CouchRest::ExtendedDocument || klass.superclass == CouchRest::Document) && 
+              #     (self[key].nil? || property.default.nil?))
               klass.send(property.init_method, self[key])
+              #end
             end
-            self[key].casted_by = self if self[key].respond_to?(:casted_by)
+            self[property.name].casted_by = self if self[property.name].respond_to?(:casted_by)
           end
         end
       end
