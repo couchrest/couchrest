@@ -1,14 +1,15 @@
 module CouchRest
   class Response < Hash
-    def initialize(keys = {})
-      keys.each do |k,v|
+    def initialize(pkeys = {})
+      pkeys ||= {}
+      pkeys.each do |k,v|
         self[k.to_s] = v
       end
     end
-    def []= key, value
+    def []=(key, value)
       super(key.to_s, value)
     end
-    def [] key
+    def [](key)
       super(key.to_s)
     end
   end
