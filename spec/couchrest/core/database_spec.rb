@@ -312,8 +312,9 @@ describe CouchRest::Database do
         }
       }
       @db.save_doc(doc)
+      doc['_rev'].should_not be_nil
       doc['field'] << 'another value'
-      @db.save_doc(doc).should be_true
+      @db.save_doc(doc)["ok"].should be_true
     end
     
     it 'should be there' do
