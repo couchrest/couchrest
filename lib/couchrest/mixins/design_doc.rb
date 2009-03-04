@@ -16,6 +16,7 @@ module CouchRest
         def design_doc_slug
           return design_doc_slug_cache if (design_doc_slug_cache && design_doc_fresh)
           funcs = []
+          design_doc ||= Design.new(default_design_doc)
           design_doc['views'].each do |name, view|
             funcs << "#{name}/#{view['map']}#{view['reduce']}"
           end
