@@ -167,24 +167,24 @@ describe "ExtendedDocument views" do
   # TODO: moved to Design, delete
   describe "adding a view" do
     before(:each) do
+      reset_test_db!
       Article.by_date
-      @design_docs = Article.database.documents :startkey => "_design/", 
-        :endkey => "_design/\u9999"
+      @design_docs = Article.database.documents :startkey => "_design/", :endkey => "_design/\u9999"
     end
     it "should not create a design doc on view definition" do
       Article.view_by :created_at
-      newdocs = Article.database.documents :startkey => "_design/", 
-        :endkey => "_design/\u9999"
+      newdocs = Article.database.documents :startkey => "_design/", :endkey => "_design/\u9999"
       newdocs["rows"].length.should == @design_docs["rows"].length
     end
-    it "should create a new design document on view access" do
+    it "should create a new version of the design document on view access" do
+      old_design_doc = Article.database.documents(:key => @design_docs["rows"].first["key"], :include_docs => true)["rows"][0]["doc"]
       Article.view_by :updated_at
       Article.by_updated_at
-      newdocs = Article.database.documents :startkey => "_design/", 
-        :endkey => "_design/\u9999"
-      # puts @design_docs.inspect
-      # puts newdocs.inspect
-      newdocs["rows"].length.should == @design_docs["rows"].length + 1
+      newdocs = Article.database.documents({:startkey => "_design/", :endkey => "_design/\u9999"})
+
+      doc = Article.database.documents(:key => @design_docs["rows"].first["key"], :include_docs => true)["rows"][0]["doc"]
+      doc["_rev"].should_not        == old_design_doc["_rev"]
+      doc["views"].keys.should include("by_updated_at")
     end
   end
 
@@ -195,10 +195,9 @@ describe "ExtendedDocument views" do
       Article.by_field
     end
     it "should clean them up" do
+      ddocs = Article.all_design_doc_versions
       Article.view_by :stream
       Article.by_stream
-      ddocs = Article.all_design_doc_versions
-      ddocs["rows"].length.should > 1
       Article.cleanup_design_docs!
       ddocs = Article.all_design_doc_versions
       ddocs["rows"].length.should == 1

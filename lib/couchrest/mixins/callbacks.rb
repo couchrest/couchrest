@@ -1,6 +1,7 @@
 require File.join(File.dirname(__FILE__), '..', 'support', 'class')
 
 # Extracted from ActiveSupport::Callbacks written by Yehuda Katz
+# http://github.com/wycats/rails/raw/abstract_controller/activesupport/lib/active_support/new_callbacks.rb
 # http://github.com/wycats/rails/raw/18b405f154868204a8f332888871041a7bad95e1/activesupport/lib/active_support/callbacks.rb
 
 module CouchRest
@@ -11,7 +12,7 @@ module CouchRest
   #
   # Example:
   #   class Storage
-  #     include CouchRest::Callbacks
+  #     include ActiveSupport::Callbacks
   #
   #     define_callbacks :save
   #   end
@@ -45,7 +46,7 @@ module CouchRest
   #
   # Example:
   #   class Storage
-  #     include CouchRest::Callbacks
+  #     include ActiveSupport::Callbacks
   #
   #     define_callbacks :save
   #
@@ -85,8 +86,8 @@ module CouchRest
       klass.extend ClassMethods
     end
         
-    def run_callbacks(kind, options = {})
-      send("_run_#{kind}_callbacks")
+    def run_callbacks(kind, options = {}, &blk)
+      send("_run_#{kind}_callbacks", &blk)
     end
     
     class Callback
@@ -166,8 +167,12 @@ module CouchRest
       
       # This will supply contents for before and around filters, and no
       # contents for after filters (for the forward pass).
-      def start(key = nil, object = nil)
+      def start(key = nil, options = {})
+        object, terminator = (options || {}).values_at(:object, :terminator)
+        
         return if key && !object.send("_one_time_conditions_valid_#{@callback_id}?")
+        
+        terminator ||= false
         
         # options[0] is the compiled form of supplied conditions
         # options[1] is the "end" for the conditional
@@ -177,8 +182,14 @@ module CouchRest
             # if condition    # before_save :filter_name, :if => :condition
             #   filter_name
             # end
-            [@compiled_options[0], @filter, @compiled_options[1]].compact.join("\n")
-          elsif @compiled_options[0]
+            filter = <<-RUBY_EVAL
+              unless halted
+                result = #{@filter}
+                halted ||= (#{terminator})
+              end
+            RUBY_EVAL
+            [@compiled_options[0], filter, @compiled_options[1]].compact.join("\n")
+          else
             # Compile around filters with conditions into proxy methods
             # that contain the conditions.
             #
@@ -196,8 +207,8 @@ module CouchRest
             
             name = "_conditional_callback_#{@kind}_#{next_id}"
             txt = <<-RUBY_EVAL
-              def #{name}
-                #{@compiled_options[0]}
+              def #{name}(halted)
+                #{@compiled_options[0] || "if true"} && !halted
                   #{@filter} do
                     yield self
                   end
@@ -207,16 +218,16 @@ module CouchRest
               end
             RUBY_EVAL
             @klass.class_eval(txt)
-            "#{name} do"
-          else
-            "#{@filter} do"
+            "#{name}(halted) do"
           end
         end
       end
       
       # This will supply contents for around and after filters, but not
       # before filters (for the backward pass).
-      def end(key = nil, object = nil)
+      def end(key = nil, options = {})
+        object = (options || {})[:object]
+        
         return if key && !object.send("_one_time_conditions_valid_#{@callback_id}?")
         
         if @kind == :around || @kind == :after
@@ -299,7 +310,7 @@ module CouchRest
     # This method_missing is supplied to catch callbacks with keys and create
     # the appropriate callback for future use.
     def method_missing(meth, *args, &blk)
-      if meth.to_s =~ /_run_(\w+)_(\w+)_(\w+)_callbacks/
+      if meth.to_s =~ /_run__([\w:]+)__(\w+)__(\w+)__callbacks/
         return self.class._create_and_run_keyed_callback($1, $2.to_sym, $3.to_sym, self, &blk)
       end
       super
@@ -307,20 +318,26 @@ module CouchRest
     
     # An Array with a compile method
     class CallbackChain < Array
-      def compile(key = nil, object = nil)
+      def initialize(symbol)
+        @symbol = symbol
+      end
+      
+      def compile(key = nil, options = {})
         method = []
+        method << "halted = false"
         each do |callback|
-          method << callback.start(key, object)
+          method << callback.start(key, options)
         end
-        method << "yield self"
+        method << "yield self if block_given?"
         reverse_each do |callback|
-          method << callback.end(key, object)
+          method << callback.end(key, options)
         end
         method.compact.join("\n")
       end
       
       def clone(klass)
-        CallbackChain.new(map {|c| c.clone(klass)})
+        chain = CallbackChain.new(@symbol)
+        chain.push(*map {|c| c.clone(klass)})
       end
     end
         
@@ -338,16 +355,18 @@ module CouchRest
       # The _run_save_callbacks method can optionally take a key, which
       # will be used to compile an optimized callback method for each
       # key. See #define_callbacks for more information.
-      def _define_runner(symbol, str, options)
-        self.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+      def _define_runner(symbol, str, options)        
+        str = <<-RUBY_EVAL
           def _run_#{symbol}_callbacks(key = nil)
             if key
-              send("_run_\#{self.class}_#{symbol}_\#{key}_callbacks") { yield }
+              send("_run__\#{self.class.name.split("::").last}__#{symbol}__\#{key}__callbacks") { yield if block_given? }
             else
               #{str}
             end
           end
         RUBY_EVAL
+  
+        class_eval str, __FILE__, __LINE__ + 1
         
         before_name, around_name, after_name = 
           options.values_at(:before, :after, :around)
@@ -359,15 +378,18 @@ module CouchRest
       def _create_and_run_keyed_callback(klass, kind, key, obj, &blk)
         @_keyed_callbacks ||= {}
         @_keyed_callbacks[[kind, key]] ||= begin
-          str = self.send("_#{kind}_callbacks").compile(key, obj)
+          str = self.send("_#{kind}_callbacks").compile(key, :object => obj, :terminator => self.send("_#{kind}_terminator"))
+
           self.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def _run_#{klass}_#{kind}_#{key}_callbacks
+            def _run__#{klass.split("::").last}__#{kind}__#{key}__callbacks
               #{str}
             end
           RUBY_EVAL
+                    
           true
         end
-        obj.send("_run_#{klass}_#{kind}_#{key}_callbacks", &blk)
+                                  
+        obj.send("_run__#{klass.split("::").last}__#{kind}__#{key}__callbacks", &blk)
       end
       
       # Define callbacks.
@@ -402,20 +424,32 @@ module CouchRest
       # method that took into consideration the per_key conditions. This
       # is a speed improvement for ActionPack.
       def define_callbacks(*symbols)
+        terminator = symbols.pop if symbols.last.is_a?(String)
         symbols.each do |symbol|
+          self.class_inheritable_accessor("_#{symbol}_terminator")
+          self.send("_#{symbol}_terminator=", terminator)
           self.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             class_inheritable_accessor :_#{symbol}_callbacks
-            self._#{symbol}_callbacks = CallbackChain.new
+            self._#{symbol}_callbacks = CallbackChain.new(:#{symbol})
 
-            def self.#{symbol}_callback(type, *filters, &blk)
+            def self.#{symbol}_callback(*filters, &blk)
+              type = [:before, :after, :around].include?(filters.first) ? filters.shift : :before
               options = filters.last.is_a?(Hash) ? filters.pop : {}
               filters.unshift(blk) if block_given?
-              filters.map! {|f| Callback.new(f, type, options.dup, self, :#{symbol})}
+              
+              filters.map! do |filter| 
+                # overrides parent class
+                self._#{symbol}_callbacks.delete_if {|c| c.matches?(type, :#{symbol}, filter)}
+                Callback.new(filter, type, options.dup, self, :#{symbol})
+              end
               self._#{symbol}_callbacks.push(*filters)
-              _define_runner(:#{symbol}, self._#{symbol}_callbacks.compile, options)
+              _define_runner(:#{symbol}, 
+                self._#{symbol}_callbacks.compile(nil, :terminator => _#{symbol}_terminator), 
+                options)
             end
             
-            def self.skip_#{symbol}_callback(type, *filters, &blk)
+            def self.skip_#{symbol}_callback(*filters, &blk)
+              type = [:before, :after, :around].include?(filters.first) ? filters.shift : :before
               options = filters.last.is_a?(Hash) ? filters.pop : {}
               filters.unshift(blk) if block_given?
               filters.each do |filter|
@@ -428,9 +462,16 @@ module CouchRest
                 else
                   self._#{symbol}_callbacks.delete(filter)
                 end
-                _define_runner(:#{symbol}, self._#{symbol}_callbacks.compile, options)
+                _define_runner(:#{symbol}, 
+                  self._#{symbol}_callbacks.compile(nil, :terminator => _#{symbol}_terminator), 
+                  options)
               end
               
+            end
+            
+            def self.reset_#{symbol}_callbacks
+              self._#{symbol}_callbacks = CallbackChain.new(:#{symbol})
+              _define_runner(:#{symbol}, self._#{symbol}_callbacks.compile, {})
             end
             
             self.#{symbol}_callback(:before)
