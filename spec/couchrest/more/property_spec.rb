@@ -8,6 +8,7 @@ require File.join(FIXTURE_PATH, 'more', 'event')
 describe "ExtendedDocument properties" do
   
   before(:each) do
+    reset_test_db!
     @card = Card.new(:first_name => "matt")
   end
   

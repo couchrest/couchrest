@@ -190,6 +190,7 @@ describe "ExtendedDocument views" do
 
   describe "with a lot of designs left around" do
     before(:each) do
+      reset_test_db!
       Article.by_date
       Article.view_by :field
       Article.by_field
