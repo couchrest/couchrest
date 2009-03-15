@@ -205,8 +205,8 @@ module CouchRest
         _run_destroy_callbacks do
           result = database.delete_doc(self, bulk)
           if result['ok']
-            self['_rev'] = nil
-            self['_id'] = nil
+            self.delete('_rev')
+            self.delete('_id')
           end
           result['ok']
         end

@@ -149,8 +149,8 @@ describe CouchRest::Database do
           {"mild" => "yet local"},
           {"another" => ["set","of","keys"]}
         ])
-      rs['new_revs'].each do |r|
-        @db.get(r['id'])
+      rs.each do |r|
+        @db.get(r['id']).rev.should == r["rev"]
       end
     end
     
@@ -170,25 +170,9 @@ describe CouchRest::Database do
           {"_id" => "twoB", "mild" => "yet local"},
           {"another" => ["set","of","keys"]}
         ])
-      rs['new_revs'].each do |r|
-        @db.get(r['id'])
+      rs.each do |r|
+        @db.get(r['id']).rev.should == r["rev"]
       end
-    end
-    
-    it "in the case of an id conflict should not insert anything" do
-      @r = @db.save_doc({'lemons' => 'from texas', 'and' => 'how', "_id" => "oneB"})
-      
-      lambda do
-      rs = @db.bulk_save([
-          {"_id" => "oneB", "wild" => "and random"},
-          {"_id" => "twoB", "mild" => "yet local"},
-          {"another" => ["set","of","keys"]}
-        ])
-      end.should raise_error(RestClient::RequestFailed)
-    
-      lambda do
-        @db.get('twoB')
-      end.should raise_error(RestClient::ResourceNotFound)
     end
 
     it "should empty the bulk save cache if no documents are given" do
@@ -593,7 +577,8 @@ describe CouchRest::Database do
         @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
       end
       it "should fail without a rev" do
-        lambda{@db.move_doc @doc, @docid}.should raise_error(RestClient::RequestFailed)
+        @doc.delete("_rev")
+        lambda{@db.move_doc @doc, @docid}.should raise_error(ArgumentError)
         lambda{@db.get(@r['id'])}.should_not raise_error
       end
       it "should succeed with a rev" do

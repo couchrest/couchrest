@@ -442,7 +442,7 @@ describe "ExtendedDocument" do
       @dobj.destroy
       @dobj.rev.should be_nil
       @dobj.id.should be_nil
-      @dobj.save.should == true
+      @dobj.save.should == true 
     end
     it "should make it go away" do
       @dobj.destroy

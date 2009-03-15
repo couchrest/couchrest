@@ -224,7 +224,8 @@ describe CouchRest::Document do
         @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
       end
       it "should fail without a rev" do
-        lambda{@doc.move @docid}.should raise_error(RestClient::RequestFailed)
+        @doc.delete("_rev")
+        lambda{@doc.move @docid}.should raise_error(ArgumentError)
         lambda{@db.get(@resp['id'])}.should_not raise_error
       end
       it "should succeed with a rev" do
