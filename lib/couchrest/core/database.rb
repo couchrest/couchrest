@@ -80,12 +80,12 @@ module CouchRest
     def get(id, params = {})
       slug = escape_docid(id)
       url = CouchRest.paramify_url("#{@uri}/#{slug}", params)
-      puts url
-      hash = CouchRest.get(url)
-      doc = if /^_design/ =~ hash["_id"]
-        Design.new(hash)
+      result = CouchRest.get(url)
+      return result unless result.is_a?(Hash)
+      doc = if /^_design/ =~ result["_id"]
+        Design.new(result)
       else
-        Document.new(hash)
+        Document.new(result)
       end
       doc.database = self
       doc
