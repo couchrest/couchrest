@@ -70,6 +70,7 @@ describe CouchRest::CastedModel do
   
   describe "saved document with casted models" do
     before(:each) do
+      reset_test_db!
       @obj = DummyModel.new(:casted_attribute => {:name => 'whatever'})
       @obj.save.should be_true
       @obj = DummyModel.get(@obj.id)

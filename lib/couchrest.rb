@@ -40,6 +40,7 @@ module CouchRest
   autoload :Pager,        'couchrest/helper/pager'
   autoload :FileManager,  'couchrest/helper/file_manager'
   autoload :Streamer,     'couchrest/helper/streamer'
+  autoload :Upgrade,      'couchrest/helper/upgrade'
   
   autoload :ExtendedDocument,     'couchrest/more/extended_document'
   autoload :CastedModel,          'couchrest/more/casted_model'

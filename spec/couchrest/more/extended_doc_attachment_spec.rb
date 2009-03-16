@@ -4,6 +4,7 @@ describe "ExtendedDocument attachments" do
   
   describe "#has_attachment?" do
     before(:each) do
+      reset_test_db!
       @obj = Basic.new
       @obj.save.should == true
       @file = File.open(FIXTURE_PATH + '/attachments/test.html')

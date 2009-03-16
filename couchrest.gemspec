@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 2
 
-    if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
+    if current_version >= 3 then
       s.add_runtime_dependency(%q<json>, [">= 1.1.2"])
       s.add_runtime_dependency(%q<rest-client>, [">= 0.5"])
       s.add_runtime_dependency(%q<mime-types>, [">= 1.15"])
