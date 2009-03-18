@@ -1,11 +1,4 @@
-begin
-  # still required for Time parsing and pluralization in the validation
-  require 'extlib'
-rescue 
-  puts "CouchRest::ExtendedDocument still requires extlib (not for much longer). This is left out of the gemspec on purpose."
-  raise
-end
-
+require 'time'
 require 'mime/types'
 require File.join(File.dirname(__FILE__), "property")
 require File.join(File.dirname(__FILE__), '..', 'mixins', 'extended_document_mixins')
