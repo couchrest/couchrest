@@ -10,7 +10,7 @@ class Time
   # in your application.)
 
   def to_json(options = nil)
-    u = self.utc
+    u = self.getutc
     %("#{u.strftime("%Y/%m/%d %H:%M:%S +0000")}")
   end
 
