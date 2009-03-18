@@ -199,51 +199,6 @@ describe CouchRest::Document do
       end
     end
   end
-
-  describe "MOVE existing document" do
-    before :each do
-      @db = reset_test_db!
-      @resp = @db.save_doc({'key' => 'value'})
-      @docid = 'new-location'
-      @doc = @db.get(@resp['id'])
-    end
-    describe "to a new location" do
-      it "should work" do
-        @doc.move @docid
-        newdoc = @db.get(@docid)
-        newdoc['key'].should == 'value'
-        lambda {@db.get(@resp['id'])}.should raise_error(RestClient::ResourceNotFound)
-      end
-      it "should fail without a database" do
-        lambda{CouchRest::Document.new({"not"=>"a real doc"}).move}.should raise_error(ArgumentError)
-        lambda{CouchRest::Document.new({"_id"=>"not a real doc"}).move}.should raise_error(ArgumentError)
-      end
-    end
-    describe "to an existing location" do
-      before :each do
-        @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
-      end
-      it "should fail without a rev" do
-        @doc.delete("_rev")
-        lambda{@doc.move @docid}.should raise_error(ArgumentError)
-        lambda{@db.get(@resp['id'])}.should_not raise_error
-      end
-      it "should succeed with a rev" do
-        @to_be_overwritten = @db.get(@docid)
-        @doc.move "#{@docid}?rev=#{@to_be_overwritten['_rev']}"
-        newdoc = @db.get(@docid)
-        newdoc['key'].should == 'value'
-        lambda {@db.get(@resp['id'])}.should raise_error(RestClient::ResourceNotFound)
-      end
-      it "should succeed given the doc to overwrite" do
-        @to_be_overwritten = @db.get(@docid)
-        @doc.move @to_be_overwritten
-        newdoc = @db.get(@docid)
-        newdoc['key'].should == 'value'
-        lambda {@db.get(@resp['id'])}.should raise_error(RestClient::ResourceNotFound)
-      end
-    end
-  end
 end
 
 describe "dealing with attachments" do
