@@ -64,7 +64,7 @@ module CouchRest
 
         error_message = @options[:message] || ValidationErrors.default_error_message(:invalid, field_name)
 
-        field = Extlib::Inflection.humanize(field_name)
+        field = CouchRest.humanize(field_name)
         error_message = error_message.call(field, value) if error_message.respond_to?(:call)
 
         add_error(target, error_message, field_name)

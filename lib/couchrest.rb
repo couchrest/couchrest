@@ -69,6 +69,18 @@ module CouchRest
       Object.module_eval("::#{$1}", __FILE__, __LINE__)
     end
     
+    # extracted from Extlib
+    #    
+    # Capitalizes the first word and turns underscores into spaces and strips _id.
+    # Like titleize, this is meant for creating pretty output.
+    #
+    # @example
+    #   "employee_salary" #=> "Employee salary"
+    #   "author_id" #=> "Author"
+    def humanize(lower_case_and_underscored_word)
+      lower_case_and_underscored_word.to_s.gsub(/_id$/, "").gsub(/_/, " ").capitalize
+    end
+    
     # todo, make this parse the url and instantiate a Server or Database instance
     # depending on the specificity.
     def new(*opts)

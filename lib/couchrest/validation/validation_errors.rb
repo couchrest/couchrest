@@ -60,7 +60,7 @@ module CouchRest
       cattr_writer :default_error_messages
 
       def self.default_error_message(key, field, *values)
-        field = Extlib::Inflection.humanize(field)
+        field = CouchRest.humanize(field)
         @@default_error_messages[key] % [field, *values].flatten
       end
 
