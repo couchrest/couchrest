@@ -171,10 +171,6 @@ module CouchRest
     def copy uri, destination
       JSON.parse(RestClient.copy(uri, {'Destination' => destination}))
     end
-    
-    def move uri, destination
-      JSON.parse(RestClient.move(uri, {'Destination' => destination}))
-    end
   
     def paramify_url url, params = {}
       if params && !params.empty?
