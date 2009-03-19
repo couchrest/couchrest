@@ -1,3 +1,4 @@
+require 'time'
 require File.join(File.dirname(__FILE__), '..', 'more', 'property')
 
 module CouchRest

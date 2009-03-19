@@ -1,4 +1,3 @@
-require 'time'
 require 'mime/types'
 require File.join(File.dirname(__FILE__), "property")
 require File.join(File.dirname(__FILE__), '..', 'mixins', 'extended_document_mixins')
