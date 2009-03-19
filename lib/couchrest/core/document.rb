@@ -5,10 +5,10 @@ module CouchRest
     include CouchRest::Mixins::Attachments
 
     # def self.inherited(subklass)
-    #   subklass.send(:class_inheritable_accessor, :database)
+    #   subklass.send(:extlib_inheritable_accessor, :database)
     # end
     
-    class_inheritable_accessor :database
+    extlib_inheritable_accessor :database
     attr_accessor :database
     
     # override the CouchRest::Model-wide default_database

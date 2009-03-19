@@ -4,9 +4,9 @@ module CouchRest
       
       def self.included(base)
         base.extend(ClassMethods)
-        base.send(:class_inheritable_accessor, :design_doc)
-        base.send(:class_inheritable_accessor, :design_doc_slug_cache)
-        base.send(:class_inheritable_accessor, :design_doc_fresh)
+        base.send(:extlib_inheritable_accessor, :design_doc)
+        base.send(:extlib_inheritable_accessor, :design_doc_slug_cache)
+        base.send(:extlib_inheritable_accessor, :design_doc_fresh)
       end
       
       module ClassMethods
