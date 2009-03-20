@@ -8,10 +8,10 @@ module CouchRest
       class IncludeError < StandardError; end
       
       def self.included(base)
-        base.cattr_accessor(:properties)
-          base.class_eval <<-EOS, __FILE__, __LINE__
-              @@properties = []
-          EOS
+        base.class_eval <<-EOS, __FILE__, __LINE__
+            extlib_inheritable_accessor(:properties)
+            self.properties ||= []
+        EOS
         base.extend(ClassMethods)
         raise CouchRest::Mixins::Properties::IncludeError, "You can only mixin Properties in a class responding to [] and []=, if you tried to mixin CastedModel, make sure your class inherits from Hash or responds to the proper methods" unless (base.new.respond_to?(:[]) && base.new.respond_to?(:[]=))
       end
@@ -71,7 +71,10 @@ module CouchRest
       module ClassMethods
         
         def property(name, options={})
-          define_property(name, options) unless self.properties.map{|p| p.name}.include?(name.to_s)
+          existing_property = self.properties.find{|p| p.name == name.to_s}
+          if existing_property.nil? || (existing_property.default != options[:default])
+            define_property(name, options)
+          end
         end
         
         protected

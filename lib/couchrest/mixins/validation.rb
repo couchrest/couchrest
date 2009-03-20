@@ -49,16 +49,21 @@ module CouchRest
   module Validation
     
     def self.included(base)
-      base.cattr_accessor(:auto_validation)
+      base.extlib_inheritable_accessor(:auto_validation)
       base.class_eval <<-EOS, __FILE__, __LINE__
           # Turn off auto validation by default
-          @@auto_validation = false
+          self.auto_validation ||= false
           
           # Force the auto validation for the class properties
           # This feature is still not fully ported over,
           # test are lacking, so please use with caution
           def self.auto_validate!
             self.auto_validation = true
+          end
+          
+          # share the validations with subclasses
+          def self.inherited(subklass)
+            subklass.instance_variable_set(:@validations, self.validators.dup)
           end
       EOS
       
@@ -71,7 +76,7 @@ module CouchRest
       base.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
         def self.define_property(name, options={})
           super
-          auto_generate_validations(properties.last)
+          auto_generate_validations(properties.last) if properties && properties.size > 0
           autovalidation_check = true
         end
       RUBY_EVAL
