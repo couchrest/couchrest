@@ -59,6 +59,12 @@ describe "ExtendedDocument properties" do
       @card.errors.should_not be_empty
       @card.errors.on(:first_name).should == ["First name must not be blank"]
     end
+    
+    it "should let you look up errors for a field by a string name" do
+      @card.first_name = nil
+      @card.should_not be_valid
+      @card.errors.on('first_name').should == ["First name must not be blank"]
+    end
 
     it "should validate the presence of 2 attributes" do
       @invoice.clear

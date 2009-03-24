@@ -89,7 +89,7 @@ module CouchRest
       #
       # @param <Symbol> field_name the name of the field you want an error for
       def on(field_name)
-        errors_for_field = errors[field_name]
+        errors_for_field = errors[field_name.to_sym]
         errors_for_field.blank? ? nil : errors_for_field
       end
 
