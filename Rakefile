@@ -35,12 +35,21 @@ spec = Gem::Specification.new do |s|
 end
 
 
-desc "create .gemspec file (useful for github)"
+desc "Create .gemspec file (useful for github)"
 task :gemspec do
   filename = "#{spec.name}.gemspec"
   File.open(filename, "w") do |f|
     f.puts spec.to_ruby
   end
+end
+
+Rake::GemPackageTask.new(spec) do |pkg|
+  pkg.gem_spec = spec
+end
+
+desc "Install the gem locally"
+task :install => [:package] do
+  sh %{sudo gem install pkg/couchrest-#{CouchRest::VERSION}}
 end
 
 desc "Run all specs"
