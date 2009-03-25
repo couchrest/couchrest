@@ -66,6 +66,7 @@ module CouchRest
             self.validators.contexts.each do |k, v|
               subklass.validators.contexts[k] = v.dup
             end
+            super
           end
       EOS
       
