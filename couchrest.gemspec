@@ -1,3 +1,5 @@
+# -*- encoding: utf-8 -*-
+
 Gem::Specification.new do |s|
   s.name = %q{couchrest}
   s.version = "0.22"
@@ -12,14 +14,14 @@ Gem::Specification.new do |s|
   s.has_rdoc = true
   s.homepage = %q{http://github.com/jchris/couchrest}
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.2.0}
+  s.rubygems_version = %q{1.3.1}
   s.summary = %q{Lean and RESTful interface to CouchDB.}
 
   if s.respond_to? :specification_version then
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 2
 
-    if current_version >= 3 then
+    if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<json>, [">= 1.1.2"])
       s.add_runtime_dependency(%q<rest-client>, [">= 0.5"])
       s.add_runtime_dependency(%q<mime-types>, [">= 1.15"])
