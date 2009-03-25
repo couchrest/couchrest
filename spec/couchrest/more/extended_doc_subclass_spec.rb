@@ -42,6 +42,12 @@ describe "Subclassing an ExtendedDocument" do
     validated_fields.should include(:job_title)
   end
   
+  it "should not add to the parent's validations" do
+    validated_fields = Card.validators.contexts[:default].map{|v| v.field_name}
+    validated_fields.should_not include(:extension_code)
+    validated_fields.should_not include(:job_title) 
+  end
+  
   it "should inherit default property values" do
     @card.bg_color.should == '#ccc'
   end

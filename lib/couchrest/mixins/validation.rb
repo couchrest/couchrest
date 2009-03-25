@@ -63,7 +63,9 @@ module CouchRest
           
           # share the validations with subclasses
           def self.inherited(subklass)
-            subklass.instance_variable_set(:@validations, self.validators.dup)
+            self.validators.contexts.each do |k, v|
+              subklass.validators.contexts[k] = v.dup
+            end
           end
       EOS
       
