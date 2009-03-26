@@ -14,7 +14,10 @@ class DesignBusinessCard < BusinessCard
   property :bg_color, :default => '#eee'
 end
 
-class OnlineCourse < Course; end
+class OnlineCourse < Course
+  property :url
+  view_by :url
+end
 
 class Animal < CouchRest::ExtendedDocument
   use_database TEST_SERVER.default_database
@@ -71,12 +74,25 @@ describe "Subclassing an ExtendedDocument" do
     OnlineCourse.design_doc_slug.should =~ /^OnlineCourse/
   end
   
-  it "should have a it's own design_doc_fresh" do
+  it "should have its own design_doc_fresh" do
     Animal.refresh_design_doc
     Dog.design_doc_fresh.should_not == true
     Dog.refresh_design_doc
     Dog.design_doc_fresh.should == true
   end
   
+  it "should not add views to the parent's design_doc" do
+    Course.design_doc['views'].keys.should_not include('by_url')
+  end
+  
+  it "should not add the parent's views to its design doc" do
+    Course.refresh_design_doc
+    OnlineCourse.refresh_design_doc
+    OnlineCourse.design_doc['views'].keys.should_not include('by_title')
+  end
+  
+  it "should have an all view with a guard clause for couchrest-type == subclass name in the map function" do
+    OnlineCourse.design_doc['views']['all']['map'].should =~ /if \(doc\['couchrest-type'\] == 'OnlineCourse'\)/
+  end
 end
 

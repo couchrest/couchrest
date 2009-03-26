@@ -7,7 +7,11 @@ module CouchRest
       end
       
       module ClassMethods
-        attr_accessor :design_doc_slug_cache, :design_doc_fresh
+        attr_accessor :design_doc, :design_doc_slug_cache, :design_doc_fresh
+        
+        def design_doc
+          @design_doc ||= Design.new(default_design_doc)
+        end
         
         # Define a CouchDB view. The name of the view will be the concatenation
         # of <tt>by</tt> and the keys joined by <tt>_and_</tt>
@@ -77,7 +81,6 @@ module CouchRest
         # <tt>spec/core/model_spec.rb</tt>.
 
         def view_by(*keys)
-          self.design_doc ||= Design.new(default_design_doc)
           opts = keys.pop if keys.last.is_a?(Hash)
           opts ||= {}
           ducktype = opts.delete(:ducktype)
