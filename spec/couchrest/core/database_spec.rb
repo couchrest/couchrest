@@ -7,7 +7,15 @@ describe CouchRest::Database do
     @db.delete! rescue nil
     @db = @cr.create_db(TESTDB) rescue nil
   end
-    
+
+  describe "database name including slash" do
+    it "should escape the name in the URI" do
+      db = @cr.database("foo/bar")
+      db.name.should == "foo/bar"
+      db.uri.should == "#{COUCHHOST}/foo%2Fbar"
+    end
+  end
+
   describe "map query with _temp_view in Javascript" do
     before(:each) do
       @db.bulk_save([

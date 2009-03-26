@@ -17,7 +17,7 @@ module CouchRest
       @name = name
       @server = server
       @host = server.uri
-      @uri = @root = "#{host}/#{name}"
+      @uri = @root = "#{host}/#{name.gsub('/','%2F')}"
       @streamer = Streamer.new(self)
       @bulk_save_cache = []
       @bulk_save_cache_limit = 500  # must be smaller than the uuid count
