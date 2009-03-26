@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.join(FIXTURE_PATH, 'more', 'card')
+require File.join(FIXTURE_PATH, 'more', 'course')
 
 # add a default value
 Card.property :bg_color, :default => '#ccc'
@@ -13,6 +14,15 @@ class DesignBusinessCard < BusinessCard
   property :bg_color, :default => '#eee'
 end
 
+class OnlineCourse < Course; end
+
+class Animal < CouchRest::ExtendedDocument
+  use_database TEST_SERVER.default_database
+  property :name
+  view_by :name
+end
+
+class Dog < Animal; end
 
 describe "Subclassing an ExtendedDocument" do
   
@@ -54,6 +64,18 @@ describe "Subclassing an ExtendedDocument" do
   
   it "should be able to overwrite a default property" do
     DesignBusinessCard.new.bg_color.should == '#eee'
+  end
+  
+  it "should have a design doc slug based on the subclass name" do
+    Course.refresh_design_doc
+    OnlineCourse.design_doc_slug.should =~ /^OnlineCourse/
+  end
+  
+  it "should have a it's own design_doc_fresh" do
+    Animal.refresh_design_doc
+    Dog.design_doc_fresh.should_not == true
+    Dog.refresh_design_doc
+    Dog.design_doc_fresh.should == true
   end
   
 end
