@@ -2,8 +2,18 @@ module CouchRest
   class Server
     attr_accessor :uri, :uuid_batch_count, :available_databases
     def initialize(server = 'http://127.0.0.1:5984', uuid_batch_count = 1000)
-      @uri = server
+      case server
+      when %r{\A(http://[^/]+)/(.*)\z}
+        @uri, @prefix = $1, $2
+      else   
+        @uri, @prefix = server, ""
+      end
       @uuid_batch_count = uuid_batch_count
+    end
+
+    # Add default prefix to database name
+    def expand(name)
+      @prefix + name
     end
   
     # Lists all "available" databases.
@@ -32,7 +42,7 @@ module CouchRest
     # @couch.available_database?(:default)
     #
     def available_database?(ref_or_name)
-      ref_or_name.is_a?(Symbol) ? available_databases.keys.include?(ref_or_name) : available_databases.values.map{|db| db.name}.include?(ref_or_name)
+      ref_or_name.is_a?(Symbol) ? available_databases.keys.include?(ref_or_name) : available_databases.values.map{|db| db.name}.include?(expand(ref_or_name))
     end
   
     def default_database=(name, create_unless_exists = true)
@@ -45,12 +55,17 @@ module CouchRest
   
     # Lists all databases on the server
     def databases
-      CouchRest.get "#{@uri}/_all_dbs"
+      dbs = CouchRest.get "#{@uri}/_all_dbs"
+      unless @prefix.empty?
+        pfx = @prefix.gsub('/','%2F')
+        dbs.reject! { |db| db.index(pfx) != 0 }
+      end
+      dbs
     end
   
     # Returns a CouchRest::Database for the given name
     def database(name)
-      CouchRest::Database.new(self, name)
+      CouchRest::Database.new(self, expand(name))
     end
   
     # Creates the database if it doesn't exist
@@ -66,7 +81,7 @@ module CouchRest
 
     # Create a database
     def create_db(name)
-      CouchRest.put "#{@uri}/#{name}"
+      CouchRest.put "#{@uri}/#{expand(name).gsub('/','%2F')}"
       database(name)
     end
 
