@@ -145,7 +145,7 @@ module CouchRest
           retryable = true
           begin
             design_doc.view(view_name, opts, &block)
-            # the design doc could have been deleted by a rouge process
+            # the design doc could have been deleted by a rogue process
           rescue RestClient::ResourceNotFound => e
             if retryable
               refresh_design_doc
