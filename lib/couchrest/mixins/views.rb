@@ -141,7 +141,7 @@ module CouchRest
               # fallback for old versions of couchdb that don't 
               # have include_docs support
               view = fetch_view(db, name, opts, &block)
-              view['rows'].collect{|r|new(database.get(r['id']))} if view['rows']
+              view['rows'].collect{|r|new(db.get(r['id']))} if view['rows']
             end
           end
         end
