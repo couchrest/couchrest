@@ -11,6 +11,7 @@ module CouchRest
     include CouchRest::Mixins::Views
     include CouchRest::Mixins::DesignDoc
     include CouchRest::Mixins::ExtendedAttachments
+    include CouchRest::Mixins::ClassProxy
     
     def self.inherited(subklass)
       subklass.send(:include, CouchRest::Mixins::Properties)

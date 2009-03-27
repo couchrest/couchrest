@@ -8,6 +8,7 @@ describe "ExtendedDocument views" do
     # Note: no use_database here
     property :title
     property :questions
+    property :professor
     view_by :title
   end
   
@@ -158,6 +159,13 @@ describe "ExtendedDocument views" do
       end
       things[0]["doc"]["title"].should =='aaa'
     end
+    it "should yield with by_key method" do
+      things = []
+      Unattached.by_title(:database=>@db) do |thing|
+        things << thing
+      end
+      things[0]["doc"]["title"].should =='aaa'
+    end
     it "should barf on get if no database given" do
       lambda{Unattached.get("aaa")}.should raise_error
     end
@@ -183,6 +191,67 @@ describe "ExtendedDocument views" do
       Unattached.all_design_doc_versions(@db)["rows"].length.should == 2
       Unattached.cleanup_design_docs!(@db)
       Unattached.all_design_doc_versions(@db)["rows"].length.should == 1
+    end
+  end
+
+  describe "class proxy" do
+    before(:all) do
+      reset_test_db!
+      @us = Unattached.on(TEST_SERVER.default_database)
+      %w{aaa bbb ddd eee}.each do |title|
+        u = @us.new(:title => title)
+        u.save
+        @first_id ||= u.id
+      end
+    end
+    it "should query all" do
+      rs = @us.all
+      rs.length.should == 4
+    end
+    it "should make the design doc upon first query" do
+      @us.by_title
+      doc = @us.design_doc
+      doc['views']['all']['map'].should include('Unattached')
+    end
+    it "should merge query params" do
+      rs = @us.by_title :startkey=>"bbb", :endkey=>"eee"
+      rs.length.should == 3
+    end
+    it "should query via view" do
+      view = @us.view :by_title
+      designed = @us.by_title
+      view.should == designed
+    end
+    it "should yield" do
+      things = []
+      @us.view(:by_title) do |thing|
+        things << thing
+      end
+      things[0]["doc"]["title"].should =='aaa'
+    end
+    it "should yield with by_key method" do
+      things = []
+      @us.by_title do |thing|
+        things << thing
+      end
+      things[0]["doc"]["title"].should =='aaa'
+    end
+    it "should get from specific database" do
+      u = @us.get(@first_id)
+      u.title.should == "aaa"
+    end
+    it "should get first" do
+      u = @us.first
+      u.title.should =~ /\A...\z/
+    end
+    it "should clean up design docs left around on specific database" do
+      @us.by_title
+      @us.all_design_doc_versions["rows"].length.should == 1
+      Unattached.view_by :professor
+      @us.by_professor
+      @us.all_design_doc_versions["rows"].length.should == 2
+      @us.cleanup_design_docs!
+      @us.all_design_doc_versions["rows"].length.should == 1
     end
   end
 
