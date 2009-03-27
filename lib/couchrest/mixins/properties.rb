@@ -9,7 +9,7 @@ module CouchRest
       
       def self.included(base)
         base.class_eval <<-EOS, __FILE__, __LINE__
-            extlib_inheritable_accessor(:properties)
+            extlib_inheritable_accessor(:properties) unless self.respond_to?(:properties)
             self.properties ||= []
         EOS
         base.extend(ClassMethods)
