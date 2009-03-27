@@ -65,15 +65,6 @@ module CouchRest
       result['ok']
     end
     
-    # moves the document to a new id. If the destination id currently exists, a rev must be provided.
-    # <tt>dest</tt> can take one of two forms if overwriting: "id_to_overwrite?rev=revision" or the actual doc
-    # hash with a '_rev' key
-    def move(dest)
-      raise ArgumentError, "doc.database required to copy" unless database
-      result = database.move_doc(self, dest)
-      result['ok']
-    end
-    
     # Returns the CouchDB uri for the document
     def uri(append_rev = false)
       return nil if new_document?
