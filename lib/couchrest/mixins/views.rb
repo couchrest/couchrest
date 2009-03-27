@@ -54,6 +54,10 @@ module CouchRest
         # themselves. By default <tt>Post.by_date</tt> will return the
         # documents included in the generated view.
         #  
+        # Calling with :database => [instance of CouchRest::Database] will
+        # send the query to a specific database, otherwise it will go to
+        # the model's default database (use_database)
+        #  
         # CouchRest::Database#view options can be applied at view definition
         # time as defaults, and they will be curried and used at view query
         # time. Or they can be overridden at query time.
@@ -67,7 +71,7 @@ module CouchRest
         # that model won't be available until generation is complete. This can
         # take some time with large databases. Strategies are in the works.
         #  
-        # To understand the capabilities of this view system more compeletly,
+        # To understand the capabilities of this view system more completely,
         # it is recommended that you read the RSpec file at
         # <tt>spec/core/model_spec.rb</tt>.
 
@@ -97,12 +101,13 @@ module CouchRest
             refresh_design_doc
           end
           query[:raw] = true if query[:reduce]        
+          db = query.delete(:database) || database
           raw = query.delete(:raw)
-          fetch_view_with_docs(name, query, raw, &block)
+          fetch_view_with_docs(db, name, query, raw, &block)
         end
 
-        def all_design_doc_versions
-          database.documents :startkey => "_design/#{self.to_s}-", 
+        def all_design_doc_versions(db = database)
+          db.documents :startkey => "_design/#{self.to_s}-", 
             :endkey => "_design/#{self.to_s}-\u9999"
         end
 
@@ -111,11 +116,11 @@ module CouchRest
         # and consistently using the latest code, is the way to clear out old design 
         # docs. Running it to early could mean that live code has to regenerate
         # potentially large indexes.
-        def cleanup_design_docs!
-          ddocs = all_design_doc_versions
+        def cleanup_design_docs!(db = database)
+          ddocs = all_design_doc_versions(db)
           ddocs["rows"].each do |row|
             if (row['id'] != design_doc_id)
-              database.delete_doc({
+              db.delete_doc({
                 "_id" => row['id'],
                 "_rev" => row['value']['rev']
               })
@@ -125,30 +130,31 @@ module CouchRest
 
         private
 
-        def fetch_view_with_docs(name, opts, raw=false, &block)
+        def fetch_view_with_docs(db, name, opts, raw=false, &block)
           if raw || (opts.has_key?(:include_docs) && opts[:include_docs] == false)
-            fetch_view(name, opts, &block)
+            fetch_view(db, name, opts, &block)
           else
             begin
-              view = fetch_view name, opts.merge({:include_docs => true}), &block
+              view = fetch_view db, name, opts.merge({:include_docs => true}), &block
               view['rows'].collect{|r|new(r['doc'])} if view['rows']
             rescue
               # fallback for old versions of couchdb that don't 
               # have include_docs support
-              view = fetch_view(name, opts, &block)
+              view = fetch_view(db, name, opts, &block)
               view['rows'].collect{|r|new(database.get(r['id']))} if view['rows']
             end
           end
         end
 
-        def fetch_view view_name, opts, &block
+        def fetch_view(db, view_name, opts, &block)
+          raise "A view needs a database to operate on (specify :database option, or use_database in the #{self.class} class)" unless db
           retryable = true
           begin
-            design_doc.view(view_name, opts, &block)
-            # the design doc could have been deleted by a rogue process
+            design_doc.view_on(db, view_name, opts, &block)
+            # the design doc may not have been saved yet on this database
           rescue RestClient::ResourceNotFound => e
             if retryable
-              refresh_design_doc
+              save_design_doc_on(db)
               retryable = false
               retry
             else

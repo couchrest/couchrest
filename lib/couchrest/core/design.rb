@@ -35,11 +35,17 @@ JAVASCRIPT
     end
     
     # Dispatches to any named view.
+    # (using the database where this design doc was saved)
     def view view_name, query={}, &block
+      view_on database, view_name, query, &block
+    end
+
+    # Dispatches to any named view in a specific database
+    def view_on db, view_name, query={}, &block
       view_name = view_name.to_s
       view_slug = "#{name}/#{view_name}"
       defaults = (self['views'][view_name] && self['views'][view_name]["couchrest-defaults"]) || {}
-      fetch_view(view_slug, defaults.merge(query), &block)
+      db.view(view_slug, defaults.merge(query), &block)
     end
 
     def name
@@ -63,22 +69,6 @@ JAVASCRIPT
       self['views'][view] &&
         (self['views'][view]["couchrest-defaults"]||{})
     end
-
-    # def fetch_view_with_docs name, opts, raw=false, &block
-    #   if raw
-    #     fetch_view name, opts, &block
-    #   else
-    #     begin
-    #       view = fetch_view name, opts.merge({:include_docs => true}), &block
-    #       view['rows'].collect{|r|new(r['doc'])} if view['rows']
-    #     rescue
-    #       # fallback for old versions of couchdb that don't 
-    #       # have include_docs support
-    #       view = fetch_view name, opts, &block
-    #       view['rows'].collect{|r|new(database.get(r['id']))} if view['rows']
-    #     end
-    #   end
-    # end
 
     def fetch_view view_name, opts, &block
       database.view(view_name, opts, &block)

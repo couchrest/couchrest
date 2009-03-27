@@ -36,8 +36,8 @@ module CouchRest
         end
         
         # Load a document from the database by id
-        def get(id)
-          doc = database.get id
+        def get(id, db = database)
+          doc = db.get id
           new(doc)
         end
         

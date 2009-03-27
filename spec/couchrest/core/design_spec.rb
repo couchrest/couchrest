@@ -57,6 +57,13 @@ describe CouchRest::Design do
       res = @des.view :by_name
       res["rows"][0]["key"].should == "x"
     end
+    it "should be queryable on specified database" do
+      @des.name = "mydesign"
+      @des.save
+      @des.database = nil
+      res = @des.view_on @db, :by_name
+      res["rows"][0]["key"].should == "x"
+    end
   end
   
   describe "from a saved document" do

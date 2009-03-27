@@ -77,10 +77,10 @@ module CouchRest
     end
     
     # Temp solution to make the view_by methods available
-    def self.method_missing(m, *args)
+    def self.method_missing(m, *args, &block)
       if has_view?(m)
         query = args.shift || {}
-        view(m, query, *args)
+        view(m, query, *args, &block)
       else
         super
       end
