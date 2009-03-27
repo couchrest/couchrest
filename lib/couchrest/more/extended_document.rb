@@ -11,6 +11,7 @@ module CouchRest
     include CouchRest::Mixins::Views
     include CouchRest::Mixins::DesignDoc
     include CouchRest::Mixins::ExtendedAttachments
+    include CouchRest::Mixins::ClassProxy
     
     def self.inherited(subklass)
       subklass.send(:include, CouchRest::Mixins::Properties)
@@ -77,10 +78,10 @@ module CouchRest
     end
     
     # Temp solution to make the view_by methods available
-    def self.method_missing(m, *args)
+    def self.method_missing(m, *args, &block)
       if has_view?(m)
         query = args.shift || {}
-        view(m, query, *args)
+        view(m, query, *args, &block)
       else
         super
       end

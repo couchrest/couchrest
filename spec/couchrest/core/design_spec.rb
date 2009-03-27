@@ -14,7 +14,7 @@ describe CouchRest::Design do
   describe "with an unsaved view" do
     before(:each) do
       @des = CouchRest::Design.new
-      method = @des.view_by :name
+      @des.view_by :name
     end
     it "should accept a name" do
       @des.name = "mytest"
@@ -31,7 +31,7 @@ describe CouchRest::Design do
   describe "saving" do
     before(:each) do
       @des = CouchRest::Design.new
-      method = @des.view_by :name
+      @des.view_by :name
       @des.database = reset_test_db!
     end
     it "should fail without a name" do
@@ -49,12 +49,19 @@ describe CouchRest::Design do
       @db.bulk_save([{"name" => "x"},{"name" => "y"}])
       @des = CouchRest::Design.new
       @des.database = @db
-      method = @des.view_by :name
+      @des.view_by :name
     end
     it "should by queryable when it's saved" do
       @des.name = "mydesign"
       @des.save
       res = @des.view :by_name
+      res["rows"][0]["key"].should == "x"
+    end
+    it "should be queryable on specified database" do
+      @des.name = "mydesign"
+      @des.save
+      @des.database = nil
+      res = @des.view_on @db, :by_name
       res["rows"][0]["key"].should == "x"
     end
   end
@@ -92,7 +99,7 @@ describe CouchRest::Design do
       @db = reset_test_db!
       @des = CouchRest::Design.new
       @des.name = "test"
-      method = @des.view_by :name, :descending => true
+      @des.view_by :name, :descending => true
       @des.database = @db
       @des.save
       @db.bulk_save([{"name" => "a"},{"name" => "z"}])
@@ -116,7 +123,7 @@ describe CouchRest::Design do
       @db = reset_test_db!
       @des = CouchRest::Design.new
       @des.name = "test"
-      method = @des.view_by :name, :age
+      @des.view_by :name, :age
       @des.database = @db
       @des.save
       @db.bulk_save([{"name" => "a", "age" => 2},

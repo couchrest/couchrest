@@ -56,12 +56,6 @@ module RestClient
       :url => url,
       :headers => headers)
   end
-  
-  def self.move(url, headers={})
-    Request.execute(:method => :move,
-    :url => url,
-    :headers => headers)
-  end
 
 #   class Request
 #     
