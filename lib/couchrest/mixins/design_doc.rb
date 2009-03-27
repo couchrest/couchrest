@@ -9,6 +9,12 @@ module CouchRest
       end
       
       module ClassMethods
+        attr_accessor :design_doc, :design_doc_slug_cache, :design_doc_fresh
+        
+        def design_doc
+          @design_doc ||= Design.new(default_design_doc)
+        end
+        
         def design_doc_id
           "_design/#{design_doc_slug}"
         end

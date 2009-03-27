@@ -7,12 +7,6 @@ module CouchRest
       end
       
       module ClassMethods
-        attr_accessor :design_doc, :design_doc_slug_cache, :design_doc_fresh
-        
-        def design_doc
-          @design_doc ||= Design.new(default_design_doc)
-        end
-        
         # Define a CouchDB view. The name of the view will be the concatenation
         # of <tt>by</tt> and the keys joined by <tt>_and_</tt>
         #  
