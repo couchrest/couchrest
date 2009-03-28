@@ -12,9 +12,6 @@ module CouchRest
         # name of the current class. Take the standard set of
         # CouchRest::Database#view options.
         def all(opts = {}, &block)
-          unless design_doc_fresh
-            refresh_design_doc
-          end
           view(:all, opts, &block)
         end
 
