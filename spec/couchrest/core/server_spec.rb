@@ -2,36 +2,6 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe CouchRest::Server do
   
-  describe "named databases" do
-    it "should generate database without prefix" do
-      couch = CouchRest::Server.new "http://192.0.2.1:1234"
-      db = couch.database("foo")
-      db.name.should == "foo"
-      db.uri.should == "http://192.0.2.1:1234/foo"
-    end
-
-    it "should generate database with prefix" do
-      couch = CouchRest::Server.new "http://192.0.2.1:1234/dev"
-      db = couch.database("foo")
-      db.name.should == "devfoo"
-      db.uri.should == "http://192.0.2.1:1234/devfoo"
-    end
-
-    it "should generate database with prefix and slash" do
-      couch = CouchRest::Server.new "http://192.0.2.1:1234/dev/"
-      db = couch.database("foo")
-      db.name.should == "dev/foo"
-      db.uri.should == "http://192.0.2.1:1234/dev%2Ffoo"
-    end
-
-    it "should generate database with slashes" do
-      couch = CouchRest::Server.new "http://192.0.2.1:1234/dev/sample/"
-      db = couch.database("foo/bar")
-      db.name.should == "dev/sample/foo/bar"
-      db.uri.should == "http://192.0.2.1:1234/dev%2Fsample%2Ffoo%2Fbar"
-    end
-  end
-
   describe "available databases" do
     before(:each) do
       @couch = CouchRest::Server.new
