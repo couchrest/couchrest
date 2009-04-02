@@ -9,7 +9,8 @@ module CouchRest
     end
     
     def initialize(keys={})
-      super
+      raise StandardError unless self.is_a? Hash
+      super()
       keys.each do |k,v|
         self[k.to_s] = v
       end if keys

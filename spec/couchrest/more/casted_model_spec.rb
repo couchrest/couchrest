@@ -4,6 +4,7 @@ require File.join(FIXTURE_PATH, 'more', 'card')
 class WithCastedModelMixin < Hash
   include CouchRest::CastedModel
   property :name
+  property :no_value
 end
 
 class DummyModel < CouchRest::ExtendedDocument
@@ -53,6 +54,14 @@ describe CouchRest::CastedModel do
     
     it "should know who casted it" do
       @casted_obj.casted_by.should == @obj
+    end
+
+    it "should return nil for the 'no_value' attribute" do
+      @casted_obj.no_value.should be_nil
+    end
+
+    it "should return nil for the unknown attribute" do
+      @casted_obj["unknown"].should be_nil
     end
   end
   
