@@ -52,6 +52,19 @@ describe "ExtendedDocument" do
     property :preset, :default => 'value'
     property :has_no_default
   end
+
+  class WithGetterAndSetterMethods < CouchRest::ExtendedDocument
+    use_database TEST_SERVER.default_database
+    
+    property :other_arg
+    def arg
+      other_arg
+    end
+
+    def arg=(value)
+      self.other_arg = "foo-#{value}"
+    end
+  end
   
   before(:each) do
     @obj = WithDefaultValues.new
@@ -504,6 +517,15 @@ describe "ExtendedDocument" do
         @doc.run_before_update.should be_true
       end
       
+    end
+  end
+
+  describe "getter and setter methods" do
+    it "should try to call the arg= method before setting :arg in the hash" do
+      @doc = WithGetterAndSetterMethods.new(:arg => "foo")
+      @doc['arg'].should be_nil
+      @doc[:arg].should be_nil
+      @doc.other_arg.should == "foo-foo"
     end
   end
 end

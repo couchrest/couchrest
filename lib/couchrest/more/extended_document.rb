@@ -33,6 +33,11 @@ module CouchRest
     
     def initialize(passed_keys={})
       apply_defaults # defined in CouchRest::Mixins::Properties
+      passed_keys.each do |k,v|
+        if self.respond_to?("#{k}=")
+          self.send("#{k}=", passed_keys.delete(k))
+        end
+      end if passed_keys
       super
       cast_keys      # defined in CouchRest::Mixins::Properties
       unless self['_id'] && self['_rev']
