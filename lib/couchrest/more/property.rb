@@ -30,7 +30,7 @@ module CouchRest
         @validation_format  = options.delete(:format)     if options[:format]
         @read_only          = options.delete(:read_only)  if options[:read_only]
         @alias              = options.delete(:alias)      if options[:alias]
-        @default            = options.delete(:default)    if options[:default]
+        @default            = options.delete(:default)    unless options[:default].nil?
         @casted             = options[:casted] ? true : false
         @init_method        = options[:send] ? options.delete(:send) : 'new'
         @options            = options

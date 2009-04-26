@@ -10,6 +10,7 @@ describe "ExtendedDocument" do
     property :preset,       :default => {:right => 10, :top_align => false}
     property :set_by_proc,  :default => Proc.new{Time.now},       :cast_as => 'Time'
     property :tags,         :default => []
+    property :false_default, :default => false
     property :name
     timestamps!
   end
@@ -156,6 +157,11 @@ describe "ExtendedDocument" do
     it "should work with a default empty array" do
       obj = WithDefaultValues.new(:tags => ['spec'])
       obj.tags.should == ['spec']
+    end
+
+    it "should work with a default value of false" do
+      obj = WithDefaultValues.new
+      obj.false_default.should == false
     end
   end
   
