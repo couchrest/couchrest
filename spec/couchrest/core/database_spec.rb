@@ -599,6 +599,11 @@ describe CouchRest::Database do
       ds = @db.documents(:startkey => 'doc0', :endkey => 'doc3', :include_docs => true)
       ds['rows'][0]['doc']['another'].should == "doc"
     end
+    it "should have the bulk_load macro" do
+      rs = @db.bulk_load ["doc0", "doc7"]
+      rs['rows'].length.should == 2
+      ds['rows'][0]['doc']['another'].should == "doc"
+    end
   end
   
 
