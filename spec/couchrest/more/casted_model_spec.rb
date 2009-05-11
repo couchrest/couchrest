@@ -1,5 +1,6 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 require File.join(FIXTURE_PATH, 'more', 'card')
+require File.join(FIXTURE_PATH, 'more', 'cat')
 
 class WithCastedModelMixin < Hash
   include CouchRest::CastedModel
@@ -67,7 +68,7 @@ describe CouchRest::CastedModel do
   
   describe "casted as an array of a different type" do
     before(:each) do
-      @obj = DummyModel.new(:keywords => ['couch', 'sofa', 'relax', 'canapé'])
+      @obj = DummyModel.new(:keywords => ['couch', 'sofa', 'relax', 'canape'])
     end
     
     it "should cast the array propery" do
@@ -102,6 +103,25 @@ describe CouchRest::CastedModel do
       casted_obj.name.should == "test"
     end
     
+  end
+
+  describe "saving document with array of casted models and validation" do
+    before :each do
+      @cat = Cat.new
+      @cat.save
+    end
+
+    it "should save" do
+      toy = CatToy.new :name => "Mouse"
+      @cat.toys.push(toy)
+      @cat.save.should be_true
+    end
+
+    it "should fail because name is not present" do
+      toy = CatToy.new
+      @cat.toys.push(toy)
+      @cat.save.should be_false
+    end
   end
   
 end
