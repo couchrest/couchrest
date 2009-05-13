@@ -8,6 +8,8 @@ to CouchDB's API endpoints so you don't have to.
 
 CouchRest is designed to make a simple base for application and framework-specific object oriented APIs. CouchRest is Object-Mapper agnostic, the parsed JSON it returns from CouchDB shows up as subclasses of Ruby's Hash. Naked JSON, just as it was mean to be.
 
+Note: CouchRest only support CouchDB 0.9.0 or newer.
+
 ## Easy Install
 
 Easy Install is moving to RubyForge, heads up for the gem.

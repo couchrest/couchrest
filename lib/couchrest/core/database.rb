@@ -44,6 +44,11 @@ module CouchRest
       end
     end
   
+    # load a set of documents by passing an array of ids
+    def get_bulk(ids)
+      documents(:keys => ids, :include_docs => true)
+    end
+  
     # POST a temporary view function to CouchDB for querying. This is not
     # recommended, as you don't get any performance benefit from CouchDB's
     # materialized views. Can be quite slow on large databases.
