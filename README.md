@@ -1,7 +1,7 @@
 # CouchRest: CouchDB, close to the metal
 
 CouchRest is based on [CouchDB's couch.js test
-library](http://svn.apache.org/repos/asf/incubator/couchdb/trunk/share/www/script/couch.js),
+library](http://svn.apache.org/repos/asf/couchdb/trunk/share/www/script/couch.js),
 which I find to be concise, clear, and well designed. CouchRest lightly wraps
 CouchDB's HTTP API, managing JSON serialization, and remembering the URI-paths
 to CouchDB's API endpoints so you don't have to.
