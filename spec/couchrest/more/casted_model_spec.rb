@@ -3,6 +3,8 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 require File.join(FIXTURE_PATH, 'more', 'card')
 require File.join(FIXTURE_PATH, 'more', 'cat')
+require File.join(FIXTURE_PATH, 'more', 'person')
+
 
 class WithCastedModelMixin < Hash
   include CouchRest::CastedModel
@@ -122,8 +124,19 @@ describe CouchRest::CastedModel do
     it "should fail because name is not present" do
       toy = CatToy.new
       @cat.toys.push(toy)
+      @cat.should_not be_valid
       @cat.save.should be_false
     end
+    
+    it "should not fail if the casted model doesn't have validation" do
+      Cat.property :masters, :cast_as => ['Person'], :default => []
+      Cat.validates_present :name
+      cat = Cat.new(:name => 'kitty')
+      cat.should be_valid
+      cat.masters.push Person.new
+      cat.should be_valid
+    end
+    
   end
   
 end
