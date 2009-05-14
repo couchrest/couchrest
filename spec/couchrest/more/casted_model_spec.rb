@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 require File.join(FIXTURE_PATH, 'more', 'card')
 require File.join(FIXTURE_PATH, 'more', 'cat')
@@ -68,7 +70,7 @@ describe CouchRest::CastedModel do
   
   describe "casted as an array of a different type" do
     before(:each) do
-      @obj = DummyModel.new(:keywords => ['couch', 'sofa', 'relax', 'canape'])
+      @obj = DummyModel.new(:keywords => ['couch', 'sofa', 'relax', 'canapé'])
     end
     
     it "should cast the array propery" do

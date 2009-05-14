@@ -602,7 +602,7 @@ describe CouchRest::Database do
     it "should have the bulk_load macro" do
       rs = @db.bulk_load ["doc0", "doc7"]
       rs['rows'].length.should == 2
-      ds['rows'][0]['doc']['another'].should == "doc"
+      rs['rows'][0]['doc']['another'].should == "doc"
     end
   end
   
