@@ -29,7 +29,6 @@ spec = Gem::Specification.new do |s|
     Dir["spec/tmp"]
   s.extra_rdoc_files = %w( README.md LICENSE THANKS.md )
   s.require_path = "lib"
-  s.add_dependency("json", ">= 1.1.2")
   s.add_dependency("rest-client", ">= 0.5")
   s.add_dependency("mime-types", ">= 1.15")
 end

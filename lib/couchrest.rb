@@ -12,10 +12,12 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-require "rubygems"
-gem 'json'
-require 'json'
-gem 'rest-client'
+require 'rubygems'
+begin
+  require 'json'
+rescue LoadError
+  raise "You need install and require your own compatible json library since couchrest rest couldn't load the json/json_pure gem" unless Kernel.const_defined?("JSON")
+end
 require 'rest_client'
 
 $:.unshift File.dirname(__FILE__) unless
@@ -28,7 +30,7 @@ require 'couchrest/monkeypatches'
 
 # = CouchDB, close to the metal
 module CouchRest
-  VERSION    = '0.24' unless self.const_defined?("VERSION")
+  VERSION    = '0.25' unless self.const_defined?("VERSION")
   
   autoload :Server,       'couchrest/core/server'
   autoload :Database,     'couchrest/core/database'
