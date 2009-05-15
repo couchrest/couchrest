@@ -23,8 +23,8 @@ module CouchRest
         # TODO: cache the default object
         self.class.properties.each do |property|
           key = property.name.to_s
-          # let's make sure we have a default and we can assign the value
-          if !property.default.nil? && (self.respond_to?("#{key}=") || self.key?(key))
+          # let's make sure we have a default
+          if property.default
               if property.default.class == Proc
                 self[key] = property.default.call
               else
