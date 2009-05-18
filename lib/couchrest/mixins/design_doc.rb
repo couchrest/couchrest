@@ -25,8 +25,7 @@ module CouchRest
           design_doc['views'].each do |name, view|
             funcs << "#{name}/#{view['map']}#{view['reduce']}"
           end
-          md5 = Digest::MD5.hexdigest(funcs.sort.join(''))
-          self.design_doc_slug_cache = "#{self.to_s}-#{md5}"
+          self.design_doc_slug_cache = self.to_s
         end
 
         def default_design_doc

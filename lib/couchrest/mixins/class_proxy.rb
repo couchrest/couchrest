@@ -81,6 +81,10 @@ module CouchRest
           @klass.all_design_doc_versions(@database)
         end
         
+        def model_design_doc
+          @klass.model_design_doc(@database)
+        end
+        
         def cleanup_design_docs!
           @klass.cleanup_design_docs!(@database)
         end

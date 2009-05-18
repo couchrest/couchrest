@@ -104,26 +104,34 @@ module CouchRest
           fetch_view_with_docs(db, name, query, raw, &block)
         end
 
+        # DEPRECATED
+        # user model_design_doc to retrieve the current design doc
         def all_design_doc_versions(db = database)
-          db.documents :startkey => "_design/#{self.to_s}-", 
+          db.documents :startkey => "_design/#{self.to_s}", 
             :endkey => "_design/#{self.to_s}-\u9999"
         end
+        
+        def model_design_doc(db = database)
+          begin
+            @model_design_doc = db.get("_design/#{self.to_s}")
+          rescue
+            nil
+          end
+        end
 
-        # Deletes any non-current design docs that were created by this class. 
-        # Running this when you're deployed version of your application is steadily 
-        # and consistently using the latest code, is the way to clear out old design 
-        # docs. Running it to early could mean that live code has to regenerate
+        # Deletes the current design doc for the current class.
+        # Running it to early could mean that live code has to regenerate
         # potentially large indexes.
         def cleanup_design_docs!(db = database)
-          ddocs = all_design_doc_versions(db)
-          ddocs["rows"].each do |row|
-            if (row['id'] != design_doc_id)
-              db.delete_doc({
-                "_id" => row['id'],
-                "_rev" => row['value']['rev']
-              })
-            end
-          end
+          save_design_doc_on(db)
+          # db.refresh_design_doc
+          #           db.save_design_doc
+          # design_doc = model_design_doc(db)
+          # if design_doc
+          #   db.delete_doc(design_doc)
+          # else
+          #   false
+          # end
         end
 
         private
