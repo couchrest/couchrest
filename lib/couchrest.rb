@@ -16,7 +16,7 @@ require 'rubygems'
 begin
   require 'json'
 rescue LoadError
-  raise "You need install and require your own compatible json library since couchrest rest couldn't load the json/json_pure gem" unless Kernel.const_defined?("JSON")
+  raise "You need install and require your own json compatible library since couchrest rest couldn't load the json/json_pure gem" unless Kernel.const_defined?("JSON")
 end
 require 'rest_client'
 
@@ -30,7 +30,7 @@ require 'couchrest/monkeypatches'
 
 # = CouchDB, close to the metal
 module CouchRest
-  VERSION    = '0.26' unless self.const_defined?("VERSION")
+  VERSION    = '0.27' unless self.const_defined?("VERSION")
   
   autoload :Server,       'couchrest/core/server'
   autoload :Database,     'couchrest/core/database'
