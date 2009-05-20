@@ -44,16 +44,14 @@ module CouchRest
         end
 
         def refresh_design_doc
-          design_doc['_id'] = design_doc_id
-          design_doc.delete('_rev')
-          #design_doc.database = nil
-          self.design_doc_fresh = true
+          reset_design_doc
+          save_design_doc
         end
 
         # Save the design doc onto the default database, and update the
         # design_doc attribute
         def save_design_doc
-          refresh_design_doc unless design_doc_fresh
+          reset_design_doc unless design_doc_fresh
           self.design_doc = update_design_doc(design_doc)
         end
 
@@ -64,6 +62,13 @@ module CouchRest
         end
 
         private
+        
+        def reset_design_doc
+          design_doc['_id'] = design_doc_id
+          design_doc.delete('_rev')
+          #design_doc.database = nil
+          self.design_doc_fresh = true
+        end
 
         # Writes out a design_doc to a given database, returning the
         # updated design doc
