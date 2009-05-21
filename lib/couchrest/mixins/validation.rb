@@ -125,7 +125,7 @@ module CouchRest
       array_casted_properties = self.class.properties.select { |property| property.casted && property.type.instance_of?(Array) }
       array_casted_properties.each do |property|
         casted_values = self.send(property.name)
-        next unless casted_values.respond_to?(:each) && casted_values.first.respond_to?(:valid?)
+        next unless casted_values.is_a?(Array) && casted_values.first.respond_to?(:valid?)
         casted_values.each do |value|
           result = (result && value.valid?) if value.respond_to?(:valid?)
         end
