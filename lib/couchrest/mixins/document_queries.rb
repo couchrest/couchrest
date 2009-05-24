@@ -12,9 +12,18 @@ module CouchRest
         # name of the current class. Take the standard set of
         # CouchRest::Database#view options.
         def all(opts = {}, &block)
-          view(:all, opts, &block)
+          view(:all, {:reduce => false}.merge(opts), &block)
         end
-
+        
+        # Returns the number of documents that have the "couchrest-type" field
+        # equal to the name of the current class. Takes the standard set of 
+        # CouchRest::Database#view options
+        def count(opts = {}, &block)
+          result = all({:reduce => true}.merge(opts), &block)['rows']
+          return 0 if result.empty?
+          result.first['value']
+        end
+        
         # Load the first document that have the "couchrest-type" field equal to
         # the name of the current class.
         #

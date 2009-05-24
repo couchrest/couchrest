@@ -241,7 +241,25 @@ describe "ExtendedDocument" do
       rs.length.should == 4
     end
   end
-
+  
+  describe "counting all instances of a model" do
+    before(:each) do
+      @db = reset_test_db!
+    end
+    
+    it ".count should return 0 if there are no docuemtns" do
+      WithTemplateAndUniqueID.count.should == 0
+    end
+    
+    it ".count should return the number of documents" do
+      WithTemplateAndUniqueID.new('important-field' => '1').save
+      WithTemplateAndUniqueID.new('important-field' => '2').save
+      WithTemplateAndUniqueID.new('important-field' => '3').save
+      
+      WithTemplateAndUniqueID.count.should == 3
+    end
+  end
+  
   describe "finding the first instance of a model" do
     before(:each) do      
       @db = reset_test_db!

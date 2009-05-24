@@ -35,8 +35,11 @@ module CouchRest
               'all' => {
                 'map' => "function(doc) {
                   if (doc['couchrest-type'] == '#{self.to_s}') {
-                    emit(null,null);
+                    emit(null,1);
                   }
+                }",
+                'reduce' => "function(keys, values) {
+                  return sum(values);
                 }"
               }
             }
