@@ -39,9 +39,10 @@ module CouchRest
         self.class.properties.each do |property|
           next unless property.casted
           key = self.has_key?(property.name) ? property.name : property.name.to_sym
+          # Don't cast the property unless it has a value
+          next unless self[key]
           target = property.type
           if target.is_a?(Array)
-            next unless self[key]
             klass = ::CouchRest.constantize(target[0])
             self[property.name] = self[key].collect do |value|
               # Auto parse Time objects
@@ -56,8 +57,7 @@ module CouchRest
             else
               # Let people use :send as a Time parse arg
               klass = ::CouchRest.constantize(target)
-              # Only cast this key if it has a value. Otherwise, leave nil.
-              self[key].nil? ? nil : klass.send(property.init_method, self[key])
+              klass.send(property.init_method, self[key].dup)
             end
             self[property.name].casted_by = self if self[property.name].respond_to?(:casted_by)
           end
