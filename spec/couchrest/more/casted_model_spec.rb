@@ -10,6 +10,7 @@ class WithCastedModelMixin < Hash
   include CouchRest::CastedModel
   property :name
   property :no_value
+  property :hash, :default => {}
 end
 
 class DummyModel < CouchRest::ExtendedDocument
@@ -67,6 +68,10 @@ describe CouchRest::CastedModel do
 
     it "should return nil for the unknown attribute" do
       @casted_obj["unknown"].should be_nil
+    end
+    
+    it "should return {} for the hash attribute" do
+      @casted_obj.hash.should == {}
     end
   end
   
