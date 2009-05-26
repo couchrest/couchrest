@@ -185,6 +185,7 @@ describe "ExtendedDocument views" do
     end
     it "should be able to cleanup the db/bump the revision number" do
       # if the previous specs were not run, the model_design_doc will be blank
+      Unattached.use_database TEST_SERVER.default_database
       Unattached.view_by :questions
       Unattached.by_questions(:database => @db)
       original_revision = Unattached.model_design_doc(@db)['_rev']
@@ -196,6 +197,8 @@ describe "ExtendedDocument views" do
   describe "class proxy" do
     before(:all) do
       reset_test_db!
+      # setup the class default doc to save the design doc
+      Unattached.use_database TEST_SERVER.default_database
       @us = Unattached.on(TEST_SERVER.default_database)
       %w{aaa bbb ddd eee}.each do |title|
         u = @us.new(:title => title)
@@ -246,6 +249,7 @@ describe "ExtendedDocument views" do
     it "should clean up design docs left around on specific database" do
       @us.by_title
       original_id = @us.model_design_doc['_rev']
+      debugger
       Unattached.view_by :professor
       @us.by_professor
       @us.model_design_doc['_rev'].should_not == original_id
@@ -317,6 +321,7 @@ describe "ExtendedDocument views" do
   describe "adding a view" do
     before(:each) do
       reset_test_db!
+      Article.database.recreate!
       Article.by_date
       @original_doc_rev = Article.model_design_doc['_rev']
       @design_docs = Article.database.documents :startkey => "_design/", :endkey => "_design/\u9999"
