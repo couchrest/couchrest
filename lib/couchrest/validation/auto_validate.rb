@@ -16,8 +16,6 @@ module CouchRest
       # # This feature is still not fully ported over,
       # # test are lacking, so please use with caution
       # def auto_validate!
-      #   require 'ruby-debug'
-      #   debugger
       #   auto_validation = true
       # end
       

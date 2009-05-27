@@ -23,9 +23,7 @@ require 'rest_client'
 $:.unshift File.dirname(__FILE__) unless
   $:.include?(File.dirname(__FILE__)) ||
   $:.include?(File.expand_path(File.dirname(__FILE__)))
-  
-$COUCHREST_DEBUG ||= false
-  
+    
 require 'couchrest/monkeypatches'
 
 # = CouchDB, close to the metal
@@ -145,7 +143,7 @@ module CouchRest
       begin
         JSON.parse(RestClient.put(uri, payload))
       rescue Exception => e
-        if $COUCHREST_DEBUG == true
+        if $DEBUG
           raise "Error while sending a PUT request #{uri}\npayload: #{payload.inspect}\n#{e}"
         else
           raise e
@@ -157,7 +155,7 @@ module CouchRest
       begin
         JSON.parse(RestClient.get(uri), :max_nesting => false)
       rescue => e
-        if $COUCHREST_DEBUG == true
+        if $DEBUG
           raise "Error while sending a GET request #{uri}\n: #{e}"
         else
           raise e
@@ -170,7 +168,7 @@ module CouchRest
       begin
         JSON.parse(RestClient.post(uri, payload))
       rescue Exception => e
-        if $COUCHREST_DEBUG == true
+        if $DEBUG
           raise "Error while sending a POST request #{uri}\npayload: #{payload.inspect}\n#{e}"
         else
           raise e

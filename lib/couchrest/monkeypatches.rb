@@ -92,7 +92,6 @@ module RestClient
 #         establish_connection(uri)
 #         http = Thread.current[:connection]
 #         require 'ruby-debug'
-#         debugger
 #         req.body_stream = nil
 #         
 #         res = http.request(req, payload)

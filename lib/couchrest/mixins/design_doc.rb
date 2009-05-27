@@ -67,9 +67,13 @@ module CouchRest
         private
         
         def reset_design_doc
-          design_doc['_id'] = design_doc_id
-          design_doc.delete('_rev')
-          #design_doc.database = nil
+          current = self.database.get(design_doc_id) rescue nil
+          design_doc['_id']  = design_doc_id
+          if current.nil?
+            design_doc.delete('_rev')
+          else
+            design_doc['_rev'] = current['_rev']
+          end
           self.design_doc_fresh = true
         end
 

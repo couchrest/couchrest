@@ -142,8 +142,14 @@ module CouchRest
         bulk_save
       end
       result = if doc['_id']
-        slug = escape_docid(doc['_id'])        
-        CouchRest.put "#{@uri}/#{slug}", doc
+        slug = escape_docid(doc['_id'])
+        begin     
+          CouchRest.put "#{@uri}/#{slug}", doc
+        rescue RestClient::ResourceNotFound
+          p "resource not found when saving even tho an id was passed"
+          slug = doc['_id'] = @server.next_uuid
+          CouchRest.put "#{@uri}/#{slug}", doc
+        end
       else
         begin
           slug = doc['_id'] = @server.next_uuid

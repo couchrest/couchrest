@@ -66,6 +66,7 @@ describe "ExtendedDocument views" do
       end
     end
     it "should make the design doc upon first query" do
+      Course.design_doc_fresh = false
       Course.by_title 
       doc = Course.design_doc
       doc['views']['all']['map'].should include('Course')
@@ -73,11 +74,13 @@ describe "ExtendedDocument views" do
     it "should can query via view" do
       # register methods with method-missing, for local dispatch. method
       # missing lookup table, no heuristics.
+      Course.design_doc_fresh = false
       view = Course.view :by_title
       designed = Course.by_title
       view.should == designed
     end
     it "should get them" do
+      Course.design_doc_fresh = false
       rs = Course.by_title 
       rs.length.should == 4
     end
@@ -100,6 +103,7 @@ describe "ExtendedDocument views" do
 
   describe "a ducktype view" do
     before(:all) do
+      reset_test_db!
       @id = TEST_SERVER.default_database.save_doc({:dept => true})['id']
     end
     it "should setup" do
@@ -107,11 +111,13 @@ describe "ExtendedDocument views" do
       duck["dept"].should == true
     end
     it "should make the design doc" do
+      Course.design_doc_fresh = false
       @as = Course.by_dept
       @doc = Course.design_doc
       @doc["views"]["by_dept"]["map"].should_not include("couchrest")
     end
-    it "should not look for class" do |variable|
+    it "should not look for class" do
+      Course.design_doc_fresh = false
       @as = Course.by_dept
       @as[0]['_id'].should == @id
     end
@@ -207,10 +213,12 @@ describe "ExtendedDocument views" do
       end
     end
     it "should query all" do
+      Unattached.design_doc_fresh = false
       rs = @us.all
       rs.length.should == 4
     end
     it "should make the design doc upon first query" do
+      Unattached.design_doc_fresh = false
       @us.by_title
       doc = @us.design_doc
       doc['views']['all']['map'].should include('Unattached')
@@ -249,7 +257,6 @@ describe "ExtendedDocument views" do
     it "should clean up design docs left around on specific database" do
       @us.by_title
       original_id = @us.model_design_doc['_rev']
-      debugger
       Unattached.view_by :professor
       @us.by_professor
       @us.model_design_doc['_rev'].should_not == original_id
@@ -302,16 +309,19 @@ describe "ExtendedDocument views" do
       end
     end
     it "should be available raw" do
+      Article.design_doc_fresh = false
       view = Article.by_tags :raw => true
       view['rows'].length.should == 5
     end
 
     it "should be default to :reduce => false" do
+      Article.design_doc_fresh = false
       ars = Article.by_tags
       ars.first.tags.first.should == 'cool'
     end
   
     it "should be raw when reduce is true" do
+      Article.design_doc_fresh = false
       view = Article.by_tags :reduce => true, :group => true
       view['rows'].find{|r|r['key'] == 'cool'}['value'].should == 3
     end
@@ -321,7 +331,7 @@ describe "ExtendedDocument views" do
   describe "adding a view" do
     before(:each) do
       reset_test_db!
-      Article.database.recreate!
+      Article.design_doc_fresh = false
       Article.by_date
       @original_doc_rev = Article.model_design_doc['_rev']
       @design_docs = Article.database.documents :startkey => "_design/", :endkey => "_design/\u9999"
