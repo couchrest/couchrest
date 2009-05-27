@@ -4,6 +4,7 @@ require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 require File.join(FIXTURE_PATH, 'more', 'card')
 require File.join(FIXTURE_PATH, 'more', 'cat')
 require File.join(FIXTURE_PATH, 'more', 'person')
+require File.join(FIXTURE_PATH, 'more', 'question')
 
 
 class WithCastedModelMixin < Hash
@@ -106,7 +107,40 @@ describe CouchRest::CastedModel do
       @obj.keywords.should be_an_instance_of(Array)
       @obj.keywords.first.should == 'couch'
     end
+  end
+  
+  describe "update attributes without saving" do
+    before(:each) do
+      @question = Question.new(:q => "What is your quest?", :a => "To seek the Holy Grail")
+    end
+    it "should work for attribute= methods" do
+      @question.q.should == "What is your quest?"
+      @question['a'].should == "To seek the Holy Grail"
+      @question.update_attributes_without_saving(:q => "What is your favorite color?", 'a' => "Blue")
+      @question['q'].should == "What is your favorite color?"
+      @question.a.should == "Blue"
+    end
     
+    it "should also work for attributes= alias" do
+      @question.respond_to?(:attributes=).should be_true
+      @question.attributes = {:q => "What is your favorite color?", 'a' => "Blue"}
+      @question['q'].should == "What is your favorite color?"
+      @question.a.should == "Blue"
+    end
+    
+    it "should flip out if an attribute= method is missing" do
+      lambda {
+        @q.update_attributes_without_saving('foo' => "something", :a => "No green")
+      }.should raise_error(NoMethodError)
+    end
+    
+    it "should not change any attributes if there is an error" do
+      lambda {
+        @q.update_attributes_without_saving('foo' => "something", :a => "No green")
+      }.should raise_error(NoMethodError)
+      @question.q.should == "What is your quest?"
+      @question.a.should == "To seek the Holy Grail"
+    end
   end
   
   describe "saved document with casted models" do

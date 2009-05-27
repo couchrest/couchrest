@@ -109,6 +109,12 @@ describe "ExtendedDocument" do
       @art['title'].should == "super danger"
     end
     
+    it "should also work using attributes= alias" do
+      @art.respond_to?(:attributes=).should be_true
+      @art.attributes = {'date' => Time.now, :title => "something else"}
+      @art['title'].should == "something else"
+    end
+    
     it "should flip out if an attribute= method is missing" do
       lambda {
         @art.update_attributes_without_saving('slug' => "new-slug", :title => "super danger")        

@@ -25,5 +25,17 @@ module CouchRest
     def [] key
       super(key.to_s)
     end
+    
+    # Sets the attributes from a hash
+    def update_attributes_without_saving(hash)
+      hash.each do |k, v|
+        raise NoMethodError, "#{k}= method not available, use property :#{k}" unless self.respond_to?("#{k}=")
+      end      
+      hash.each do |k, v|
+        self.send("#{k}=",v)
+      end
+    end
+    alias :attributes= :update_attributes_without_saving
+    
   end
 end

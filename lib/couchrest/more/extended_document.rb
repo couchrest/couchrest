@@ -113,6 +113,7 @@ module CouchRest
         self.send("#{k}=",v)
       end
     end
+    alias :attributes= :update_attributes_without_saving
 
     # Takes a hash as argument, and applies the values by using writer methods
     # for each key. Raises a NoMethodError if the corresponding methods are
