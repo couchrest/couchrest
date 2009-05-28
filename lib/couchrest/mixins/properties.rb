@@ -48,6 +48,7 @@ module CouchRest
               # Auto parse Time objects
               obj = ( (property.init_method == 'new') && klass == Time) ? Time.parse(value) : klass.send(property.init_method, value)
               obj.casted_by = self if obj.respond_to?(:casted_by)
+              obj.document_saved = true if obj.respond_to?(:document_saved)
               obj
             end
           else
@@ -60,6 +61,7 @@ module CouchRest
               klass.send(property.init_method, self[key].dup)
             end
             self[property.name].casted_by = self if self[property.name].respond_to?(:casted_by)
+            self[property.name].document_saved = true if self[property.name].respond_to?(:document_saved)
           end
         end
       end

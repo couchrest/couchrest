@@ -201,6 +201,7 @@ module CouchRest
       raise ArgumentError, "a document requires a database to be saved to (The document or the #{self.class} default database were not set)" unless database
       set_unique_id if new_document? && self.respond_to?(:set_unique_id)
       result = database.save_doc(self, bulk)
+      mark_as_saved if result["ok"] == true
       result["ok"] == true
     end
     
@@ -222,6 +223,23 @@ module CouchRest
             self.delete('_id')
           end
           result['ok']
+        end
+      end
+    end
+    
+    protected
+    
+    # Set document_saved flag on all casted models to true
+    def mark_as_saved
+      self.each do |key, prop|
+        if prop.is_a?(Array)
+          prop.each do |item|
+            if item.respond_to?(:document_saved)
+              item.send(:document_saved=, true)
+            end
+          end
+        elsif prop.respond_to?(:document_saved)
+          prop.send(:document_saved=, true)
         end
       end
     end

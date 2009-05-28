@@ -6,6 +6,7 @@ module CouchRest
     def self.included(base)
       base.send(:include, CouchRest::Mixins::Properties)
       base.send(:attr_accessor, :casted_by)
+      base.send(:attr_accessor, :document_saved)
     end
     
     def initialize(keys={})
@@ -25,6 +26,13 @@ module CouchRest
     def [] key
       super(key.to_s)
     end
+    
+    # True if the casted model has already
+    # been saved in the containing document
+    def new_model?
+      !@document_saved
+    end
+    alias :new_record? :new_model?
     
     # Sets the attributes from a hash
     def update_attributes_without_saving(hash)
