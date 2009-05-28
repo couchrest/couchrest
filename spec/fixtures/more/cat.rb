@@ -6,6 +6,7 @@ class Cat < CouchRest::ExtendedDocument
 
   property :name
   property :toys, :cast_as => ['CatToy'], :default => []
+  property :favorite_toy, :cast_as => 'CatToy'
 end
 
 class CatToy < Hash

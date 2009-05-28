@@ -205,7 +205,57 @@ describe CouchRest::CastedModel do
       cat.masters.push Person.new
       cat.should be_valid
     end
-    
   end
   
+  describe "calling valid?" do
+    before :each do
+      @cat = Cat.new
+      @toy1 = CatToy.new
+      @toy2 = CatToy.new
+      @toy3 = CatToy.new
+      @cat.favorite_toy = @toy1
+      @cat.toys << @toy2
+      @cat.toys << @toy3
+    end
+    
+    describe "on the top document" do
+      it "should put errors on all invalid casted models" do
+        @cat.should_not be_valid
+        @cat.errors.should_not be_empty
+        @toy1.errors.should_not be_empty
+        @toy2.errors.should_not be_empty
+        @toy3.errors.should_not be_empty
+      end
+      
+      it "should not put errors on valid casted models" do
+        @toy1.name = "Feather"
+        @toy2.name = "Twine" 
+        @cat.should_not be_valid
+        @cat.errors.should_not be_empty
+        @toy1.errors.should be_empty
+        @toy2.errors.should be_empty
+        @toy3.errors.should_not be_empty
+      end
+    end
+    
+    describe "on a casted model property" do
+      it "should only validate itself" do
+        @toy1.should_not be_valid
+        @toy1.errors.should_not be_empty
+        @cat.errors.should be_empty
+        @toy2.errors.should be_empty
+        @toy3.errors.should be_empty
+      end
+    end
+    
+    describe "on a casted model inside a casted collection" do
+      it "should only validate itself" do
+        @toy2.should_not be_valid
+        @toy2.errors.should_not be_empty
+        @cat.errors.should be_empty
+        @toy1.errors.should be_empty
+        @toy3.errors.should be_empty
+      end
+    end
+  end
 end

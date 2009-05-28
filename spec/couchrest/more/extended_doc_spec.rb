@@ -1,6 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.join(FIXTURE_PATH, 'more', 'article')
 require File.join(FIXTURE_PATH, 'more', 'course')
+require File.join(FIXTURE_PATH, 'more', 'cat')
 
 
 describe "ExtendedDocument" do
@@ -559,6 +560,51 @@ describe "ExtendedDocument" do
       @doc['arg'].should be_nil
       @doc[:arg].should be_nil
       @doc.other_arg.should == "foo-foo"
+    end
+  end
+  
+  describe "recursive validation on an extended document" do
+    before :each do
+      reset_test_db!
+      @cat = Cat.new(:name => 'Sockington')
+    end
+    
+    it "should not save if a nested casted model is invalid" do
+      @cat.favorite_toy = CatToy.new
+      @cat.should_not be_valid
+      @cat.save.should be_false
+      lambda{@cat.save!}.should raise_error
+    end
+    
+    it "should save when nested casted model is valid" do
+      @cat.favorite_toy = CatToy.new(:name => 'Squeaky')
+      @cat.should be_valid
+      @cat.save.should be_true
+      lambda{@cat.save!}.should_not raise_error
+    end
+    
+    it "should not save when nested collection contains an invalid casted model" do
+      @cat.toys = [CatToy.new(:name => 'Feather'), CatToy.new]
+      @cat.should_not be_valid
+      @cat.save.should be_false
+      lambda{@cat.save!}.should raise_error
+    end
+    
+    it "should save when nested collection contains valid casted models" do
+      @cat.toys = [CatToy.new(:name => 'feather'), CatToy.new(:name => 'ball-o-twine')]
+      @cat.should be_valid
+      @cat.save.should be_true
+      lambda{@cat.save!}.should_not raise_error
+    end
+    
+    it "should not fail if the nested casted model doesn't have validation" do
+      Cat.property :trainer, :cast_as => 'Person'
+      Cat.validates_present :name
+      cat = Cat.new(:name => 'Mr Bigglesworth')
+      cat.trainer = Person.new
+      cat.trainer.validatable?.should be_false
+      cat.should be_valid
+      cat.save.should be_true
     end
   end
 end
