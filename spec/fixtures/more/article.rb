@@ -1,5 +1,5 @@
 class Article < CouchRest::ExtendedDocument
-  use_database TEST_SERVER.default_database
+  use_database DB
   unique_id :slug
   
   view_by :date, :descending => true

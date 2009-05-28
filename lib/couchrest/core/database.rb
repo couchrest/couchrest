@@ -271,10 +271,15 @@ module CouchRest
     # DELETE the database itself. This is not undoable and could be rather
     # catastrophic. Use with care!
     def delete!
+      clear_extended_doc_fresh_cache
       CouchRest.delete @uri
     end
 
     private
+    
+    def clear_extended_doc_fresh_cache
+      ::CouchRest::ExtendedDocument.subclasses.each{|klass| klass.design_doc_fresh = false if klass.respond_to?(:design_doc_fresh=) }
+    end
     
     def uri_for_attachment(doc, name)
       if doc.is_a?(String)

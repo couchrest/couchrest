@@ -12,6 +12,7 @@ unless defined?(FIXTURE_PATH)
   TESTDB    = 'couchrest-test'
   TEST_SERVER    = CouchRest.new
   TEST_SERVER.default_database = TESTDB
+  DB = TEST_SERVER.database(TESTDB)
 end
 
 class Basic < CouchRest::ExtendedDocument
@@ -19,10 +20,8 @@ class Basic < CouchRest::ExtendedDocument
 end
 
 def reset_test_db!
-  cr = TEST_SERVER
-  db = cr.database(TESTDB)
-  db.recreate! rescue nil
-  db
+  DB.recreate! rescue nil
+  DB
 end
 
 Spec::Runner.configure do |config|
