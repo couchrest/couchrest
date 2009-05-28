@@ -61,7 +61,6 @@ describe "ExtendedDocument views" do
   describe "another model with a simple view" do
     before(:all) do
       reset_test_db!
-      Course.design_doc_fresh = false
       %w{aaa bbb ddd eee}.each do |title|
         Course.new(:title => title).save
       end
@@ -109,13 +108,11 @@ describe "ExtendedDocument views" do
       duck["dept"].should == true
     end
     it "should make the design doc" do
-      Course.design_doc_fresh = false
       @as = Course.by_dept
       @doc = Course.design_doc
       @doc["views"]["by_dept"]["map"].should_not include("couchrest")
     end
     it "should not look for class" do
-      Course.design_doc_fresh = false
       @as = Course.by_dept
       @as[0]['_id'].should == @id
     end

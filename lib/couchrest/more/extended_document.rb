@@ -1,6 +1,7 @@
 require 'mime/types'
 require File.join(File.dirname(__FILE__), "property")
 require File.join(File.dirname(__FILE__), '..', 'mixins', 'extended_document_mixins')
+require "enumerator"
 
 module CouchRest
   
@@ -12,6 +13,10 @@ module CouchRest
     include CouchRest::Mixins::DesignDoc
     include CouchRest::Mixins::ExtendedAttachments
     include CouchRest::Mixins::ClassProxy
+
+   def self.subclasses
+     ObjectSpace.enum_for(:each_object, class << self; self; end).to_a.delete_if{|k| k == self}
+   end
     
     def self.inherited(subklass)
       subklass.send(:include, CouchRest::Mixins::Properties)
@@ -20,15 +25,6 @@ module CouchRest
           subklass.properties = self.properties.dup
         end
       EOS
-      
-      # re opening the use_database method so we can register our class
-      subklass.class_eval <<-EOS, __FILE__, __LINE__
-        def self.use_database(db)
-          super
-          db.register_extended_document_class(self) if db.respond_to?(:register_extended_document_class) && !db.extended_document_classes.include?(self)
-        end
-      EOS
-      
     end
     
     # Accessors
