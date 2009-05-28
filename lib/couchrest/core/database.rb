@@ -236,6 +236,16 @@ module CouchRest
       copy_doc(doc, dest)
     end
     
+    def extended_document_classes
+      @extended_document_classes ||= []
+    end
+    
+    # store extended document classes so we can clear 
+    # their freshness when we reset the DB
+    def register_extended_document_class(klass)
+      extended_document_classes << klass
+    end
+    
     # Compact the database, removing old document revisions and optimizing space use.
     def compact!
       CouchRest.post "#{@uri}/_compact"
@@ -271,10 +281,15 @@ module CouchRest
     # DELETE the database itself. This is not undoable and could be rather
     # catastrophic. Use with care!
     def delete!
+      clear_extended_doc_fresh_cache
       CouchRest.delete @uri
     end
 
     private
+    
+    def clear_extended_doc_fresh_cache
+      extended_document_classes.each{|klass| klass.design_doc_fresh = false if klass.respond_to?(:design_doc_fresh=) }
+    end
     
     def uri_for_attachment(doc, name)
       if doc.is_a?(String)

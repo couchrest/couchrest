@@ -3,7 +3,7 @@ class Invoice < CouchRest::ExtendedDocument
   include CouchRest::Validation
   
   # Set the default database to use
-  use_database TEST_SERVER.default_database
+  use_database DB
   
   # Official Schema
   property :client_name

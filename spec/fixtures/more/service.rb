@@ -3,7 +3,7 @@ class Service < CouchRest::ExtendedDocument
   include CouchRest::Validation
   auto_validate!
   # Set the default database to use
-  use_database TEST_SERVER.default_database
+  use_database DB
   
   # Official Schema
   property :name, :length => 4...20

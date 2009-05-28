@@ -61,12 +61,12 @@ describe "ExtendedDocument views" do
   describe "another model with a simple view" do
     before(:all) do
       reset_test_db!
+      Course.design_doc_fresh = false
       %w{aaa bbb ddd eee}.each do |title|
         Course.new(:title => title).save
       end
     end
     it "should make the design doc upon first query" do
-      Course.design_doc_fresh = false
       Course.by_title 
       doc = Course.design_doc
       doc['views']['all']['map'].should include('Course')
@@ -74,13 +74,11 @@ describe "ExtendedDocument views" do
     it "should can query via view" do
       # register methods with method-missing, for local dispatch. method
       # missing lookup table, no heuristics.
-      Course.design_doc_fresh = false
       view = Course.view :by_title
       designed = Course.by_title
       view.should == designed
     end
     it "should get them" do
-      Course.design_doc_fresh = false
       rs = Course.by_title 
       rs.length.should == 4
     end
@@ -104,7 +102,7 @@ describe "ExtendedDocument views" do
   describe "a ducktype view" do
     before(:all) do
       reset_test_db!
-      @id = TEST_SERVER.default_database.save_doc({:dept => true})['id']
+      @id = DB.save_doc({:dept => true})['id']
     end
     it "should setup" do
       duck = Course.get(@id) # from a different db
@@ -126,7 +124,7 @@ describe "ExtendedDocument views" do
   describe "a model class not tied to a database" do
     before(:all) do
       reset_test_db!
-      @db = TEST_SERVER.default_database
+      @db = DB
       %w{aaa bbb ddd eee}.each do |title|
         u = Unattached.new(:title => title)
         u.database = @db
@@ -191,7 +189,7 @@ describe "ExtendedDocument views" do
     end
     it "should be able to cleanup the db/bump the revision number" do
       # if the previous specs were not run, the model_design_doc will be blank
-      Unattached.use_database TEST_SERVER.default_database
+      Unattached.use_database DB
       Unattached.view_by :questions
       Unattached.by_questions(:database => @db)
       original_revision = Unattached.model_design_doc(@db)['_rev']
@@ -204,8 +202,8 @@ describe "ExtendedDocument views" do
     before(:all) do
       reset_test_db!
       # setup the class default doc to save the design doc
-      Unattached.use_database TEST_SERVER.default_database
-      @us = Unattached.on(TEST_SERVER.default_database)
+      Unattached.use_database DB
+      @us = Unattached.on(DB)
       %w{aaa bbb ddd eee}.each do |title|
         u = @us.new(:title => title)
         u.save
@@ -213,12 +211,10 @@ describe "ExtendedDocument views" do
       end
     end
     it "should query all" do
-      Unattached.design_doc_fresh = false
       rs = @us.all
       rs.length.should == 4
     end
     it "should make the design doc upon first query" do
-      Unattached.design_doc_fresh = false
       @us.by_title
       doc = @us.design_doc
       doc['views']['all']['map'].should include('Unattached')
@@ -265,7 +261,6 @@ describe "ExtendedDocument views" do
 
   describe "a model with a compound key view" do
     before(:all) do
-      Article.design_doc_fresh = false
       Article.by_user_id_and_date.each{|a| a.destroy(true)}
       Article.database.bulk_delete
       written_at = Time.now - 24 * 3600 * 7
@@ -309,19 +304,16 @@ describe "ExtendedDocument views" do
       end
     end
     it "should be available raw" do
-      Article.design_doc_fresh = false
       view = Article.by_tags :raw => true
       view['rows'].length.should == 5
     end
 
     it "should be default to :reduce => false" do
-      Article.design_doc_fresh = false
       ars = Article.by_tags
       ars.first.tags.first.should == 'cool'
     end
   
     it "should be raw when reduce is true" do
-      Article.design_doc_fresh = false
       view = Article.by_tags :reduce => true, :group => true
       view['rows'].find{|r|r['key'] == 'cool'}['value'].should == 3
     end
@@ -331,7 +323,6 @@ describe "ExtendedDocument views" do
   describe "adding a view" do
     before(:each) do
       reset_test_db!
-      Article.design_doc_fresh = false
       Article.by_date
       @original_doc_rev = Article.model_design_doc['_rev']
       @design_docs = Article.database.documents :startkey => "_design/", :endkey => "_design/\u9999"

@@ -20,6 +20,15 @@ module CouchRest
           subklass.properties = self.properties.dup
         end
       EOS
+      
+      # re opening the use_database method so we can register our class
+      subklass.class_eval <<-EOS, __FILE__, __LINE__
+        def self.use_database(db)
+          super
+          db.register_extended_document_class(self) if db.respond_to?(:register_extended_document_class) && !db.extended_document_classes.include?(self)
+        end
+      EOS
+      
     end
     
     # Accessors
@@ -44,6 +53,8 @@ module CouchRest
         self['couchrest-type'] = self.class.to_s
       end
     end
+    
+
     
     
     # Automatically set <tt>updated_at</tt> and <tt>created_at</tt> fields
