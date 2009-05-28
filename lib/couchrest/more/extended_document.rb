@@ -15,7 +15,8 @@ module CouchRest
     include CouchRest::Mixins::ClassProxy
 
    def self.subclasses
-     ObjectSpace.enum_for(:each_object, class << self; self; end).to_a.delete_if{|k| k == self}
+     @subclasses ||= []
+     # ObjectSpace.enum_for(:each_object, class << self; self; end).to_a.delete_if{|k| k == self}
    end
     
     def self.inherited(subklass)
@@ -25,6 +26,7 @@ module CouchRest
           subklass.properties = self.properties.dup
         end
       EOS
+      subclasses << subklass
     end
     
     # Accessors
