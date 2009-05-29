@@ -27,7 +27,7 @@ module CouchRest
       super(key.to_s)
     end
     
-    # True if the casted model has already
+    # False if the casted model has already
     # been saved in the containing document
     def new_model?
       !@document_saved
