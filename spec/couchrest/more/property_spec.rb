@@ -3,6 +3,7 @@ require File.join(FIXTURE_PATH, 'more', 'card')
 require File.join(FIXTURE_PATH, 'more', 'invoice')
 require File.join(FIXTURE_PATH, 'more', 'service')
 require File.join(FIXTURE_PATH, 'more', 'event')
+require File.join(FIXTURE_PATH, 'more', 'cat')
 
 
 describe "ExtendedDocument properties" do
@@ -131,6 +132,70 @@ describe "ExtendedDocument properties" do
         @event['occurs_at'].should be_an_instance_of(Time)
       end
     end
+  end  
+end
+
+describe "a newly created casted model" do
+  before(:each) do
+    reset_test_db!
+    @cat = Cat.new(:name => 'Toonces')
+    @squeaky_mouse = CatToy.new(:name => 'Squeaky')
   end
   
+  describe "assigned assigned to a casted property" do
+    it "should have casted_by set to its parent" do
+      @squeaky_mouse.casted_by.should be_nil
+      @cat.favorite_toy = @squeaky_mouse
+      @squeaky_mouse.casted_by.should === @cat
+    end
+  end
+  
+  describe "appended to a casted collection" do
+    it "should have casted_by set to its parent" do
+      @squeaky_mouse.casted_by.should be_nil
+      @cat.toys << @squeaky_mouse
+      @squeaky_mouse.casted_by.should === @cat
+      @cat.save
+      @cat.toys.first.casted_by.should === @cat
+    end
+  end
+  
+  describe "list assigned to a casted collection" do
+    it "should have casted_by set on all elements" do
+      toy1 = CatToy.new(:name => 'Feather')
+      toy2 = CatToy.new(:name => 'Mouse')
+      @cat.toys = [toy1, toy2]
+      toy1.casted_by.should === @cat
+      toy2.casted_by.should === @cat
+      @cat.save
+      @cat = Cat.get(@cat.id)
+      @cat.toys[0].casted_by.should === @cat
+      @cat.toys[1].casted_by.should === @cat
+    end
+  end
+end
+
+describe "a casted model retrieved from the database" do
+  before(:each) do
+    reset_test_db!
+    @cat = Cat.new(:name => 'Stimpy')
+    @cat.favorite_toy = CatToy.new(:name => 'Stinky')
+    @cat.toys << CatToy.new(:name => 'Feather')
+    @cat.toys << CatToy.new(:name => 'Mouse')
+    @cat.save
+    @cat = Cat.get(@cat.id)
+  end
+  
+  describe "as a casted property" do
+    it "should already be casted_by its parent" do
+      @cat.favorite_toy.casted_by.should === @cat
+    end
+  end
+  
+  describe "from a casted collection" do
+    it "should already be casted_by its parent" do
+      @cat.toys[0].casted_by.should === @cat
+      @cat.toys[1].casted_by.should === @cat
+    end
+  end
 end
