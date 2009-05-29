@@ -16,7 +16,6 @@ module CouchRest
 
    def self.subclasses
      @subclasses ||= []
-     # ObjectSpace.enum_for(:each_object, class << self; self; end).to_a.delete_if{|k| k == self}
    end
     
     def self.inherited(subklass)
