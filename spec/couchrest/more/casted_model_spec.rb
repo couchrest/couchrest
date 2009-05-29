@@ -5,6 +5,7 @@ require File.join(FIXTURE_PATH, 'more', 'card')
 require File.join(FIXTURE_PATH, 'more', 'cat')
 require File.join(FIXTURE_PATH, 'more', 'person')
 require File.join(FIXTURE_PATH, 'more', 'question')
+require File.join(FIXTURE_PATH, 'more', 'course')
 
 
 class WithCastedModelMixin < Hash
@@ -297,6 +298,55 @@ describe CouchRest::CastedModel do
       @cat.save.should be_false
       @cat.favorite_toy.new_model?.should be_true
       @cat.toys.first.new_model?.should be_true
+    end
+  end
+  
+  describe "calling base_doc from a nested casted model" do
+    before :each do
+      @course = Course.new(:title => 'Science 101')
+      @professor = Person.new(:name => 'Professor Plum')
+      @cat = Cat.new(:name => 'Scratchy')
+      @toy1 = CatToy.new
+      @toy2 = CatToy.new
+      @course.professor = @professor
+      @professor.pet = @cat
+      @cat.favorite_toy = @toy1
+      @cat.toys << @toy2
+    end
+    
+    it "should reference the top document for" do
+      @course.base_doc.should === @course
+      @professor.base_doc.should === @course
+      @cat.base_doc.should === @course
+      @toy1.base_doc.should === @course
+      @toy2.base_doc.should === @course
+    end
+    
+    it "should call setter on top document" do
+      @toy1.base_doc.title = 'Tom Foolery'
+      @course.title.should == 'Tom Foolery'
+    end
+  end
+  
+  describe "calling base_doc.save from a nested casted model" do
+    before :each do
+      reset_test_db!
+      @cat = Cat.new(:name => 'Snowball')
+      @toy = CatToy.new
+      @cat.favorite_toy = @toy
+    end
+    
+    it "should not save parent document when casted model is invalid" do
+      @toy.should_not be_valid
+      @toy.base_doc.save.should be_false
+      lambda{@toy.base_doc.save!}.should raise_error
+    end
+    
+    it "should save parent document when nested casted model is valid" do
+      @toy.name = "Mr Squeaks"
+      @toy.should be_valid
+      @toy.base_doc.save.should be_true
+      lambda{@toy.base_doc.save!}.should_not raise_error
     end
   end
 end

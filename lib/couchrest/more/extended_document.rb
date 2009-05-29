@@ -110,6 +110,19 @@ module CouchRest
       self.class.properties
     end
     
+    # Gets a reference to the actual document in the DB
+    # Calls up to the next document if there is one,
+    # Otherwise we're at the top and we return self
+    def base_doc
+      return self if base_doc?
+      @casted_by.base_doc
+    end
+    
+    # Checks if we're the top document
+    def base_doc?
+      !@casted_by
+    end
+    
     # Takes a hash as argument, and applies the values by using writer methods
     # for each key. It doesn't save the document at the end. Raises a NoMethodError if the corresponding methods are
     # missing. In case of error, no attributes are changed.    

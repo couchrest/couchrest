@@ -21,8 +21,17 @@ CouchRest::Document.class_eval do
     super
   end
   alias_method :kind_of?, :is_a?
+  alias_method :to_param, :id
 end
 
+CouchRest::CastedModel.class_eval do
+  # The to_param method is needed for rails to generate resourceful routes.
+  # In your controller, remember that it's actually the id of the document.
+  def id
+    base_doc.id
+  end
+  alias_method :to_param, :id
+end
 
 require Pathname.new(File.dirname(__FILE__)).join('..', 'validation', 'validation_errors')
 

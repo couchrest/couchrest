@@ -27,6 +27,13 @@ module CouchRest
       super(key.to_s)
     end
     
+    # Gets a reference to the top level extended
+    # document that a model is saved inside of
+    def base_doc
+      raise "Cannot call base_doc on a model that is not yet casted by a document" unless @casted_by
+      @casted_by.base_doc
+    end
+    
     # False if the casted model has already
     # been saved in the containing document
     def new_model?
