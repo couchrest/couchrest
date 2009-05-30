@@ -252,15 +252,13 @@ describe CouchRest::Database do
   describe "PUT attachment from file" do
     before(:each) do
       filename = FIXTURE_PATH + '/attachments/couchdb.png'
-      @file = File.open(filename)
+      @file = File.open(filename, "rb")
     end
     after(:each) do
       @file.close
     end
     it "should save the attachment to a new doc" do
-      image = @file.read
-      image.force_encoding('ASCII-8BIT') if image.respond_to?(:force_encoding)
-      r = @db.put_attachment({'_id' => 'attach-this'}, 'couchdb.png', image, {:content_type => 'image/png'})
+      r = @db.put_attachment({'_id' => 'attach-this'}, 'couchdb.png', image = @file.read, {:content_type => 'image/png'})
       r['ok'].should == true
       doc = @db.get("attach-this")
       attachment = @db.fetch_attachment(doc,"couchdb.png")
