@@ -28,6 +28,7 @@ CouchRest::CastedModel.class_eval do
   # The to_param method is needed for rails to generate resourceful routes.
   # In your controller, remember that it's actually the id of the document.
   def id
+    return nil if base_doc.nil?
     base_doc.id
   end
   alias_method :to_param, :id

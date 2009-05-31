@@ -326,6 +326,11 @@ describe CouchRest::CastedModel do
       @toy1.base_doc.title = 'Tom Foolery'
       @course.title.should == 'Tom Foolery'
     end
+    
+    it "should return nil if not yet casted" do
+      person = Person.new
+      person.base_doc.should == nil
+    end
   end
   
   describe "calling base_doc.save from a nested casted model" do
