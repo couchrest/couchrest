@@ -13,10 +13,11 @@ module CouchRest
     include CouchRest::Mixins::DesignDoc
     include CouchRest::Mixins::ExtendedAttachments
     include CouchRest::Mixins::ClassProxy
+    include CouchRest::Mixins::Collection
 
-   def self.subclasses
-     @subclasses ||= []
-   end
+    def self.subclasses
+      @subclasses ||= []
+    end
     
     def self.inherited(subklass)
       subklass.send(:include, CouchRest::Mixins::Properties)
