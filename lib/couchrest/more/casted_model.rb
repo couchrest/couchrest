@@ -37,10 +37,10 @@ module CouchRest
     
     # False if the casted model has already
     # been saved in the containing document
-    def new_model?
+    def new?
       !@document_saved
     end
-    alias :new_record? :new_model?
+    alias :new_record? :new?
     
     # Sets the attributes from a hash
     def update_attributes_without_saving(hash)

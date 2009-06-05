@@ -280,7 +280,7 @@ describe CouchRest::CastedModel do
     end
   end
   
-  describe "calling new_model? on a casted model" do
+  describe "calling new? on a casted model" do
     before :each do
       reset_test_db!
       @cat = Cat.new(:name => 'Sockington')
@@ -289,35 +289,35 @@ describe CouchRest::CastedModel do
     end
     
     it "should be true on new" do
-      CatToy.new.new_model?.should be_true
+      CatToy.new.should be_new
       CatToy.new.new_record?.should be_true
     end
     
     it "should be true after assignment" do
-      @cat.favorite_toy.new_model?.should be_true
-      @cat.toys.first.new_model?.should be_true
+      @cat.favorite_toy.should be_new
+      @cat.toys.first.should be_new
     end
     
     it "should not be true after create or save" do
       @cat.create
       @cat.save
-      @cat.favorite_toy.new_model?.should be_false
-      @cat.toys.first.new_model?.should be_false
+      @cat.favorite_toy.should_not be_new
+      @cat.toys.first.should_not be_new
     end
     
     it "should not be true after get from the database" do
       @cat.save
       @cat = Cat.get(@cat.id)
-      @cat.favorite_toy.new_model?.should be_false
-      @cat.toys.first.new_model?.should be_false
+      @cat.favorite_toy.should_not be_new
+      @cat.toys.first.should_not be_new
     end
     
     it "should still be true after a failed create or save" do
       @cat.name = nil
       @cat.create.should be_false
       @cat.save.should be_false
-      @cat.favorite_toy.new_model?.should be_true
-      @cat.toys.first.new_model?.should be_true
+      @cat.favorite_toy.should be_new
+      @cat.toys.first.should be_new
     end
   end
   

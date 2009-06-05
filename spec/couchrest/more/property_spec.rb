@@ -85,7 +85,7 @@ describe "ExtendedDocument properties" do
       @invoice.location = nil
       @invoice.should_not be_valid
       @invoice.save.should be_false
-      @invoice.should be_new_document
+      @invoice.should be_new
     end
   end
   

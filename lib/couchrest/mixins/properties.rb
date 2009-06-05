@@ -17,7 +17,7 @@ module CouchRest
       end
       
       def apply_defaults
-        return if self.respond_to?(:new_document?) && (new_document? == false)
+        return if self.respond_to?(:new?) && (new? == false)
         return unless self.class.respond_to?(:properties) 
         return if self.class.properties.empty?
         # TODO: cache the default object

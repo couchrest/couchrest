@@ -97,12 +97,12 @@ describe "ExtendedDocument" do
     it "should be a new_record" do
       @obj = Basic.new
       @obj.rev.should be_nil
-      @obj.should be_a_new_record
+      @obj.should be_new
     end
     it "should be a new_document" do
       @obj = Basic.new
       @obj.rev.should be_nil
-      @obj.should be_a_new_document
+      @obj.should be_new
     end
   end
   
@@ -405,7 +405,7 @@ describe "ExtendedDocument" do
     end
     
     it "should be a new document" do
-      @art.should be_a_new_document
+      @art.should be_new
       @art.title.should be_nil
     end
     
