@@ -4,6 +4,7 @@ module CouchRest
   module CastedModel
     
     def self.included(base)
+      base.send(:include, CouchRest::Callbacks)
       base.send(:include, CouchRest::Mixins::Properties)
       base.send(:attr_accessor, :casted_by)
       base.send(:attr_accessor, :document_saved)

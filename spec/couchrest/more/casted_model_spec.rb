@@ -23,6 +23,26 @@ class DummyModel < CouchRest::ExtendedDocument
   property :keywords,         :cast_as => ["String"]
 end
 
+class CastedCallbackDoc < CouchRest::ExtendedDocument
+  use_database TEST_SERVER.default_database
+  raise "Default DB not set" if TEST_SERVER.default_database.nil?
+  property :callback_model, :cast_as => 'WithCastedCallBackModel'
+end
+class WithCastedCallBackModel < Hash
+  include CouchRest::CastedModel
+  include CouchRest::Validation
+  property :name
+  property :run_before_validate
+  property :run_after_validate
+  
+  validate_callback :before do |object|
+    object.run_before_validate = true
+  end
+  validate_callback :after do |object| 
+    object.run_after_validate = true
+  end
+end
+
 describe CouchRest::CastedModel do
   
   describe "A non hash class including CastedModel" do
@@ -352,6 +372,27 @@ describe CouchRest::CastedModel do
       @toy.should be_valid
       @toy.base_doc.save.should be_true
       lambda{@toy.base_doc.save!}.should_not raise_error
+    end
+  end
+  
+  describe "callbacks" do
+    before(:each) do
+      @doc = CastedCallbackDoc.new
+      @model = WithCastedCallBackModel.new
+      @doc.callback_model = @model
+    end
+    
+    describe "validate" do
+      it "should run before_validate before validating" do
+        @model.run_before_validate.should be_nil
+        @model.should be_valid
+        @model.run_before_validate.should be_true
+      end
+      it "should run after_validate after validating" do
+        @model.run_after_validate.should be_nil
+        @model.should be_valid
+        @model.run_after_validate.should be_true
+      end      
     end
   end
 end

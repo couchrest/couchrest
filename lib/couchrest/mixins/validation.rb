@@ -51,6 +51,9 @@ module CouchRest
     def self.included(base)
       base.extlib_inheritable_accessor(:auto_validation)
       base.class_eval <<-EOS, __FILE__, __LINE__
+          # Callbacks
+          define_callbacks :validate
+          
           # Turn off auto validation by default
           self.auto_validation ||= false
           
@@ -72,6 +75,7 @@ module CouchRest
       
       base.extend(ClassMethods)
       base.class_eval <<-EOS, __FILE__, __LINE__
+        define_callbacks :validate
         if method_defined?(:_run_save_callbacks)
           save_callback :before, :check_validations
         end
@@ -147,7 +151,9 @@ module CouchRest
           valid = recursive_valid?(prop, context, valid) && valid
         end
       end
-      target.class.validators.execute(context, target) && valid
+      target._run_validate_callbacks do
+        target.class.validators.execute(context, target) && valid
+      end
     end
 
 
