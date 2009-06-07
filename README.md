@@ -69,20 +69,20 @@ CouchRest::Model has been deprecated and replaced by CouchRest::ExtendedDocument
 ### Callbacks
 
 `CouchRest::ExtendedDocuments` instances have 4 callbacks already defined for you:
-    `validate_callback`, `create_callback`, `save_callback`, `update_callback` and `destroy_callback`
+    `:validate`, `:create`, `:save`, `:update` and `:destroy`
     
 `CouchRest::CastedModel` instances have 1 callback already defined for you:
-    `validate_callback`
+    `:validate`
     
 Define your callback as follows:
 
-    save_callback :before, :generate_slug_from_name
+    set_callback :save, :before, :generate_slug_from_name
     
 CouchRest uses a mixin you can find in lib/mixins/callbacks which is extracted from Rails 3, here are some simple usage examples:
 
-    save_callback :before, :before_method
-    save_callback :after,  :after_method, :if => :condition
-    save_callback :around {|r| stuff; yield; stuff }
+    set_callback :save, :before, :before_method
+    set_callback :save, :after,  :after_method, :if => :condition
+    set_callback :save, :around {|r| stuff; yield; stuff }
     
 Check the mixin or the ExtendedDocument class to see how to implement your own callbacks.
 

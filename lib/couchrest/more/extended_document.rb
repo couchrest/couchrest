@@ -62,7 +62,7 @@ module CouchRest
         property(:updated_at, :read_only => true, :cast_as => 'Time', :auto_validation => false)
         property(:created_at, :read_only => true, :cast_as => 'Time', :auto_validation => false)
         
-        save_callback :before do |object|
+        set_callback :save, :before do |object|
           object['updated_at'] = Time.now
           object['created_at'] = object['updated_at'] if object.new?
         end

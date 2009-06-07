@@ -29,28 +29,28 @@ describe "ExtendedDocument" do
     property :run_before_update
     property :run_after_update
     
-    validate_callback :before do |object|
+    set_callback :validate, :before do |object|
       object.run_before_validate = true
     end
-    validate_callback :after do |object| 
+    set_callback :validate, :after do |object| 
       object.run_after_validate = true
     end
-    save_callback :before do |object| 
+    set_callback :save, :before do |object| 
       object.run_before_save = true
     end
-    save_callback :after do |object| 
+    set_callback :save, :after do |object| 
       object.run_after_save = true
     end
-    create_callback :before do |object| 
+    set_callback :create, :before do |object| 
       object.run_before_create = true
     end
-    create_callback :after do |object| 
+    set_callback :create, :after do |object| 
       object.run_after_create = true
     end
-    update_callback :before do |object| 
+    set_callback :update, :before do |object| 
       object.run_before_update = true
     end
-    update_callback :after do |object| 
+    set_callback :update, :after do |object| 
       object.run_after_update = true
     end
   end

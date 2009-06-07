@@ -35,10 +35,10 @@ class WithCastedCallBackModel < Hash
   property :run_before_validate
   property :run_after_validate
   
-  validate_callback :before do |object|
+  set_callback :validate, :before do |object|
     object.run_before_validate = true
   end
-  validate_callback :after do |object| 
+  set_callback :validate, :after do |object| 
     object.run_after_validate = true
   end
 end
