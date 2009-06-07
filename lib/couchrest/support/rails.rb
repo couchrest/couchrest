@@ -14,6 +14,9 @@ end
 
 
 CouchRest::Document.class_eval do
+  # Need this when passing doc to a resourceful route
+  alias_method :to_param, :id
+  
   # Hack so that CouchRest::Document, which descends from Hash,
   # doesn't appear to Rails routing as a Hash of options
   def is_a?(o)
@@ -21,7 +24,11 @@ CouchRest::Document.class_eval do
     super
   end
   alias_method :kind_of?, :is_a?
-  alias_method :to_param, :id
+  
+  # Gives extended doc a seamless logger
+  def logger
+    ActiveRecord::Base.logger
+  end
 end
 
 CouchRest::CastedModel.class_eval do
