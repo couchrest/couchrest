@@ -1,8 +1,29 @@
-require File.join(File.dirname(__FILE__), '..', 'support', 'class')
-
+# Copyright (c) 2006-2009 David Heinemeier Hansson
+#  
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#  
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#  
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
 # Extracted from ActiveSupport::NewCallbacks written by Yehuda Katz
 # http://github.com/rails/rails/raw/d6e4113c83a9d55be6f2af247da2cecaa855f43b/activesupport/lib/active_support/new_callbacks.rb
 # http://github.com/rails/rails/commit/1126a85aed576402d978e6f76eb393b6baaa9541
+
+require File.join(File.dirname(__FILE__), '..', 'support', 'class')
 
 module CouchRest
   # Callbacks are hooks into the lifecycle of an object that allow you to trigger logic
@@ -368,7 +389,7 @@ module CouchRest
     end
 
     module ClassMethods
-      CHAINS = {:before => :before, :around => :before, :after => :after}
+      #CHAINS = {:before => :before, :around => :before, :after => :after}
 
       # Make the _run_save_callbacks method. The generated method takes
       # a block that it'll yield to. It'll call the before and around filters
