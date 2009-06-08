@@ -84,6 +84,12 @@ CouchRest uses a mixin you can find in lib/mixins/callbacks which is extracted f
     set_callback :save, :after,  :after_method, :if => :condition
     set_callback :save, :around {|r| stuff; yield; stuff }
     
+    Or the new shorter version:
+    
+    before_save :before_method
+    after_save  :after_method, :if => :condition
+    around_save {|r| stuff; yield; stuff }
+    
 Check the mixin or the ExtendedDocument class to see how to implement your own callbacks.
 
 ### Casting

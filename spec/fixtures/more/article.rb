@@ -26,7 +26,7 @@ class Article < CouchRest::ExtendedDocument
 
   timestamps!
   
-  set_callback :save, :before, :generate_slug_from_title
+  before_save :generate_slug_from_title
   
   def generate_slug_from_title
     self['slug'] = title.downcase.gsub(/[^a-z0-9]/,'-').squeeze('-').gsub(/^\-|\-$/,'') if new?
