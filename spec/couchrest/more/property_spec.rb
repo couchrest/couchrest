@@ -1,4 +1,5 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
+require File.join(FIXTURE_PATH, 'more', 'person')
 require File.join(FIXTURE_PATH, 'more', 'card')
 require File.join(FIXTURE_PATH, 'more', 'invoice')
 require File.join(FIXTURE_PATH, 'more', 'service')
@@ -34,6 +35,15 @@ describe "ExtendedDocument properties" do
     @card.last_name = "Aimonetti"
     @card.family_name.should == "Aimonetti"
     @card.family_name.should == @card.last_name
+  end
+  
+  it "should let you use an alias for a casted attribute" do
+    @card.cast_alias = Person.new(:name => "Aimonetti")
+    @card.cast_alias.name.should == "Aimonetti"
+    @card.calias.name.should == "Aimonetti"
+    card = Card.new(:first_name => "matt", :cast_alias => {:name => "Aimonetti"})
+    card.cast_alias.name.should == "Aimonetti"
+    card.calias.name.should == "Aimonetti"
   end
   
   it "should be auto timestamped" do

@@ -44,6 +44,12 @@ module CouchRest
         "#{database.root}/#{self.id}/#{attachment_name}"
       end
       
+      # returns URI to fetch the attachment from
+      def attachment_uri(attachment_name)
+        return unless has_attachment?(attachment_name)
+        "#{database.uri}/#{self.id}/#{attachment_name}"
+      end
+      
       private
       
         def encode_attachment(data)

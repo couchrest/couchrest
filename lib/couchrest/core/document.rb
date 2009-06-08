@@ -68,7 +68,7 @@ module CouchRest
     # Returns the CouchDB uri for the document
     def uri(append_rev = false)
       return nil if new_document?
-      couch_uri = "http://#{database.uri}/#{CGI.escape(id)}"
+      couch_uri = "http://#{database.root}/#{CGI.escape(id)}"
       if append_rev == true
         couch_uri << "?rev=#{rev}"
       elsif append_rev.kind_of?(Integer)

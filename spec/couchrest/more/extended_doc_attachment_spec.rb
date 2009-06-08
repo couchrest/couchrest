@@ -126,5 +126,10 @@ describe "ExtendedDocument attachments" do
     it 'should return the attachment URL as specified by CouchDB HttpDocumentApi' do
       @obj.attachment_url(@attachment_name).should == "#{Basic.database}/#{@obj.id}/#{@attachment_name}"
     end
+    
+    it 'should return the attachment URI' do
+      @obj.attachment_uri(@attachment_name).should == "#{Basic.database.uri}/#{@obj.id}/#{@attachment_name}"
+    end
+    
   end
 end

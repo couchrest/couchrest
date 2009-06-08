@@ -11,6 +11,8 @@ class Card < CouchRest::ExtendedDocument
   property :first_name
   property :last_name,        :alias     => :family_name
   property :read_only_value,  :read_only => true
+  property :cast_alias,       :cast_as   =>  'Person',  :alias  => :calias
+
   
   timestamps!
   
