@@ -17,7 +17,7 @@ module CouchRest
       end
       
       def apply_defaults
-        return if self.respond_to?(:new_document?) && (new_document? == false)
+        return if self.respond_to?(:new?) && (new? == false)
         return unless self.class.respond_to?(:properties) 
         return if self.class.properties.empty?
         # TODO: cache the default object
@@ -44,12 +44,14 @@ module CouchRest
           target = property.type
           if target.is_a?(Array)
             klass = ::CouchRest.constantize(target[0])
-            self[property.name] = self[key].collect do |value|
+            arr = self[key].collect do |value|
               # Auto parse Time objects
               obj = ( (property.init_method == 'new') && klass == Time) ? Time.parse(value) : klass.send(property.init_method, value)
               obj.casted_by = self if obj.respond_to?(:casted_by)
+              obj.document_saved = true if obj.respond_to?(:document_saved)
               obj
             end
+            self[property.name] = target[0] != 'String' ? CastedArray.new(arr) : arr
           else
             # Auto parse Time objects
             self[property.name] = if ((property.init_method == 'new') && target == 'Time') 
@@ -60,7 +62,9 @@ module CouchRest
               klass.send(property.init_method, self[key].dup)
             end
             self[property.name].casted_by = self if self[property.name].respond_to?(:casted_by)
+            self[property.name].document_saved = true if self[property.name].respond_to?(:document_saved)
           end
+          self[property.name].casted_by = self if self[property.name].respond_to?(:casted_by)
         end
       end
       
@@ -107,6 +111,14 @@ module CouchRest
             meth = property.name
             class_eval <<-EOS
               def #{meth}=(value)
+                if #{property.casted} && value.is_a?(Array)
+                  arr = CastedArray.new
+                  arr.casted_by = self
+                  value.each { |v| arr << v }
+                  value = arr
+                elsif #{property.casted}
+                  value.casted_by = self if value.respond_to?(:casted_by)
+                end
                 self['#{meth}'] = value
               end
             EOS

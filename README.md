@@ -68,10 +68,13 @@ CouchRest::Model has been deprecated and replaced by CouchRest::ExtendedDocument
 
 ### Callbacks
 
-`CouchRest::ExtendedDocuments` instances have 2 callbacks already defined for you:
-    `create_callback`, `save_callback`, `update_callback` and `destroy_callback`
+`CouchRest::ExtendedDocuments` instances have 4 callbacks already defined for you:
+    `validate_callback`, `create_callback`, `save_callback`, `update_callback` and `destroy_callback`
     
-In your document inherits from `CouchRest::ExtendedDocument`, define your callback as follows:
+`CouchRest::CastedModel` instances have 1 callback already defined for you:
+    `validate_callback`
+    
+Define your callback as follows:
 
     save_callback :before, :generate_slug_from_name
     

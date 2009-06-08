@@ -1,6 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.join(FIXTURE_PATH, 'more', 'article')
 require File.join(FIXTURE_PATH, 'more', 'course')
+require File.join(FIXTURE_PATH, 'more', 'cat')
 
 
 describe "ExtendedDocument" do
@@ -16,8 +17,11 @@ describe "ExtendedDocument" do
   end
   
   class WithCallBacks < CouchRest::ExtendedDocument
+    include ::CouchRest::Validation
     use_database TEST_SERVER.default_database
     property :name
+    property :run_before_validate
+    property :run_after_validate
     property :run_before_save
     property :run_after_save
     property :run_before_create
@@ -25,6 +29,12 @@ describe "ExtendedDocument" do
     property :run_before_update
     property :run_after_update
     
+    validate_callback :before do |object|
+      object.run_before_validate = true
+    end
+    validate_callback :after do |object| 
+      object.run_after_validate = true
+    end
     save_callback :before do |object| 
       object.run_before_save = true
     end
@@ -87,12 +97,12 @@ describe "ExtendedDocument" do
     it "should be a new_record" do
       @obj = Basic.new
       @obj.rev.should be_nil
-      @obj.should be_a_new_record
+      @obj.should be_new
     end
     it "should be a new_document" do
       @obj = Basic.new
       @obj.rev.should be_nil
-      @obj.should be_a_new_document
+      @obj.should be_new
     end
   end
   
@@ -107,6 +117,12 @@ describe "ExtendedDocument" do
       @art['title'].should == "big bad danger"
       @art.update_attributes_without_saving('date' => Time.now, :title => "super danger")
       @art['title'].should == "super danger"
+    end
+    
+    it "should also work using attributes= alias" do
+      @art.respond_to?(:attributes=).should be_true
+      @art.attributes = {'date' => Time.now, :title => "something else"}
+      @art['title'].should == "something else"
     end
     
     it "should flip out if an attribute= method is missing" do
@@ -389,7 +405,7 @@ describe "ExtendedDocument" do
     end
     
     it "should be a new document" do
-      @art.should be_a_new_document
+      @art.should be_new
       @art.title.should be_nil
     end
     
@@ -497,6 +513,19 @@ describe "ExtendedDocument" do
       @doc = WithCallBacks.new
     end
     
+    
+    describe "validate" do
+      it "should run before_validate before validating" do
+        @doc.run_before_validate.should be_nil
+        @doc.should be_valid
+        @doc.run_before_validate.should be_true
+      end
+      it "should run after_validate after validating" do
+        @doc.run_after_validate.should be_nil
+        @doc.should be_valid
+        @doc.run_after_validate.should be_true
+      end
+    end
     describe "save" do
       it "should run the after filter after saving" do
         @doc.run_after_save.should be_nil
@@ -553,6 +582,51 @@ describe "ExtendedDocument" do
       @doc['arg'].should be_nil
       @doc[:arg].should be_nil
       @doc.other_arg.should == "foo-foo"
+    end
+  end
+  
+  describe "recursive validation on an extended document" do
+    before :each do
+      reset_test_db!
+      @cat = Cat.new(:name => 'Sockington')
+    end
+    
+    it "should not save if a nested casted model is invalid" do
+      @cat.favorite_toy = CatToy.new
+      @cat.should_not be_valid
+      @cat.save.should be_false
+      lambda{@cat.save!}.should raise_error
+    end
+    
+    it "should save when nested casted model is valid" do
+      @cat.favorite_toy = CatToy.new(:name => 'Squeaky')
+      @cat.should be_valid
+      @cat.save.should be_true
+      lambda{@cat.save!}.should_not raise_error
+    end
+    
+    it "should not save when nested collection contains an invalid casted model" do
+      @cat.toys = [CatToy.new(:name => 'Feather'), CatToy.new]
+      @cat.should_not be_valid
+      @cat.save.should be_false
+      lambda{@cat.save!}.should raise_error
+    end
+    
+    it "should save when nested collection contains valid casted models" do
+      @cat.toys = [CatToy.new(:name => 'feather'), CatToy.new(:name => 'ball-o-twine')]
+      @cat.should be_valid
+      @cat.save.should be_true
+      lambda{@cat.save!}.should_not raise_error
+    end
+    
+    it "should not fail if the nested casted model doesn't have validation" do
+      Cat.property :trainer, :cast_as => 'Person'
+      Cat.validates_present :name
+      cat = Cat.new(:name => 'Mr Bigglesworth')
+      cat.trainer = Person.new
+      cat.trainer.validatable?.should be_false
+      cat.should be_valid
+      cat.save.should be_true
     end
   end
 end

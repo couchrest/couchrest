@@ -27,7 +27,7 @@ module CouchRest
     end
     
     # returns true if the document has never been saved
-    def new_document?
+    def new?
       !rev
     end
     
@@ -67,8 +67,8 @@ module CouchRest
     
     # Returns the CouchDB uri for the document
     def uri(append_rev = false)
-      return nil if new_document?
-      couch_uri = "http://#{database.root}/#{CGI.escape(id)}"
+      return nil if new?
+      couch_uri = "http://#{database.uri}/#{CGI.escape(id)}"
       if append_rev == true
         couch_uri << "?rev=#{rev}"
       elsif append_rev.kind_of?(Integer)

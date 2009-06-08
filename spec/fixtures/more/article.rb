@@ -29,6 +29,6 @@ class Article < CouchRest::ExtendedDocument
   save_callback :before, :generate_slug_from_title
   
   def generate_slug_from_title
-    self['slug'] = title.downcase.gsub(/[^a-z0-9]/,'-').squeeze('-').gsub(/^\-|\-$/,'') if new_document?
+    self['slug'] = title.downcase.gsub(/[^a-z0-9]/,'-').squeeze('-').gsub(/^\-|\-$/,'') if new?
   end
 end

@@ -253,7 +253,7 @@ describe CouchRest::Database do
   describe "PUT attachment from file" do
     before(:each) do
       filename = FIXTURE_PATH + '/attachments/couchdb.png'
-      @file = File.open(filename)
+      @file = File.open(filename, "rb")
     end
     after(:each) do
       @file.close
