@@ -533,11 +533,21 @@ module CouchRest
           # set_callback(:save, :before) becomes before_save
           [:before, :after, :around].each do |filter|
             self.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-              def self.#{filter}_#{symbol}(meth=nil, &blk)
-                set_callback(:#{symbol}, :#{filter}, meth||blk)
+              def self.#{filter}_#{symbol}(*symbols, &blk)
+                _alias_callbacks(symbols, blk) do |callback, options|
+                  set_callback(:#{symbol}, :#{filter}, callback, options)
+                end
               end
             RUBY_EVAL
           end
+        end
+      end
+      
+      def _alias_callbacks(callbacks, block)
+        options = callbacks.last.is_a?(Hash) ? callbacks.pop : {}
+        callbacks.push(block) if block
+        callbacks.each do |callback|
+          yield callback, options
         end
       end
     end
