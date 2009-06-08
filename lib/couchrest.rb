@@ -46,6 +46,7 @@ module CouchRest
   autoload :CastedModel,          'couchrest/more/casted_model'
   
   require File.join(File.dirname(__FILE__), 'couchrest', 'mixins')
+  require File.join(File.dirname(__FILE__), 'couchrest', 'support', 'rails')
   
   # The CouchRest module methods handle the basic JSON serialization 
   # and deserialization, as well as query parameters. The module also includes
