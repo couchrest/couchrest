@@ -11,6 +11,7 @@ if defined?(Rails)
     end
   end
 
+
   CouchRest::Document.class_eval do
     # Need this when passing doc to a resourceful route
     alias_method :to_param, :id
