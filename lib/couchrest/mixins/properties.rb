@@ -114,9 +114,13 @@ module CouchRest
                 if #{property.casted} && value.is_a?(Array)
                   arr = CastedArray.new
                   arr.casted_by = self
-                  value.each { |v| arr << v }
+                  value.each do |v|
+                    obj = #{property.type}.new(v)
+                    arr << obj
+                  end
                   value = arr
                 elsif #{property.casted}
+                  value = #{property.type}.new(v)
                   value.casted_by = self if value.respond_to?(:casted_by)
                 end
                 self['#{meth}'] = value
