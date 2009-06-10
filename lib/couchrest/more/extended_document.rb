@@ -51,9 +51,6 @@ module CouchRest
       end
     end
     
-
-    
-    
     # Automatically set <tt>updated_at</tt> and <tt>created_at</tt> fields
     # on the document whenever saving occurs. CouchRest uses a pretty
     # decent time format by default. See Time#to_json
@@ -62,16 +59,13 @@ module CouchRest
         property(:updated_at, :read_only => true, :cast_as => 'Time', :auto_validation => false)
         property(:created_at, :read_only => true, :cast_as => 'Time', :auto_validation => false)
         
-        def created_at=(ignored); end
-        def updated_at=(ignored); end
-        
         save_callback :before do |object|
           object['updated_at'] = Time.now
           object['created_at'] = object['updated_at'] if object.new?
         end
       EOS
     end
-  
+    
     # Name a method that will be called before the document is first saved,
     # which returns a string to be used for the document's <tt>_id</tt>.
     # Because CouchDB enforces a constraint that each id must be unique,
@@ -130,10 +124,15 @@ module CouchRest
     # for each key. It doesn't save the document at the end. Raises a NoMethodError if the corresponding methods are
     # missing. In case of error, no attributes are changed.    
     def update_attributes_without_saving(hash)
-      hash.each do |k, v|
+      # remove attributes that cannot be updated, silently ignoring them
+      # which matches Rails behavior when, for instance, setting created_at.
+      # make a copy, we don't want to change arguments
+      attrs = hash.dup
+      %w[_id _rev created_at updated_at].each {|attr| attrs.delete(attr)}
+      attrs.each do |k, v|
         raise NoMethodError, "#{k}= method not available, use property :#{k}" unless self.respond_to?("#{k}=")
       end      
-      hash.each do |k, v|
+      attrs.each do |k, v|
         self.send("#{k}=",v)
       end
     end

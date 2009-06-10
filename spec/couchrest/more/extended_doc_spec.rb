@@ -118,7 +118,22 @@ describe "ExtendedDocument" do
       @art.update_attributes_without_saving('date' => Time.now, :title => "super danger")
       @art['title'].should == "super danger"
     end
-    
+    it "should silently ignore _id" do
+      @art.update_attributes_without_saving('_id' => 'foobar')
+      @art['_id'].should_not == 'foobar'
+    end
+    it "should silently ignore _rev" do
+      @art.update_attributes_without_saving('_rev' => 'foobar')
+      @art['_rev'].should_not == 'foobar'
+    end
+    it "should silently ignore created_at" do
+      @art.update_attributes_without_saving('created_at' => 'foobar')
+      @art['created_at'].should_not == 'foobar'
+    end
+    it "should silently ignore updated_at" do
+      @art.update_attributes_without_saving('updated_at' => 'foobar')
+      @art['updated_at'].should_not == 'foobar'
+    end
     it "should also work using attributes= alias" do
       @art.respond_to?(:attributes=).should be_true
       @art.attributes = {'date' => Time.now, :title => "something else"}

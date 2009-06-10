@@ -284,7 +284,8 @@ describe CouchRest::CastedModel do
     before :each do
       reset_test_db!
       @cat = Cat.new(:name => 'Sockington')
-      @cat.favorite_toy = CatToy.new(:name => 'Catnip Ball')
+      @favorite_toy = CatToy.new(:name => 'Catnip Ball')
+      @cat.favorite_toy = @favorite_toy
       @cat.toys << CatToy.new(:name => 'Fuzzy Stick')
     end
     
@@ -294,6 +295,7 @@ describe CouchRest::CastedModel do
     end
     
     it "should be true after assignment" do
+      @cat.should be_new
       @cat.favorite_toy.should be_new
       @cat.toys.first.should be_new
     end
@@ -336,6 +338,7 @@ describe CouchRest::CastedModel do
     
     it "should reference the top document for" do
       @course.base_doc.should === @course
+      @professor.casted_by.should === @course
       @professor.base_doc.should === @course
       @cat.base_doc.should === @course
       @toy1.base_doc.should === @course
@@ -343,6 +346,7 @@ describe CouchRest::CastedModel do
     end
     
     it "should call setter on top document" do
+      @toy1.base_doc.should_not be_nil
       @toy1.base_doc.title = 'Tom Foolery'
       @course.title.should == 'Tom Foolery'
     end

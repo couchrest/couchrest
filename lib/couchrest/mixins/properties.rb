@@ -37,35 +37,53 @@ module CouchRest
       def cast_keys
         return unless self.class.properties
         self.class.properties.each do |property|
-          next unless property.casted
-          key = self.has_key?(property.name) ? property.name : property.name.to_sym
-          # Don't cast the property unless it has a value
-          next unless self[key]
-          target = property.type
-          if target.is_a?(Array)
-            klass = ::CouchRest.constantize(target[0])
-            arr = self[key].collect do |value|
-              # Auto parse Time objects
-              obj = ( (property.init_method == 'new') && klass == Time) ? Time.parse(value) : klass.send(property.init_method, value)
-              obj.casted_by = self if obj.respond_to?(:casted_by)
-              obj.document_saved = true if obj.respond_to?(:document_saved)
-              obj
-            end
-            self[property.name] = target[0] != 'String' ? CastedArray.new(arr) : arr
-          else
-            # Auto parse Time objects
-            self[property.name] = if ((property.init_method == 'new') && target == 'Time') 
-              self[key].is_a?(String) ? Time.parse(self[key].dup) : self[key]
-            else
-              # Let people use :send as a Time parse arg
-              klass = ::CouchRest.constantize(target)
-              klass.send(property.init_method, self[key].dup)
-            end
-            self[property.name].casted_by = self if self[property.name].respond_to?(:casted_by)
-            self[property.name].document_saved = true if self[property.name].respond_to?(:document_saved)
-          end
-          self[property.name].casted_by = self if self[property.name].respond_to?(:casted_by)
+          cast_property(property)
         end
+      end
+      
+      def cast_property(property)
+        return unless property.casted
+        key = self.has_key?(property.name) ? property.name : property.name.to_sym
+        # Don't cast the property unless it has a value
+        return unless self[key]
+        target = property.type
+        if target.is_a?(Array)
+          klass = ::CouchRest.constantize(target[0])
+          arr = self[key].dup.collect do |value|
+            unless value.instance_of?(klass)
+              value = convert_property_value(property, klass, value)
+            end
+            associate_casted_to_parent(value)
+            value
+          end
+          self[key] = target[0] != 'String' ? CastedArray.new(arr) : arr
+        else
+          klass = ::CouchRest.constantize(target)
+          unless self[key].instance_of?(klass)
+            self[key] = convert_property_value(property, klass, self[property.name])
+          end
+          associate_casted_to_parent(self[property.name])
+        end
+      end
+      
+      def associate_casted_to_parent(casted)
+        casted.casted_by = self if casted.respond_to?(:casted_by)
+        casted.document_saved = true if casted.respond_to?(:document_saved)
+      end
+      
+      def convert_property_value(property, klass, value)
+        if ((property.init_method == 'new') && klass.to_s == 'Time') 
+          value.is_a?(String) ? Time.parse(value.dup) : value
+        else
+          klass.send(property.init_method, value.dup)
+        end
+      end
+      
+      def cast_property_by_name(property_name)
+        return unless self.class.properties
+        property = self.class.properties.detect{|property| property.name == property_name}
+        return unless property
+        cast_property(property)
       end
       
       module ClassMethods
@@ -108,28 +126,17 @@ module CouchRest
 
           # defines the setter for the property (and optional aliases)
           def create_property_setter(property)
-            meth = property.name
+            property_name = property.name
             class_eval <<-EOS
-              def #{meth}=(value)
-                if #{property.casted} && value.is_a?(Array)
-                  arr = CastedArray.new
-                  arr.casted_by = self
-                  value.each do |v|
-                    obj = #{property.type}.new(v)
-                    arr << obj
-                  end
-                  value = arr
-                elsif #{property.casted}
-                  value = #{property.type}.new(v)
-                  value.casted_by = self if value.respond_to?(:casted_by)
-                end
-                self['#{meth}'] = value
+              def #{property_name}=(value)
+                self['#{property_name}'] = value
+                cast_property_by_name('#{property_name}')
               end
             EOS
 
             if property.alias
               class_eval <<-EOS
-                alias #{property.alias.to_sym}= #{meth.to_sym}=
+                alias #{property.alias.to_sym}= #{property_name.to_sym}=
               EOS
             end
           end
