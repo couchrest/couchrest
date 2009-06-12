@@ -209,6 +209,10 @@ describe CouchRest::CastedModel do
       toy = CatToy.new :name => "Mouse"
       @cat.toys.push(toy)
       @cat.save.should be_true
+      @cat = Cat.get @cat.id
+      @cat.toys.class.should == CastedArray
+      @cat.toys.first.class.should == CatToy
+      @cat.toys.first.should === toy
     end
 
     it "should fail because name is not present" do
