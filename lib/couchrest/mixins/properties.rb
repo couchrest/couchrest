@@ -41,7 +41,7 @@ module CouchRest
         end
       end
       
-      def cast_property(property)
+      def cast_property(property, assigned=false)
         return unless property.casted
         key = self.has_key?(property.name) ? property.name : property.name.to_sym
         # Don't cast the property unless it has a value
@@ -53,22 +53,23 @@ module CouchRest
             unless value.instance_of?(klass)
               value = convert_property_value(property, klass, value)
             end
-            associate_casted_to_parent(value)
+            associate_casted_to_parent(value, assigned)
             value
           end
-          self[key] = target[0] != 'String' ? CastedArray.new(arr) : arr
+          self[key] = klass != String ? CastedArray.new(arr) : arr
+          self[key].casted_by = self if self[key].respond_to?(:casted_by)
         else
           klass = ::CouchRest.constantize(target)
           unless self[key].instance_of?(klass)
             self[key] = convert_property_value(property, klass, self[property.name])
           end
-          associate_casted_to_parent(self[property.name])
+          associate_casted_to_parent(self[property.name], assigned)
         end
       end
       
-      def associate_casted_to_parent(casted)
+      def associate_casted_to_parent(casted, assigned)
         casted.casted_by = self if casted.respond_to?(:casted_by)
-        casted.document_saved = true if casted.respond_to?(:document_saved)
+        casted.document_saved = true if !assigned && casted.respond_to?(:document_saved)
       end
       
       def convert_property_value(property, klass, value)
@@ -83,7 +84,7 @@ module CouchRest
         return unless self.class.properties
         property = self.class.properties.detect{|property| property.name == property_name}
         return unless property
-        cast_property(property)
+        cast_property(property, true)
       end
       
       module ClassMethods
