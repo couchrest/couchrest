@@ -1,5 +1,6 @@
 require File.join(File.dirname(__FILE__), 'support', 'class')
 require File.join(File.dirname(__FILE__), 'support', 'blank')
+require 'timeout'
 
 # This file must be loaded after the JSON gem and any other library that beats up the Time class.
 class Time
@@ -38,7 +39,7 @@ if RUBY_VERSION.to_f < 1.9
           if IO.select([@io], nil, nil, @read_timeout)
             retry
           else
-            raise Timeout::TimeoutError
+            raise Timeout::Error
           end
         end
       else
