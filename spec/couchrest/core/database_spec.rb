@@ -12,7 +12,8 @@ describe CouchRest::Database do
     it "should escape the name in the URI" do
       db = @cr.database("foo/bar")
       db.name.should == "foo/bar"
-      db.uri.should == "#{COUCHHOST}/foo%2Fbar"
+      db.root.should == "#{COUCHHOST}/foo%2Fbar"
+      db.uri.should  == "/foo%2Fbar"
     end
   end
 
