@@ -142,12 +142,12 @@ module CouchRest
       end
 
       def normalize_options!(options)
-        options[:if] = Array(options[:if])
-        options[:unless] = Array(options[:unless])
+        options[:if] = Array.wrap(options[:if])
+        options[:unless] = Array.wrap(options[:unless])
 
         options[:per_key] ||= {}
-        options[:per_key][:if] = Array(options[:per_key][:if])
-        options[:per_key][:unless] = Array(options[:per_key][:unless])
+        options[:per_key][:if] = Array.wrap(options[:per_key][:if])
+        options[:per_key][:unless] = Array.wrap(options[:per_key][:unless])
       end
 
       def next_id
@@ -204,9 +204,10 @@ module CouchRest
             filter = <<-RUBY_EVAL
               unless halted
                 result = #{@filter}
-                halted ||= (#{terminator})
+                halted = (#{terminator})
               end
             RUBY_EVAL
+            
             [@compiled_options[0], filter, @compiled_options[1]].compact.join("\n")
           else
             # Compile around filters with conditions into proxy methods
@@ -225,7 +226,7 @@ module CouchRest
             # end
 
             name = "_conditional_callback_#{@kind}_#{next_id}"
-            txt = <<-RUBY_EVAL
+            txt, line = <<-RUBY_EVAL, __LINE__
               def #{name}(halted)
                 #{@compiled_options[0] || "if true"} && !halted
                   #{@filter} do
@@ -236,7 +237,7 @@ module CouchRest
                 end
               end
             RUBY_EVAL
-            @klass.class_eval(txt)
+            @klass.class_eval(txt, __FILE__, line)
             "#{name}(halted) do"
           end
         end
@@ -271,11 +272,11 @@ module CouchRest
         conditions = []
 
         unless options[:if].empty?
-          conditions << Array(_compile_filter(options[:if]))
+          conditions << Array.wrap(_compile_filter(options[:if]))
         end
 
         unless options[:unless].empty?
-          conditions << Array(_compile_filter(options[:unless])).map {|f| "!#{f}"}
+          conditions << Array.wrap(_compile_filter(options[:unless])).map {|f| "!#{f}"}
         end
 
         ["if #{conditions.flatten.join(" && ")}", "end"]
@@ -306,33 +307,14 @@ module CouchRest
           filter.map {|f| _compile_filter(f)}
         when Symbol
           filter
+        when String
+          "(#{filter})"
         when Proc
           @klass.send(:define_method, method_name, &filter)
-          method_name << case filter.arity
-          when 1
-            "(self)"
-          when 2
-            " self, Proc.new "
-          else
-            ""
-          end
-        when Method
-          @klass.send(:define_method, "#{method_name}_method") { filter }
-          @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{method_name}(&blk)
-              #{method_name}_method.call(self, &blk)
-            end
-          RUBY_EVAL
-          method_name
-        when String
-          @klass.class_eval <<-RUBY_EVAL
-            def #{method_name}
-              #{filter}
-            end
-          RUBY_EVAL
-          method_name
+          return method_name if filter.arity == 0
+
+          method_name << (filter.arity == 1 ? "(self)" : " self, Proc.new ")
         else
-          kind = @kind
           @klass.send(:define_method, "#{method_name}_object") { filter }
 
           _normalize_legacy_filter(kind, filter)
@@ -349,7 +331,7 @@ module CouchRest
 
       def _normalize_legacy_filter(kind, filter)
         if !filter.respond_to?(kind) && filter.respond_to?(:filter)
-          filter.metaclass.class_eval(
+          filter.class_eval(
             "def #{kind}(context, &block) filter(context, &block) end",
             __FILE__, __LINE__ - 1)
         elsif filter.respond_to?(:before) && filter.respond_to?(:after) && kind == :around
@@ -402,8 +384,9 @@ module CouchRest
       # The _run_save_callbacks method can optionally take a key, which
       # will be used to compile an optimized callback method for each
       # key. See #define_callbacks for more information.
-      def _define_runner(symbol, callbacks)
-        body = callbacks.compile(nil, :terminator => send("_#{symbol}_terminator"))
+      def _define_runner(symbol)
+        body = send("_#{symbol}_callback").
+          compile(nil, :terminator => send("_#{symbol}_terminator"))
 
         body, line = <<-RUBY_EVAL, __LINE__
           def _run_#{symbol}_callbacks(key = nil, &blk)
@@ -431,7 +414,7 @@ module CouchRest
       def _create_keyed_callback(name, kind, obj, &blk)
         @_keyed_callbacks ||= {}
         @_keyed_callbacks[name] ||= begin
-          str = send("_#{kind}_callbacks").
+          str = send("_#{kind}_callback").
             compile(name, :object => obj, :terminator => send("_#{kind}_terminator"))
 
           class_eval "def #{name}() #{str} end", __FILE__, __LINE__
@@ -471,21 +454,21 @@ module CouchRest
       # In that case, each action_name would get its own compiled callback
       # method that took into consideration the per_key conditions. This
       # is a speed improvement for ActionPack.
-      def update_callbacks(name, filters = CallbackChain.new(name), block = nil)
+      def _update_callbacks(name, filters = CallbackChain.new(name), block = nil)
         type = [:before, :after, :around].include?(filters.first) ? filters.shift : :before
         options = filters.last.is_a?(Hash) ? filters.pop : {}
         filters.unshift(block) if block
-        
-        responded = self.respond_to?(":_#{name}_callbacks")
 
-        callbacks = send("_#{name}_callbacks")
+        callbacks = send("_#{name}_callback")
         yield callbacks, type, filters, options if block_given?
 
-        _define_runner(name, callbacks)
+        _define_runner(name)
       end
 
+      alias_method :_reset_callbacks, :_update_callbacks
+
       def set_callback(name, *filters, &block)
-        update_callbacks(name, filters, block) do |callbacks, type, filters, options|        
+        _update_callbacks(name, filters, block) do |callbacks, type, filters, options|        
           filters.map! do |filter|
             # overrides parent class
             callbacks.delete_if {|c| c.matches?(type, filter) }
@@ -497,9 +480,9 @@ module CouchRest
       end
 
       def skip_callback(name, *filters, &block)
-        update_callbacks(name, filters, block) do |callbacks, type, filters, options|
+        _update_callbacks(name, filters, block) do |callbacks, type, filters, options|
           filters.each do |filter|
-            callbacks = send("_#{name}_callbacks=", callbacks.clone(self))
+            callbacks = send("_#{name}_callback=", callbacks.clone(self))
 
             filter = callbacks.find {|c| c.matches?(type, filter) }
 
@@ -517,17 +500,11 @@ module CouchRest
         symbols.each do |symbol|
           extlib_inheritable_accessor("_#{symbol}_terminator") { terminator }
 
-          extlib_inheritable_accessor("_#{symbol}_callbacks") do
+          extlib_inheritable_accessor("_#{symbol}_callback") do
             CallbackChain.new(symbol)
           end
 
-          self.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def self.reset_#{symbol}_callbacks
-              update_callbacks(:#{symbol})
-            end
-
-            self.set_callback(:#{symbol}, :before)
-          RUBY_EVAL
+          _define_runner(symbol)
           
           # Define more convenient callback methods
           # set_callback(:save, :before) becomes before_save

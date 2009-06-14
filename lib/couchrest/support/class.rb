@@ -168,6 +168,23 @@ class Array
   #   options(1, 2, :a => :b) # => {:a=>:b}
   def extract_options!
     last.is_a?(::Hash) ? pop : {}
-  end unless Array.respond_to?(:extract_options!)
+  end unless Array.new.respond_to?(:extract_options!)
+  
+  # Wraps the object in an Array unless it's an Array.  Converts the
+  # object to an Array using #to_ary if it implements that.
+  def self.wrap(object)
+    case object
+    when nil
+      []
+    when self
+      object
+    else
+      if object.respond_to?(:to_ary)
+        object.to_ary
+      else
+        [object]
+      end
+    end
+  end unless Array.respond_to?(:wrap)
 end
 
