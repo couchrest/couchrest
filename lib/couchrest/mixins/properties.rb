@@ -24,7 +24,7 @@ module CouchRest
         self.class.properties.each do |property|
           key = property.name.to_s
           # let's make sure we have a default
-          if property.default
+          unless property.default.nil?
               if property.default.class == Proc
                 self[key] = property.default.call
               else
