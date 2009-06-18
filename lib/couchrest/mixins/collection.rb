@@ -27,23 +27,30 @@ module CouchRest
           proxy.paginated_each(options, &block)
         end
 
+        def collection_proxy_for(design_doc, view_name, view_options = {})
+          options = view_options.merge(:design_doc => design_doc, :view_name => view_name)
+          create_collection_proxy(options)
+        end
+
         private
 
         def create_collection_proxy(options)
-          view_name, view_options = parse_view_options(options)
-          CollectionProxy.new(@database, view_name, view_options, self)
+          view_name, view_options, design_doc = parse_view_options(options)
+          CollectionProxy.new(@database, design_doc, view_name, view_options, self)
         end
 
         def parse_view_options(options)
-          raise ArgumentError, 'parameter hash expected' unless options.respond_to? :symbolize_keys
-          options = options.symbolize_keys
+          design_doc = options.delete(:design_doc)
+          raise ArgumentError, 'design_doc is required' if design_doc.nil?
 
           view_name = options.delete(:view_name)
           raise ArgumentError, 'view_name is required' if view_name.nil?
 
           view_options = options.delete(:view_options) || {}
+          default_view_options = (design_doc['views'][view_name.to_s] && design_doc['views'][view_name.to_s]["couchrest-defaults"]) || {}
+          view_options = default_view_options.merge(view_options).merge(options)
 
-          [view_name, view_options]
+          [view_name, view_options, design_doc]
         end
       end
 
@@ -51,17 +58,24 @@ module CouchRest
         alias_method :proxy_respond_to?, :respond_to?
         instance_methods.each { |m| undef_method m unless m =~ /(^__|^nil\?$|^send$|proxy_|^object_id$)/ }
 
-        def initialize(database, view_name, view_options = {}, container_class = nil)
-          @container_class = container_class
+        def initialize(database, design_doc, view_name, view_options = {}, container_class = nil)
+          raise ArgumentError, "database is a required parameter" if database.nil?
+
           @database = database
-          @view_name = view_name
           @view_options = view_options
+          @container_class = container_class
+
+          if design_doc.class == Design
+            @view_name = "#{design_doc.name}/#{view_name}"
+          else
+            @view_name = "#{design_doc}/#{view_name}"
+          end
         end
 
         def paginate(options = {})
           page, per_page = parse_options(options)
-          rows = @database.view(@view_name, @view_options.merge(pagination_options(page, per_page)))['rows']
-          convert_to_container_array(rows)
+          results = @database.view(@view_name, @view_options.merge(pagination_options(page, per_page)))
+          convert_to_container_array(results)
         end
 
         def paginated_each(options = {}, &block)
@@ -99,8 +113,8 @@ module CouchRest
 
         def load_target
           unless loaded?
-            rows = @database.view(@view_name, @view_options)['rows']
-            @target = convert_to_container_array(rows)
+            results = @database.view(@view_name, @view_options)
+            @target = convert_to_container_array(results)
           end
           @loaded = true
           @target
@@ -126,12 +140,12 @@ module CouchRest
           @target.inspect
         end
 
-        def convert_to_container_array(rows)
-          return rows if @container_class.nil?
-
-          container = []
-          rows.each { |row| container << @container_class.new(row['value']) } unless rows.nil?
-          container
+        def convert_to_container_array(results)
+          if @container_class.nil?
+            results
+          else
+            results['rows'].collect { |row| @container_class.new(row['doc']) } unless results['rows'].nil?
+          end
         end
 
         def pagination_options(page, per_page)
@@ -139,12 +153,9 @@ module CouchRest
         end
 
         def parse_options(options)
-          raise ArgumentError, 'parameter hash expected' unless options.respond_to? :symbolize_keys
-          options = options.symbolize_keys
-
           page = options[:page] || 1
           per_page = options[:per_page] || 30
-          [page, per_page]
+          [page.to_i, per_page.to_i]
         end
       end
 

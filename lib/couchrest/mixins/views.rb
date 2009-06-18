@@ -141,8 +141,12 @@ module CouchRest
             fetch_view(db, name, opts, &block)
           else
             begin
-              view = fetch_view db, name, opts.merge({:include_docs => true}), &block
-              view['rows'].collect{|r|new(r['doc'])} if view['rows']
+              if block.nil?
+                collection_proxy_for(design_doc, name, opts.merge({:include_docs => true}))
+              else
+                view = fetch_view db, name, opts.merge({:include_docs => true}), &block
+                view['rows'].collect{|r|new(r['doc'])} if view['rows']
+              end
             rescue
               # fallback for old versions of couchdb that don't 
               # have include_docs support

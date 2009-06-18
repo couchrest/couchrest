@@ -337,5 +337,37 @@ describe "ExtendedDocument views" do
       Article.design_doc["views"].keys.should include("by_updated_at")
     end
   end
-  
+
+  describe "with a collection" do
+    before(:all) do
+      reset_test_db!
+      @titles = ["very uniq one", "really interesting", "some fun",
+        "really awesome", "crazy bob", "this rocks", "super rad"]
+      @titles.each_with_index do |title,i|
+        a = Article.new(:title => title, :date => Date.today)
+        a.save
+      end
+    end
+    it "should return an array of 7 Article objects" do
+      articles = Article.by_date :key => Date.today
+      articles.class.should == Array
+      articles.size.should == 7
+    end
+    it "should get a subset of articles using paginate" do
+      articles = Article.by_date :key => Date.today
+      articles.paginate(:page => 1, :per_page => 3).size.should == 3
+      articles.paginate(:page => 2, :per_page => 3).size.should == 3
+      articles.paginate(:page => 3, :per_page => 3).size.should == 1
+    end
+#    it "should get all articles, a few at a time, using paginated each" do
+#
+#    end
+#    it "should provide a class method to access the collection directly" do
+#
+#    end
+#    it "should provide class methods for pagination" do
+#
+#    end
+  end
+
 end
