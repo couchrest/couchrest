@@ -348,7 +348,7 @@ describe "ExtendedDocument views" do
         a.save
       end
     end
-    it "should return an array of 7 Article objects" do
+    it "should return a proxy that looks like an array of 7 Article objects" do
       articles = Article.by_date :key => Date.today
       articles.class.should == Array
       articles.size.should == 7
@@ -359,15 +359,58 @@ describe "ExtendedDocument views" do
       articles.paginate(:page => 2, :per_page => 3).size.should == 3
       articles.paginate(:page => 3, :per_page => 3).size.should == 1
     end
-#    it "should get all articles, a few at a time, using paginated each" do
-#
-#    end
-#    it "should provide a class method to access the collection directly" do
-#
-#    end
-#    it "should provide class methods for pagination" do
-#
-#    end
+    it "should get all articles, a few at a time, using paginated each" do
+      articles = Article.by_date :key => Date.today
+      articles.paginated_each(:per_page => 3) do |a|
+        a.should_not be_nil
+      end
+    end
+    it "should provide a class method to access the collection directly" do
+      articles = Article.collection_proxy_for('Article', 'by_date', :descending => true,
+        :key => Date.today, :include_docs => true)
+      articles.class.should == Array
+      articles.size.should == 7
+    end
+    it "should provide a class method for paginate" do
+      articles = Article.paginate(:design_doc => 'Article', :view_name => 'by_date',
+        :per_page => 3, :descending => true, :key => Date.today, :include_docs => true)
+      articles.size.should == 3
+
+      articles = Article.paginate(:design_doc => 'Article', :view_name => 'by_date',
+        :per_page => 3, :page => 2, :descending => true, :key => Date.today, :include_docs => true)
+      articles.size.should == 3
+
+      articles = Article.paginate(:design_doc => 'Article', :view_name => 'by_date',
+        :per_page => 3, :page => 3, :descending => true, :key => Date.today, :include_docs => true)
+      articles.size.should == 1
+    end
+    it "should provide a class method for paginated_each" do
+      options = { :design_doc => 'Article', :view_name => 'by_date',
+        :per_page => 3, :page => 1, :descending => true, :key => Date.today,
+        :include_docs => true }
+      Article.paginated_each(options) do |a|
+        a.should_not be_nil
+      end
+    end
+    it "should provide a class method to get a collection for a view" do
+      class Article
+        provides_collection :article_details, :through => {
+          :design_doc => 'Article', :view_name => 'by_date', :descending => true,
+          :include_docs => true }
+      end
+
+      articles = Article.find_all_article_details(:key => Date.today)
+      articles.class.should == Array
+      articles.size.should == 7
+    end
+    it "should raise an exception if design_doc is not provided" do
+      lambda{Article.collection_proxy_for(nil, 'by_date')}.should raise_error
+      lambda{Article.paginate(:view_name => 'by_date')}.should raise_error
+    end
+    it "should raise an exception if view_name is not provided" do
+      lambda{Article.collection_proxy_for('Article', nil)}.should raise_error
+      lambda{Article.paginate(:design_doc => 'Article')}.should raise_error
+    end
   end
 
 end
