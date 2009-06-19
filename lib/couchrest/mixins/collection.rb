@@ -8,36 +8,47 @@ module CouchRest
 
       module ClassMethods
 
-        # Creates a new class method, find_all_<collection_name> on the class
-        # that will execute the view specified in the collection_options,
-        # along with all view options specified.  This method will return the
-        # results of the view as an Array of objects which are instances of the
-        # class.
+        # Creates a new class method, find_all_<collection_name>, that will
+        # execute the view specified with the design_doc and view_name 
+        # parameters, along with the specified view_options.  This method will
+        # return the results of the view as an Array of objects which are
+        # instances of the class.
         #
         # This method is handy for objects that do not use the view_by method
         # to declare their views.
-        #
-        def provides_collection(collection_name, collection_options)
+        def provides_collection(collection_name, design_doc, view_name, view_options)
           class_eval <<-END, __FILE__, __LINE__ + 1
             def self.find_all_#{collection_name}(options = {})
-              design_doc = "#{collection_options[:through].delete(:design_doc)}"
-              view_name = "#{collection_options[:through].delete(:view_name)}"
-              view_options = #{collection_options[:through].inspect} || {}
-              CollectionProxy.new(@database, design_doc, view_name, view_options.merge(options), Kernel.const_get('#{self}'))
+              view_options = #{view_options.inspect} || {}
+              CollectionProxy.new(@database, "#{design_doc}", "#{view_name}", view_options.merge(options), Kernel.const_get('#{self}'))
             end
           END
         end
 
+        # Fetch a group of objects from CouchDB.  Options can include:
+        #   :page - Specifies the page to load (starting at 1)
+        #   :per_page - Specifies the number of objects to load per page
+        #
+        # Defaults are used if these options are not specified.
         def paginate(options)
           proxy = create_collection_proxy(options)
           proxy.paginate(options)
         end
 
+        # Iterate over the objects in a collection, fetching them from CouchDB
+        # in groups.  Options can include:
+        #   :page - Specifies the page to load
+        #   :per_page - Specifies the number of objects to load per page
+        #
+        # Defaults are used if these options are not specified.
         def paginated_each(options, &block)
           proxy = create_collection_proxy(options)
           proxy.paginated_each(options, &block)
         end
 
+        # Create a CollectionProxy for the specified view and options.
+        # CollectionProxy behaves just like an Array, but offers support for
+        # pagination.
         def collection_proxy_for(design_doc, view_name, view_options = {})
           options = view_options.merge(:design_doc => design_doc, :view_name => view_name)
           create_collection_proxy(options)
@@ -73,6 +84,13 @@ module CouchRest
         DEFAULT_PAGE = 1
         DEFAULT_PER_PAGE = 30
 
+        # Create a new CollectionProxy to represent the specified view.  If a
+        # container class is specified, the proxy will create an object of the
+        # given type for each row that comes back from the view.  If no
+        # container class is specified, the raw results are returned.
+        #
+        # The CollectionProxy provides support for paginating over a collection
+        # via the paginate, and paginated_each methods.
         def initialize(database, design_doc, view_name, view_options = {}, container_class = nil)
           raise ArgumentError, "database is a required parameter" if database.nil?
 
@@ -89,12 +107,14 @@ module CouchRest
           end
         end
 
+        # See Collection.paginate
         def paginate(options = {})
           page, per_page = parse_options(options)
           results = @database.view(@view_name, @view_options.merge(pagination_options(page, per_page)))
           convert_to_container_array(results)
         end
 
+        # See Collection.paginated_each
         def paginated_each(options = {}, &block)
           page, per_page = parse_options(options)
 

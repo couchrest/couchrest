@@ -394,9 +394,7 @@ describe "ExtendedDocument views" do
     end
     it "should provide a class method to get a collection for a view" do
       class Article
-        provides_collection :article_details, :through => {
-          :design_doc => 'Article', :view_name => 'by_date', :descending => true,
-          :include_docs => true }
+        provides_collection :article_details, 'Article', 'by_date', :descending => true, :include_docs => true
       end
 
       articles = Article.find_all_article_details(:key => Date.today)
