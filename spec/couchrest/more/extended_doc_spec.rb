@@ -12,6 +12,7 @@ describe "ExtendedDocument" do
     property :set_by_proc,  :default => Proc.new{Time.now},       :cast_as => 'Time'
     property :tags,         :default => []
     property :read_only_with_default, :default => 'generic', :read_only => true
+    property :default_false, :default => false
     property :name
     timestamps!
   end
@@ -172,6 +173,10 @@ describe "ExtendedDocument" do
   describe "with default" do
     it "should have the default value set at initalization" do
       @obj.preset.should == {:right => 10, :top_align => false}
+    end
+
+    it "should have the default false value explicitly assigned" do
+      @obj.default_false.should == false
     end
     
     it "should automatically call a proc default at initialization" do
