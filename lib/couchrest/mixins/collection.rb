@@ -110,7 +110,8 @@ module CouchRest
         # See Collection.paginate
         def paginate(options = {})
           page, per_page = parse_options(options)
-          results = @database.view(@view_name, @view_options.merge(pagination_options(page, per_page)))
+          results = @database.view(@view_name, pagination_options(page, per_page))
+          remember_where_we_left_off(results, page)
           convert_to_container_array(results)
         end
 
@@ -186,7 +187,14 @@ module CouchRest
         end
 
         def pagination_options(page, per_page)
-          { :limit => per_page, :skip => per_page * (page - 1) }
+          view_options = @view_options.clone
+          if @last_key && @last_docid && @last_page == page - 1
+            view_options.delete(:key)
+            options = { :startkey => @last_key, :startkey_docid => @last_docid, :limit => per_page, :skip => 1 }
+          else
+            options = { :limit => per_page, :skip => per_page * (page - 1) }
+          end
+          view_options.merge(options)
         end
 
         def parse_options(options)
@@ -197,6 +205,13 @@ module CouchRest
 
         def strip_pagination_options(options)
           parse_options(options)
+        end
+
+        def remember_where_we_left_off(results, page)
+          last_row = results['rows'].last
+          @last_key = last_row['key']
+          @last_docid = last_row['id']
+          @last_page = page
         end
       end
 
