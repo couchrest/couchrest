@@ -40,7 +40,7 @@ module CouchRest
         value = target.send(field_name)
         return true if @options[:allow_nil] && value.nil?
 
-        value = value.kind_of?(Float) ? value.to_s('F') : value.to_s
+        value = (defined?(BigDecimal) && value.kind_of?(BigDecimal)) ? value.to_s('F') : value.to_s
 
         error_message = @options[:message]
         precision     = @options[:precision]
