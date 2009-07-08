@@ -1,0 +1,19 @@
+== 0.30
+ 
+* Major enhancements
+ 
+  * Added support for pagination (John Wood)
+  * Improved performance when initializing documents with timestamps (Matt Aimonetti)
+ 
+* Minor enhancements
+ 
+  * Extended the API to retrieve an attachment URI (Matt Aimonetti)
+  * Bug fix: default value should be able to be set as false (Alexander Uvarov)
+  * Bug fix: validates_is_numeric should be able to properly validate a Float instance (Rob Kaufman)
+  * Bug fix: fixed the Timeout implementation (Seth Falcon)
+  
+  
+---
+
+Unfortunately, before 0.30 we did not keep a track of the modifications made to CouchRest.
+You can see the full commit history on GitHub: http://github.com/mattetti/couchrest/commits/master/

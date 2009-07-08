@@ -93,3 +93,25 @@ you can define some casting rules.
 
 If you want to cast an array of instances from a specific Class, use the trick shown above ["ClassName"]
 
+### Pagination
+
+Pagination is available in any ExtendedDocument classes. Here are some usage examples:
+
+basic usage:
+
+    Article.all.paginate(:page => 1, :per_page => 5)
+    
+note: the above query will look like: `GET /db/_design/Article/_view/all?include_docs=true&skip=0&limit=5&reduce=false` and only fetch 5 documents. 
+    
+Slightly more advance usage:
+  
+    Article.by_name(:startkey => 'a', :endkey => {}).paginate(:page => 1, :per_page => 5)
+    
+note: the above query will look like: `GET /db/_design/Article/_view/by_name?startkey=%22a%22&limit=5&skip=0&endkey=%7B%7D&include_docs=true`    
+Basically, you can paginate through the articles starting by the letter a, 5 articles at a time.
+
+
+Low level usage:        
+
+    Article.paginate(:design_doc => 'Article', :view_name => 'by_date',
+      :per_page => 3, :page => 2, :descending => true, :key => Date.today, :include_docs => true)
