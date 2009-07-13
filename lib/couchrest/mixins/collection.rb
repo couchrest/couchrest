@@ -209,8 +209,10 @@ module CouchRest
 
         def remember_where_we_left_off(results, page)
           last_row = results['rows'].last
-          @last_key = last_row['key']
-          @last_docid = last_row['id']
+          if last_row
+            @last_key = last_row['key']
+            @last_docid = last_row['id']
+          end
           @last_page = page
         end
       end
