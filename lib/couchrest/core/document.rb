@@ -3,10 +3,6 @@ require 'delegate'
 module CouchRest  
   class Document < Response
     include CouchRest::Mixins::Attachments
-
-    # def self.inherited(subklass)
-    #   subklass.send(:extlib_inheritable_accessor, :database)
-    # end
     
     extlib_inheritable_accessor :database
     attr_accessor :database

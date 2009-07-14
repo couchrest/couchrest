@@ -162,7 +162,7 @@ module CouchRest
           begin
             design_doc.view_on(db, view_name, opts, &block)
             # the design doc may not have been saved yet on this database
-          rescue RestClient::ResourceNotFound => e
+          rescue HttpAbstraction::ResourceNotFound => e
             if retryable
               save_design_doc_on(db)
               retryable = false

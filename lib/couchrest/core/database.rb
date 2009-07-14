@@ -58,7 +58,7 @@ module CouchRest
       keys = params.delete(:keys)
       funcs = funcs.merge({:keys => keys}) if keys
       url = CouchRest.paramify_url "#{@root}/_temp_view", params
-      JSON.parse(RestClient.post(url, funcs.to_json, {"Content-Type" => 'application/json'}))
+      JSON.parse(HttpAbstraction.post(url, funcs.to_json, {"Content-Type" => 'application/json'}))
     end
     
     # backwards compatibility is a plus
@@ -100,11 +100,8 @@ module CouchRest
     
     # GET an attachment directly from CouchDB
     def fetch_attachment(doc, name)
-      # slug = escape_docid(docid)        
-      # name = CGI.escape(name)
       uri = url_for_attachment(doc, name)
-      RestClient.get uri
-      # "#{@uri}/#{slug}/#{name}"
+      HttpAbstraction.get uri
     end
     
     # PUT an attachment directly to CouchDB
@@ -112,14 +109,14 @@ module CouchRest
       docid = escape_docid(doc['_id'])
       name = CGI.escape(name)
       uri = url_for_attachment(doc, name)
-      JSON.parse(RestClient.put(uri, file, options))
+      JSON.parse(HttpAbstraction.put(uri, file, options))
     end
     
     # DELETE an attachment directly from CouchDB
     def delete_attachment doc, name
       uri = url_for_attachment(doc, name)
       # this needs a rev
-      JSON.parse(RestClient.delete(uri))
+      JSON.parse(HttpAbstraction.delete(uri))
     end
     
     # Save a document to CouchDB. This will use the <tt>_id</tt> field from
@@ -146,7 +143,7 @@ module CouchRest
         slug = escape_docid(doc['_id'])
         begin     
           CouchRest.put "#{@root}/#{slug}", doc
-        rescue RestClient::ResourceNotFound
+        rescue HttpAbstraction::ResourceNotFound
           p "resource not found when saving even tho an id was passed"
           slug = doc['_id'] = @server.next_uuid
           CouchRest.put "#{@root}/#{slug}", doc
@@ -252,7 +249,7 @@ module CouchRest
     def recreate!
       delete!
       create!
-    rescue RestClient::ResourceNotFound
+    rescue HttpAbstraction::ResourceNotFound
     ensure
       create!
     end

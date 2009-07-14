@@ -45,6 +45,7 @@ module CouchRest
   autoload :ExtendedDocument,     'couchrest/more/extended_document'
   autoload :CastedModel,          'couchrest/more/casted_model'
   
+  require File.join(File.dirname(__FILE__), 'couchrest', 'core', 'http_abstraction')
   require File.join(File.dirname(__FILE__), 'couchrest', 'mixins')
   
   # The CouchRest module methods handle the basic JSON serialization 
@@ -118,9 +119,9 @@ module CouchRest
       }
     end
 
-    # set proxy for RestClient to use
+    # set proxy to use
     def proxy url
-      RestClient.proxy = url
+      HttpAbstraction.proxy = url
     end
 
     # ensure that a database exists
@@ -141,7 +142,7 @@ module CouchRest
     def put(uri, doc = nil)
       payload = doc.to_json if doc
       begin
-        JSON.parse(RestClient.put(uri, payload))
+        JSON.parse(HttpAbstraction.put(uri, payload))
       rescue Exception => e
         if $DEBUG
           raise "Error while sending a PUT request #{uri}\npayload: #{payload.inspect}\n#{e}"
@@ -153,7 +154,7 @@ module CouchRest
 
     def get(uri)
       begin
-        JSON.parse(RestClient.get(uri), :max_nesting => false)
+        JSON.parse(HttpAbstraction.get(uri), :max_nesting => false)
       rescue => e
         if $DEBUG
           raise "Error while sending a GET request #{uri}\n: #{e}"
@@ -166,7 +167,7 @@ module CouchRest
     def post uri, doc = nil
       payload = doc.to_json if doc
       begin
-        JSON.parse(RestClient.post(uri, payload))
+        JSON.parse(HttpAbstraction.post(uri, payload))
       rescue Exception => e
         if $DEBUG
           raise "Error while sending a POST request #{uri}\npayload: #{payload.inspect}\n#{e}"
@@ -177,11 +178,11 @@ module CouchRest
     end
   
     def delete uri
-      JSON.parse(RestClient.delete(uri))
+      JSON.parse(HttpAbstraction.delete(uri))
     end
     
     def copy uri, destination
-      JSON.parse(RestClient.copy(uri, {'Destination' => destination}))
+      JSON.parse(HttpAbstraction.copy(uri, {'Destination' => destination}))
     end
   
     def paramify_url url, params = {}
