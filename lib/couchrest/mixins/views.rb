@@ -72,7 +72,7 @@ module CouchRest
         #  
         # To understand the capabilities of this view system more completely,
         # it is recommended that you read the RSpec file at
-        # <tt>spec/core/model_spec.rb</tt>.
+        # <tt>spec/couchrest/more/extended_doc_spec.rb</tt>.
 
         def view_by(*keys)
           opts = keys.pop if keys.last.is_a?(Hash)
@@ -124,14 +124,6 @@ module CouchRest
         # potentially large indexes.
         def cleanup_design_docs!(db = database)
           save_design_doc_on(db)
-          # db.refresh_design_doc
-          #           db.save_design_doc
-          # design_doc = model_design_doc(db)
-          # if design_doc
-          #   db.delete_doc(design_doc)
-          # else
-          #   false
-          # end
         end
 
         private

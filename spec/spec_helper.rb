@@ -20,7 +20,7 @@ class Basic < CouchRest::ExtendedDocument
 end
 
 def reset_test_db!
-  DB.recreate! rescue nil
+  DB.recreate! rescue nil 
   DB
 end
 

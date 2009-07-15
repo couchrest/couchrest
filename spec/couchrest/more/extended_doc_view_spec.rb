@@ -121,7 +121,7 @@ describe "ExtendedDocument views" do
   describe "a model class not tied to a database" do
     before(:all) do
       reset_test_db!
-      @db = DB
+      @db = DB 
       %w{aaa bbb ddd eee}.each do |title|
         u = Unattached.new(:title => title)
         u.database = @db
@@ -133,14 +133,15 @@ describe "ExtendedDocument views" do
       lambda{Unattached.all}.should raise_error
     end
     it "should query all" do
-      rs = Unattached.all :database=>@db
+      Unattached.cleanup_design_docs!(@db)
+      rs = Unattached.all :database => @db
       rs.length.should == 4
     end
     it "should barf on query if no database given" do
       lambda{Unattached.view :by_title}.should raise_error
     end
     it "should make the design doc upon first query" do
-      Unattached.by_title :database=>@db
+      Unattached.by_title :database => @db
       doc = Unattached.design_doc
       doc['views']['all']['map'].should include('Unattached')
     end
@@ -157,7 +158,7 @@ describe "ExtendedDocument views" do
       things = []
       Unattached.view(:by_title, :database=>@db) do |thing|
         things << thing
-      end
+      end 
       things[0]["doc"]["title"].should =='aaa'
     end
     it "should yield with by_key method" do
