@@ -5,7 +5,8 @@
   * Created an abstraction HTTP layer to support different http adapters (Matt Aimonetti)
   
 * Minor enhancements
-
+  
+  * Optimized Model.count to run about 3x faster (Matt Aimonetti)
   * Added Float casting (Ryan Felton & Matt Aimonetti)
 
 == 0.30
