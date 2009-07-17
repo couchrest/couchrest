@@ -27,6 +27,8 @@ class Time
   # end
 end
 
+# TODO: move away from here
+require 'net/http'
 # Monkey patch for faster net/http io
 if RUBY_VERSION.to_f < 1.9
   class Net::BufferedIO #:nodoc:

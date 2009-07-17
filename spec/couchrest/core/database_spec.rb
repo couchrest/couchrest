@@ -4,8 +4,7 @@ describe CouchRest::Database do
   before(:each) do
     @cr = CouchRest.new(COUCHHOST)
     @db = @cr.database(TESTDB)
-    @db.delete! rescue nil
-    @db = @cr.create_db(TESTDB) rescue nil
+    @db.recreate! rescue nil
   end
 
   describe "database name including slash" do
@@ -239,11 +238,6 @@ describe CouchRest::Database do
       }
       @db.save_doc(@doc)
     end
-    
-    # Depreacated
-    # it "should get the attachment with the doc's _id" do
-    #   @db.fetch_attachment("mydocwithattachment", "test.html").should == @attach
-    # end
     
     it "should get the attachment with the doc itself" do
       @db.fetch_attachment(@db.get('mydocwithattachment'), 'test.html').should == @attach

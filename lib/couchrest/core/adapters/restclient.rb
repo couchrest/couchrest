@@ -1,4 +1,10 @@
+require 'rest_client'
+
 module RestClientAdapter
+  
+  def self.included(base)
+    base.extend(::RestClientAdapter::API)
+  end
    
   module API
     def proxy=(url)
@@ -9,15 +15,15 @@ module RestClientAdapter
       RestClient.proxy
     end
   
-    def get(uri, headers={})
+    def get(uri, headers={}) 
       RestClient.get(uri, headers)
     end
   
-    def post(uri, payload, headers={})
+    def post(uri, payload=nil, headers={})
       RestClient.post(uri, payload, headers)
     end
   
-    def put(uri, payload, headers={})
+    def put(uri, payload=nil, headers={})
       RestClient.put(uri, payload, headers)
     end
   

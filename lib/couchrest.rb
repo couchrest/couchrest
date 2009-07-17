@@ -12,13 +12,20 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-require 'rubygems'
+############ IMPORTANT NOTE ############
+#
+# rubygem is not required on purpose
+# Make sure your code already required rubygem
+# or that all the libraries your need are already
+# in your load path.
+# 
+############ -------------- ############
+
 begin
   require 'json'
 rescue LoadError
   raise "You need install and require your own json compatible library since couchrest rest couldn't load the json/json_pure gem" unless Kernel.const_defined?("JSON")
 end
-require 'rest_client'
 
 $:.unshift File.dirname(__FILE__) unless
   $:.include?(File.dirname(__FILE__)) ||
@@ -47,6 +54,7 @@ module CouchRest
   
   require File.join(File.dirname(__FILE__), 'couchrest', 'core', 'http_abstraction')
   require File.join(File.dirname(__FILE__), 'couchrest', 'mixins')
+  
   
   # The CouchRest module methods handle the basic JSON serialization 
   # and deserialization, as well as query parameters. The module also includes
@@ -85,6 +93,7 @@ module CouchRest
     # todo, make this parse the url and instantiate a Server or Database instance
     # depending on the specificity.
     def new(*opts)
+      ::HttpAbstraction.use_adapter('RestClient') if ::HttpAbstraction.adapter.nil?
       Server.new(*opts)
     end
     
