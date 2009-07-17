@@ -52,8 +52,25 @@ module CouchRest
       end
     end
     
-
+    # Defines an instance and save it directly to the database 
+    # 
+    # ==== Returns
+    #  returns the reloaded document
+    def self.create(options)
+      instance = new(options)
+      instance.create
+      instance
+    end
     
+    # Defines an instance and save it directly to the database 
+    # 
+    # ==== Returns
+    #  returns the reloaded document or raises an exception
+    def self.create!(options)
+      instance = new(options)
+      instance.create!
+      instance
+    end
     
     # Automatically set <tt>updated_at</tt> and <tt>created_at</tt> fields
     # on the document whenever saving occurs. CouchRest uses a pretty

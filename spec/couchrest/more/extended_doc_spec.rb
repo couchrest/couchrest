@@ -97,6 +97,22 @@ describe "ExtendedDocument" do
     end
   end
   
+  describe "creating a new document" do
+    it "should instantialize and save a document" do
+      article = Article.create(:title => 'my test')
+      article.title.should == 'my test'
+      article.should_not be_new_document 
+    end 
+    
+    it "should trigger the create callbacks" do
+      doc = WithCallBacks.create(:name => 'my other test') 
+      doc.run_before_create.should be_true
+      doc.run_after_create.should be_true
+      doc.run_before_save.should be_true
+      doc.run_after_save.should be_true
+    end
+  end
+  
   describe "update attributes without saving" do
     before(:each) do
       a = Article.get "big-bad-danger" rescue nil
