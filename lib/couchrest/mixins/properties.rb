@@ -56,7 +56,6 @@ module CouchRest
       def cast_keys
         return unless self.class.properties
         self.class.properties.each do |property|
-          
           next unless property.casted
           key = self.has_key?(property.name) ? property.name : property.name.to_sym
           # Don't cast the property unless it has a value
@@ -75,6 +74,9 @@ module CouchRest
             self[property.name] = if ((property.init_method == 'new') && target == 'Time')
               # Using custom time parsing method because Ruby's default method is toooo slow 
               self[key].is_a?(String) ? Time.mktime_with_offset(self[key].dup) : self[key]
+            # Float instances don't get initialized with #new
+            elsif ((property.init_method == 'new') && target == 'Float')
+              cast_float(self[key])
             else
               # Let people use :send as a Time parse arg
               klass = ::CouchRest.constantize(target)
@@ -84,6 +86,15 @@ module CouchRest
           end 
           
         end
+        
+        def cast_float(value)
+          begin 
+            Float(value)
+          rescue 
+            value
+          end
+        end
+        
       end
       
       module ClassMethods

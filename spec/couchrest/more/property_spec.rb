@@ -141,6 +141,29 @@ describe "ExtendedDocument properties" do
         @event['occurs_at'].should be_an_instance_of(Time)
       end
     end
+    
+    describe "casting to Float object" do
+      class RootBeerFloat < CouchRest::ExtendedDocument
+        use_database DB
+        property :price, :cast_as => 'Float'
+      end
+      
+      it "should convert a string into a float if casted as so" do
+        RootBeerFloat.new(:price => '12.50').price.should == 12.50
+        RootBeerFloat.new(:price => '9').price.should == 9.0
+        RootBeerFloat.new(:price => '-9').price.should == -9.0
+      end
+      
+      it "should not convert a string if it's not a string that can be cast as a float" do
+        RootBeerFloat.new(:price => 'test').price.should == 'test'
+      end
+      
+      it "should work fine when a float is being passed" do
+        RootBeerFloat.new(:price => 9.99).price.should == 9.99
+      end
+      
+    end
+    
   end
   
 end

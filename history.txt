@@ -1,3 +1,13 @@
+== 0.31
+
+* Major enhancements
+
+  * Created an abstraction HTTP layer to support different http adapters (Matt Aimonetti)
+  
+* Minor enhancements
+
+  * Added Float casting (Ryan Felton & Matt Aimonetti)
+
 == 0.30
  
 * Major enhancements
