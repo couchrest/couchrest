@@ -7,6 +7,8 @@
   
 * Minor enhancements
   
+  * Added an init.rb file for easy usage as a Rails plugin (Aaron Quint)
+  * Bug fix: pagination shouldn't die on empty results (Arnaud Berthomier)
   * Optimized ExtendedDocument.count to run about 3x faster (Matt Aimonetti)
   * Added Float casting (Ryan Felton & Matt Aimonetti)
 
