@@ -121,7 +121,7 @@ describe "ExtendedDocument views" do
   describe "a model class not tied to a database" do
     before(:all) do
       reset_test_db!
-      @db = DB
+      @db = DB 
       %w{aaa bbb ddd eee}.each do |title|
         u = Unattached.new(:title => title)
         u.database = @db
@@ -133,14 +133,15 @@ describe "ExtendedDocument views" do
       lambda{Unattached.all}.should raise_error
     end
     it "should query all" do
-      rs = Unattached.all :database=>@db
+      Unattached.cleanup_design_docs!(@db)
+      rs = Unattached.all :database => @db
       rs.length.should == 4
     end
     it "should barf on query if no database given" do
       lambda{Unattached.view :by_title}.should raise_error
     end
     it "should make the design doc upon first query" do
-      Unattached.by_title :database=>@db
+      Unattached.by_title :database => @db
       doc = Unattached.design_doc
       doc['views']['all']['map'].should include('Unattached')
     end
@@ -157,7 +158,7 @@ describe "ExtendedDocument views" do
       things = []
       Unattached.view(:by_title, :database=>@db) do |thing|
         things << thing
-      end
+      end 
       things[0]["doc"]["title"].should =='aaa'
     end
     it "should yield with by_key method" do
@@ -337,5 +338,78 @@ describe "ExtendedDocument views" do
       Article.design_doc["views"].keys.should include("by_updated_at")
     end
   end
-  
+
+  describe "with a collection" do
+    before(:all) do
+      reset_test_db!
+      @titles = ["very uniq one", "really interesting", "some fun",
+        "really awesome", "crazy bob", "this rocks", "super rad"]
+      @titles.each_with_index do |title,i|
+        a = Article.new(:title => title, :date => Date.today)
+        a.save
+      end
+    end
+    it "should return a proxy that looks like an array of 7 Article objects" do
+      articles = Article.by_date :key => Date.today
+      articles.class.should == Array
+      articles.size.should == 7
+    end
+    it "should get a subset of articles using paginate" do
+      articles = Article.by_date :key => Date.today
+      articles.paginate(:page => 1, :per_page => 3).size.should == 3
+      articles.paginate(:page => 2, :per_page => 3).size.should == 3
+      articles.paginate(:page => 3, :per_page => 3).size.should == 1
+    end
+    it "should get all articles, a few at a time, using paginated each" do
+      articles = Article.by_date :key => Date.today
+      articles.paginated_each(:per_page => 3) do |a|
+        a.should_not be_nil
+      end
+    end
+    it "should provide a class method to access the collection directly" do
+      articles = Article.collection_proxy_for('Article', 'by_date', :descending => true,
+        :key => Date.today, :include_docs => true)
+      articles.class.should == Array
+      articles.size.should == 7
+    end
+    it "should provide a class method for paginate" do
+      articles = Article.paginate(:design_doc => 'Article', :view_name => 'by_date',
+        :per_page => 3, :descending => true, :key => Date.today, :include_docs => true)
+      articles.size.should == 3
+
+      articles = Article.paginate(:design_doc => 'Article', :view_name => 'by_date',
+        :per_page => 3, :page => 2, :descending => true, :key => Date.today, :include_docs => true)
+      articles.size.should == 3
+
+      articles = Article.paginate(:design_doc => 'Article', :view_name => 'by_date',
+        :per_page => 3, :page => 3, :descending => true, :key => Date.today, :include_docs => true)
+      articles.size.should == 1
+    end
+    it "should provide a class method for paginated_each" do
+      options = { :design_doc => 'Article', :view_name => 'by_date',
+        :per_page => 3, :page => 1, :descending => true, :key => Date.today,
+        :include_docs => true }
+      Article.paginated_each(options) do |a|
+        a.should_not be_nil
+      end
+    end
+    it "should provide a class method to get a collection for a view" do
+      class Article
+        provides_collection :article_details, 'Article', 'by_date', :descending => true, :include_docs => true
+      end
+
+      articles = Article.find_all_article_details(:key => Date.today)
+      articles.class.should == Array
+      articles.size.should == 7
+    end
+    it "should raise an exception if design_doc is not provided" do
+      lambda{Article.collection_proxy_for(nil, 'by_date')}.should raise_error
+      lambda{Article.paginate(:view_name => 'by_date')}.should raise_error
+    end
+    it "should raise an exception if view_name is not provided" do
+      lambda{Article.collection_proxy_for('Article', nil)}.should raise_error
+      lambda{Article.paginate(:design_doc => 'Article')}.should raise_error
+    end
+  end
+
 end

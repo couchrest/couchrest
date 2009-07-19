@@ -1,0 +1,33 @@
+== 0.31
+
+* Major enhancements
+
+  * Created an abstraction HTTP layer to support different http adapters (Matt Aimonetti)
+  * Added ExtendedDocument.create({}) and #create!({}) so you don't have to do Model.new.create (Matt Aimonetti)
+  
+* Minor enhancements
+  
+  * Added an init.rb file for easy usage as a Rails plugin (Aaron Quint)
+  * Bug fix: pagination shouldn't die on empty results (Arnaud Berthomier)
+  * Optimized ExtendedDocument.count to run about 3x faster (Matt Aimonetti)
+  * Added Float casting (Ryan Felton & Matt Aimonetti)
+
+== 0.30
+ 
+* Major enhancements
+ 
+  * Added support for pagination (John Wood)
+  * Improved performance when initializing documents with timestamps (Matt Aimonetti)
+ 
+* Minor enhancements
+ 
+  * Extended the API to retrieve an attachment URI (Matt Aimonetti)
+  * Bug fix: default value should be able to be set as false (Alexander Uvarov)
+  * Bug fix: validates_is_numeric should be able to properly validate a Float instance (Rob Kaufman)
+  * Bug fix: fixed the Timeout implementation (Seth Falcon)
+  
+  
+---
+
+Unfortunately, before 0.30 we did not keep a track of the modifications made to CouchRest.
+You can see the full commit history on GitHub: http://github.com/mattetti/couchrest/commits/master/

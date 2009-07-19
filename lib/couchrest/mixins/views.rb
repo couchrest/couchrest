@@ -72,7 +72,7 @@ module CouchRest
         #  
         # To understand the capabilities of this view system more completely,
         # it is recommended that you read the RSpec file at
-        # <tt>spec/core/model_spec.rb</tt>.
+        # <tt>spec/couchrest/more/extended_doc_spec.rb</tt>.
 
         def view_by(*keys)
           opts = keys.pop if keys.last.is_a?(Hash)
@@ -124,14 +124,6 @@ module CouchRest
         # potentially large indexes.
         def cleanup_design_docs!(db = database)
           save_design_doc_on(db)
-          # db.refresh_design_doc
-          #           db.save_design_doc
-          # design_doc = model_design_doc(db)
-          # if design_doc
-          #   db.delete_doc(design_doc)
-          # else
-          #   false
-          # end
         end
 
         private
@@ -141,8 +133,12 @@ module CouchRest
             fetch_view(db, name, opts, &block)
           else
             begin
-              view = fetch_view db, name, opts.merge({:include_docs => true}), &block
-              view['rows'].collect{|r|new(r['doc'])} if view['rows']
+              if block.nil?
+                collection_proxy_for(design_doc, name, opts.merge({:include_docs => true}))
+              else
+                view = fetch_view db, name, opts.merge({:include_docs => true}), &block
+                view['rows'].collect{|r|new(r['doc'])} if view['rows']
+              end
             rescue
               # fallback for old versions of couchdb that don't 
               # have include_docs support
@@ -158,7 +154,7 @@ module CouchRest
           begin
             design_doc.view_on(db, view_name, opts, &block)
             # the design doc may not have been saved yet on this database
-          rescue RestClient::ResourceNotFound => e
+          rescue HttpAbstraction::ResourceNotFound => e
             if retryable
               save_design_doc_on(db)
               retryable = false

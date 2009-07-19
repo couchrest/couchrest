@@ -121,15 +121,28 @@ describe "ExtendedDocument" do
   end
   
   describe "a new model" do
-    it "should be a new_record" do
+    it "should be a new document" do
       @obj = Basic.new
       @obj.rev.should be_nil
       @obj.should be_new
+      @obj.should be_new_document
+      @obj.should be_new_record
     end
-    it "should be a new_document" do
-      @obj = Basic.new
-      @obj.rev.should be_nil
-      @obj.should be_new
+  end
+  
+  describe "creating a new document" do
+    it "should instantialize and save a document" do
+      article = Article.create(:title => 'my test')
+      article.title.should == 'my test'
+      article.should_not be_new
+    end 
+    
+    it "should trigger the create callbacks" do
+      doc = WithCallBacks.create(:name => 'my other test') 
+      doc.run_before_create.should be_true
+      doc.run_after_create.should be_true
+      doc.run_before_save.should be_true
+      doc.run_after_save.should be_true
     end
   end
   

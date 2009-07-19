@@ -12,14 +12,17 @@ Note: CouchRest only support CouchDB 0.9.0 or newer.
 
 ## Easy Install
 
-Easy Install is moving to RubyForge, heads up for the gem.
+    $ sudo gem install couchrest
+   
+Alternatively, you can install from Github:
+    
+    $ gem sources -a http://gems.github.com (you only have to do this once)
+    $ sudo gem install mattetti-couchrest
 
 ### Relax, it's RESTful
 
-The core of Couchrest is Heroku’s excellent REST Client Ruby HTTP wrapper.
-REST Client takes all the nastyness of Net::HTTP and gives is a pretty face,
-while still giving you more control than Open-URI. I recommend it anytime
-you’re interfacing with a well-defined web service.
+CouchRest rests on top of a HTTP abstraction layer using by default Heroku’s excellent REST Client Ruby HTTP wrapper.
+Other adapters can be added to support more http libraries.
 
 ### Running the Specs
 
@@ -27,7 +30,7 @@ The most complete documentation is the spec/ directory. To validate your
 CouchRest install, from the project root directory run `rake`, or `autotest`
 (requires RSpec and optionally ZenTest for autotest support).
 
-## Examples
+## Examples (CouchRest Core)
 
 Quick Start:
 
@@ -59,12 +62,50 @@ Creating and Querying Views:
       })
     puts @db.view('first/test')['rows'].inspect 
 
-## CouchRest::Model
 
-CouchRest::Model has been deprecated and replaced by CouchRest::ExtendedDocument
+## CouchRest::ExtendedDocument  
 
+CouchRest::ExtendedDocument is a DSL/ORM for CouchDB. Basically, ExtendedDocument seats on top of CouchRest Core to add the concept of Model.
+ExtendedDocument offers a lot of the usual ORM tools such as optional yet defined schema, validation, callbacks, pagination, casting and much more.
 
-## CouchRest::ExtendedDocument
+### Model example
+
+Check spec/couchrest/more and spec/fixtures/more for more examples
+
+    class Article < CouchRest::ExtendedDocument
+      use_database DB
+      unique_id :slug
+
+      view_by :date, :descending => true
+      view_by :user_id, :date
+
+      view_by :tags,
+        :map => 
+          "function(doc) {
+            if (doc['couchrest-type'] == 'Article' && doc.tags) {
+              doc.tags.forEach(function(tag){
+                emit(tag, 1);
+              });
+            }
+          }",
+        :reduce => 
+          "function(keys, values, rereduce) {
+            return sum(values);
+          }"  
+
+      property :date
+      property :slug, :read_only => true
+      property :title
+      property :tags, :cast_as => ['String']
+
+      timestamps!
+
+      save_callback :before, :generate_slug_from_title
+
+      def generate_slug_from_title
+        self['slug'] = title.downcase.gsub(/[^a-z0-9]/,'-').squeeze('-').gsub(/^\-|\-$/,'') if new?
+      end
+    end
 
 ### Callbacks
 
@@ -84,11 +125,13 @@ CouchRest uses a mixin you can find in lib/mixins/callbacks which is extracted f
     set_callback :save, :after,  :after_method, :if => :condition
     set_callback :save, :around {|r| stuff; yield; stuff }
     
-    Or the new shorter version:
+    Or the aliased short version:
     
     before_save :before_method, :another_method
     after_save  :after_method, :another_method, :if => :condition
     around_save {|r| stuff; yield; stuff }
+    
+To halt the callback, simply return a :halt symbol in your callback method.
     
 Check the mixin or the ExtendedDocument class to see how to implement your own callbacks.
 
@@ -102,3 +145,32 @@ you can define some casting rules.
 
 If you want to cast an array of instances from a specific Class, use the trick shown above ["ClassName"]
 
+### Pagination
+
+Pagination is available in any ExtendedDocument classes. Here are some usage examples:
+
+basic usage:
+
+    Article.all.paginate(:page => 1, :per_page => 5)
+    
+note: the above query will look like: `GET /db/_design/Article/_view/all?include_docs=true&skip=0&limit=5&reduce=false` and only fetch 5 documents. 
+    
+Slightly more advance usage:
+  
+    Article.by_name(:startkey => 'a', :endkey => {}).paginate(:page => 1, :per_page => 5)
+    
+note: the above query will look like: `GET /db/_design/Article/_view/by_name?startkey=%22a%22&limit=5&skip=0&endkey=%7B%7D&include_docs=true`    
+Basically, you can paginate through the articles starting by the letter a, 5 articles at a time.
+
+
+Low level usage:        
+
+    Article.paginate(:design_doc => 'Article', :view_name => 'by_date',
+      :per_page => 3, :page => 2, :descending => true, :key => Date.today, :include_docs => true)
+      
+      
+## Ruby on Rails
+
+CouchRest is compatible with rails and can even be used a Rails plugin.
+However, you might be interested in the CouchRest companion rails project:
+[http://github.com/hpoydar/couchrest-rails](http://github.com/hpoydar/couchrest-rails)      

@@ -13,10 +13,11 @@ module CouchRest
     include CouchRest::Mixins::DesignDoc
     include CouchRest::Mixins::ExtendedAttachments
     include CouchRest::Mixins::ClassProxy
+    include CouchRest::Mixins::Collection
 
-   def self.subclasses
-     @subclasses ||= []
-   end
+    def self.subclasses
+      @subclasses ||= []
+    end
     
     def self.inherited(subklass)
       subklass.send(:include, CouchRest::Mixins::Properties)
@@ -49,6 +50,26 @@ module CouchRest
       unless self['_id'] && self['_rev']
         self['couchrest-type'] = self.class.to_s
       end
+    end
+    
+    # Defines an instance and save it directly to the database 
+    # 
+    # ==== Returns
+    #  returns the reloaded document
+    def self.create(options)
+      instance = new(options)
+      instance.create
+      instance
+    end
+    
+    # Defines an instance and save it directly to the database 
+    # 
+    # ==== Returns
+    #  returns the reloaded document or raises an exception
+    def self.create!(options)
+      instance = new(options)
+      instance.create!
+      instance
     end
     
     # Automatically set <tt>updated_at</tt> and <tt>created_at</tt> fields

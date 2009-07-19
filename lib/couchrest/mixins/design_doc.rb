@@ -37,9 +37,6 @@ module CouchRest
                   if (doc['couchrest-type'] == '#{self.to_s}') {
                     emit(null,1);
                   }
-                }",
-                'reduce' => "function(keys, values) {
-                  return sum(values);
                 }"
               }
             }

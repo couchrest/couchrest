@@ -19,9 +19,7 @@ module CouchRest
         # equal to the name of the current class. Takes the standard set of 
         # CouchRest::Database#view options
         def count(opts = {}, &block)
-          result = all({:reduce => true}.merge(opts), &block)['rows']
-          return 0 if result.empty?
-          result.first['value']
+          all({:raw => true, :limit => 0}.merge(opts), &block)['total_rows']
         end
         
         # Load the first document that have the "couchrest-type" field equal to

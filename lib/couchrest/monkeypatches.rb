@@ -1,5 +1,6 @@
 require File.join(File.dirname(__FILE__), 'support', 'class')
 require File.join(File.dirname(__FILE__), 'support', 'blank')
+require 'timeout'
 
 # This file must be loaded after the JSON gem and any other library that beats up the Time class.
 class Time
@@ -38,7 +39,7 @@ if RUBY_VERSION.to_f < 1.9
           if IO.select([@io], nil, nil, @read_timeout)
             retry
           else
-            raise Timeout::TimeoutError
+            raise Timeout::Error
           end
         end
       else
@@ -50,63 +51,63 @@ if RUBY_VERSION.to_f < 1.9
   end
 end
 
-module RestClient
-  def self.copy(url, headers={})
-    Request.execute(:method => :copy,
-      :url => url,
-      :headers => headers)
-  end
-
-#   class Request
-#     
-#     def establish_connection(uri)
-#       Thread.current[:connection].finish if (Thread.current[:connection] && Thread.current[:connection].started?)
-#       p net_http_class
-#       net = net_http_class.new(uri.host, uri.port)
-#       net.use_ssl = uri.is_a?(URI::HTTPS)
-#       net.verify_mode = OpenSSL::SSL::VERIFY_NONE
-#       Thread.current[:connection] = net
-#       Thread.current[:connection].start
-#       Thread.current[:connection]
-#     end
-#     
-#     def transmit(uri, req, payload)
-#       setup_credentials(req)
-#       
-#       Thread.current[:host] ||= uri.host
-#       Thread.current[:port] ||= uri.port
-#       
-#       if (Thread.current[:connection].nil? || (Thread.current[:host] != uri.host))
-#         p "establishing a connection"
-#         establish_connection(uri)
-#       end
+# module RestClient
+#   # def self.copy(url, headers={})
+#   #   Request.execute(:method => :copy,
+#   #     :url => url,
+#   #     :headers => headers)
+#   # end  
 # 
-#       display_log request_log
-#       http = Thread.current[:connection]
-#       http.read_timeout = @timeout if @timeout
-#       
-#       begin
-#         res = http.request(req, payload)
-#       rescue
-#         p "Net::HTTP connection failed, reconnecting"
-#         establish_connection(uri)
-#         http = Thread.current[:connection]
-#         require 'ruby-debug'
-#         req.body_stream = nil
-#         
-#         res = http.request(req, payload)
-#         display_log response_log(res)
-#         result res
-#       else
-#         display_log response_log(res)
-#         process_result res
-#       end
-#       
-#     rescue EOFError
-#       raise RestClient::ServerBrokeConnection
-#     rescue Timeout::Error
-#       raise RestClient::RequestTimeout
-#     end
-#   end
-  
-end
+# #   class Request
+# #     
+# #     def establish_connection(uri)
+# #       Thread.current[:connection].finish if (Thread.current[:connection] && Thread.current[:connection].started?)
+# #       p net_http_class
+# #       net = net_http_class.new(uri.host, uri.port)
+# #       net.use_ssl = uri.is_a?(URI::HTTPS)
+# #       net.verify_mode = OpenSSL::SSL::VERIFY_NONE
+# #       Thread.current[:connection] = net
+# #       Thread.current[:connection].start
+# #       Thread.current[:connection]
+# #     end
+# #     
+# #     def transmit(uri, req, payload)
+# #       setup_credentials(req)
+# #       
+# #       Thread.current[:host] ||= uri.host
+# #       Thread.current[:port] ||= uri.port
+# #       
+# #       if (Thread.current[:connection].nil? || (Thread.current[:host] != uri.host))
+# #         p "establishing a connection"
+# #         establish_connection(uri)
+# #       end
+# # 
+# #       display_log request_log
+# #       http = Thread.current[:connection]
+# #       http.read_timeout = @timeout if @timeout
+# #       
+# #       begin
+# #         res = http.request(req, payload)
+# #       rescue
+# #         p "Net::HTTP connection failed, reconnecting"
+# #         establish_connection(uri)
+# #         http = Thread.current[:connection]
+# #         require 'ruby-debug'
+# #         req.body_stream = nil
+# #         
+# #         res = http.request(req, payload)
+# #         display_log response_log(res)
+# #         result res
+# #       else
+# #         display_log response_log(res)
+# #         process_result res
+# #       end
+# #       
+# #     rescue EOFError
+# #       raise RestClient::ServerBrokeConnection
+# #     rescue Timeout::Error
+# #       raise RestClient::RequestTimeout
+# #     end
+# #   end
+#   
+# end 

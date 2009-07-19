@@ -1,6 +1,25 @@
 require 'time'
 require File.join(File.dirname(__FILE__), '..', 'more', 'property')
 
+class Time                       
+  # returns a local time value much faster than Time.parse
+  def self.mktime_with_offset(string)
+    string =~ /(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ([\+\-])(\d{2})/
+    # $1 = year
+    # $2 = month
+    # $3 = day
+    # $4 = hours
+    # $5 = minutes
+    # $6 = seconds
+    # $7 = time zone direction
+    # $8 = tz difference
+    # utc time with wrong TZ info: 
+    time = mktime($1, RFC2822_MONTH_NAME[$2.to_i - 1], $3, $4, $5, $6, $7)
+    tz_difference = ("#{$7 == '-' ? '+' : '-'}#{$8}".to_i * 3600)
+    time + tz_difference + zone_offset(time.zone) 
+  end 
+end
+
 module CouchRest
   module Mixins
     module Properties
@@ -65,6 +84,7 @@ module CouchRest
           end
           associate_casted_to_parent(self[property.name], assigned)
         end
+        
       end
       
       def associate_casted_to_parent(casted, assigned)
@@ -73,8 +93,12 @@ module CouchRest
       end
       
       def convert_property_value(property, klass, value)
-        if ((property.init_method == 'new') && klass.to_s == 'Time') 
-          value.is_a?(String) ? Time.parse(value.dup) : value
+        if ((property.init_method == 'new') && klass.to_s == 'Time')
+          # Using custom time parsing method because Ruby's default method is toooo slow
+          value.is_a?(String) ? Time.mktime_with_offset(value.dup) : value
+        # Float instances don't get initialized with #new
+        elsif ((property.init_method == 'new') && klass.to_s == 'Float')
+          cast_float(value)
         else
           klass.send(property.init_method, value.dup)
         end
@@ -85,6 +109,14 @@ module CouchRest
         property = self.class.properties.detect{|property| property.name == property_name}
         return unless property
         cast_property(property, true)
+      end
+      
+      def cast_float(value)
+        begin 
+          Float(value)
+        rescue
+          value
+        end
       end
       
       module ClassMethods
