@@ -77,7 +77,7 @@ module CouchRest
       base.class_eval <<-EOS, __FILE__, __LINE__
         define_callbacks :validate
         if method_defined?(:_run_save_callbacks)
-          save_callback :before, :check_validations
+          set_callback :save, :before, :check_validations
         end
       EOS
       base.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1

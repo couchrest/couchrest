@@ -32,10 +32,10 @@ module CouchRest
     attr_accessor :casted_by
     
     # Callbacks
-    define_callbacks :create
-    define_callbacks :save
-    define_callbacks :update
-    define_callbacks :destroy
+    define_callbacks :create, "result == :halt"
+    define_callbacks :save, "result == :halt"
+    define_callbacks :update, "result == :halt"
+    define_callbacks :destroy, "result == :halt"
     
     def initialize(passed_keys={})
       apply_defaults # defined in CouchRest::Mixins::Properties
@@ -59,7 +59,7 @@ module CouchRest
         property(:updated_at, :read_only => true, :cast_as => 'Time', :auto_validation => false)
         property(:created_at, :read_only => true, :cast_as => 'Time', :auto_validation => false)
         
-        save_callback :before do |object|
+        set_callback :save, :before do |object|
           object['updated_at'] = Time.now
           object['created_at'] = object['updated_at'] if object.new?
         end

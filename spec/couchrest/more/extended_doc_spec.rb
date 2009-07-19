@@ -30,29 +30,55 @@ describe "ExtendedDocument" do
     property :run_before_update
     property :run_after_update
     
-    validate_callback :before do |object|
+    before_validate do |object|
       object.run_before_validate = true
     end
-    validate_callback :after do |object| 
+    after_validate do |object| 
       object.run_after_validate = true
     end
-    save_callback :before do |object| 
+    before_save do |object| 
       object.run_before_save = true
     end
-    save_callback :after do |object| 
+    after_save do |object| 
       object.run_after_save = true
     end
-    create_callback :before do |object| 
+    before_create do |object| 
       object.run_before_create = true
     end
-    create_callback :after do |object| 
+    after_create do |object| 
       object.run_after_create = true
     end
-    update_callback :before do |object| 
+    before_update do |object| 
       object.run_before_update = true
     end
-    update_callback :after do |object| 
+    after_update do |object| 
       object.run_after_update = true
+    end
+    
+    property :run_one
+    property :run_two
+    property :run_three
+    
+    before_save :run_one_method, :run_two_method do |object| 
+      object.run_three = true
+    end
+    def run_one_method
+      self.run_one = true
+    end
+    def run_two_method
+      self.run_two = true
+    end
+    
+    attr_accessor :run_it
+    property :conditional_one
+    property :conditional_two
+    
+    before_save :conditional_one_method, :conditional_two_method, :if => proc { self.run_it }
+    def conditional_one_method
+      self.conditional_one = true
+    end
+    def conditional_two_method
+      self.conditional_two = true
     end
   end
   
@@ -551,6 +577,27 @@ describe "ExtendedDocument" do
         @doc.run_after_save.should be_nil
         @doc.save.should be_true
         @doc.run_after_save.should be_true
+      end
+      it "should run the grouped callbacks before saving" do
+        @doc.run_one.should be_nil
+        @doc.run_two.should be_nil
+        @doc.run_three.should be_nil
+        @doc.save.should be_true
+        @doc.run_one.should be_true
+        @doc.run_two.should be_true
+        @doc.run_three.should be_true
+      end
+      it "should not run conditional callbacks" do
+        @doc.run_it = false
+        @doc.save.should be_true
+        @doc.conditional_one.should be_nil
+        @doc.conditional_two.should be_nil
+      end
+      it "should run conditional callbacks" do
+        @doc.run_it = true
+        @doc.save.should be_true
+        @doc.conditional_one.should be_true
+        @doc.conditional_two.should be_true
       end
     end
     describe "create" do

@@ -1,5 +1,5 @@
-# Copyright (c) 2004-2008 David Heinemeier Hansson
-#
+# Copyright (c) 2006-2009 David Heinemeier Hansson
+#  
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -7,10 +7,10 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-#
+#  
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-#
+#  
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -18,79 +18,59 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- 
-# Allows attributes to be shared within an inheritance hierarchy, but where
-# each descendant gets a copy of their parents' attributes, instead of just a
-# pointer to the same. This means that the child can add elements to, for
-# example, an array without those additions being shared with either their
-# parent, siblings, or children, which is unlike the regular class-level
-# attributes that are shared across the entire hierarchy.
+#
+# Extracted From
+# http://github.com/rails/rails/commit/971e2438d98326c994ec6d3ef8e37b7e868ed6e2
+
+# Extends the class object with class and instance accessors for class attributes,
+# just like the native attr* accessors for instance attributes.
+#
+#  class Person
+#    cattr_accessor :hair_colors
+#  end
+#
+#  Person.hair_colors = [:brown, :black, :blonde, :red]
 class Class
-  # Defines class-level and instance-level attribute reader.
-  #
-  # @param *syms<Array> Array of attributes to define reader for.
-  # @return <Array[#to_s]> List of attributes that were made into cattr_readers
-  #
-  # @api public
-  #
-  # @todo Is this inconsistent in that it does not allow you to prevent
-  #   an instance_reader via :instance_reader => false
   def cattr_reader(*syms)
     syms.flatten.each do |sym|
       next if sym.is_a?(Hash)
-      class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
-        unless defined? @@#{sym}
-          @@#{sym} = nil
-        end
-
-        def self.#{sym}
-          @@#{sym}
-        end
-
-        def #{sym}
-          @@#{sym}
-        end
-      RUBY
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+        unless defined? @@#{sym}  # unless defined? @@hair_colors
+          @@#{sym} = nil          #   @@hair_colors = nil
+        end                       # end
+                                  #
+        def self.#{sym}           # def self.hair_colors
+          @@#{sym}                #   @@hair_colors
+        end                       # end
+                                  #
+        def #{sym}                # def hair_colors
+          @@#{sym}                #   @@hair_colors
+        end                       # end
+      EOS
     end
   end unless Class.respond_to?(:cattr_reader)
 
-  # Defines class-level (and optionally instance-level) attribute writer.
-  #
-  # @param <Array[*#to_s, Hash{:instance_writer => Boolean}]> Array of attributes to define writer for.
-  # @option syms :instance_writer<Boolean> if true, instance-level attribute writer is defined.
-  # @return <Array[#to_s]> List of attributes that were made into cattr_writers
-  #
-  # @api public
   def cattr_writer(*syms)
-    options = syms.last.is_a?(Hash) ? syms.pop : {}
+    options = syms.extract_options!
     syms.flatten.each do |sym|
-      class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
-        unless defined? @@#{sym}
-          @@#{sym} = nil
-        end
-
-        def self.#{sym}=(obj)
-          @@#{sym} = obj
-        end
-      RUBY
-
-      unless options[:instance_writer] == false
-        class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
-          def #{sym}=(obj)
-            @@#{sym} = obj
-          end
-        RUBY
-      end
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+        unless defined? @@#{sym}                       # unless defined? @@hair_colors
+          @@#{sym} = nil                               #   @@hair_colors = nil
+        end                                            # end
+                                                       #
+        def self.#{sym}=(obj)                          # def self.hair_colors=(obj)
+          @@#{sym} = obj                               #   @@hair_colors = obj
+        end                                            # end
+                                                       #
+        #{"                                            #
+        def #{sym}=(obj)                               # def hair_colors=(obj)
+          @@#{sym} = obj                               #   @@hair_colors = obj
+        end                                            # end
+        " unless options[:instance_writer] == false }  # # instance writer above is generated unless options[:instance_writer] == false
+      EOS
     end
   end unless Class.respond_to?(:cattr_writer)
 
-  # Defines class-level (and optionally instance-level) attribute accessor.
-  #
-  # @param *syms<Array[*#to_s, Hash{:instance_writer => Boolean}]> Array of attributes to define accessor for.
-  # @option syms :instance_writer<Boolean> if true, instance-level attribute writer is defined.
-  # @return <Array[#to_s]> List of attributes that were made into accessors
-  #
-  # @api public
   def cattr_accessor(*syms)
     cattr_reader(*syms)
     cattr_writer(*syms)
@@ -156,6 +136,8 @@ class Class
           def #{ivar}=(obj) self.class.#{ivar} = obj end
         RUBY
       end
+
+      self.send("#{ivar}=", yield) if block_given?
     end
   end unless Class.respond_to?(:extlib_inheritable_writer)
 
@@ -168,9 +150,41 @@ class Class
   # @return <Array[#to_s]> An Array of attributes turned into inheritable accessors.
   #
   # @api public
-  def extlib_inheritable_accessor(*syms)
+  def extlib_inheritable_accessor(*syms, &block)
     extlib_inheritable_reader(*syms)
-    extlib_inheritable_writer(*syms)
+    extlib_inheritable_writer(*syms, &block)
   end unless Class.respond_to?(:extlib_inheritable_accessor)
+end
+
+class Array
+  # Extracts options from a set of arguments. Removes and returns the last
+  # element in the array if it's a hash, otherwise returns a blank hash.
+  #
+  #   def options(*args)
+  #     args.extract_options!
+  #   end
+  #
+  #   options(1, 2)           # => {}
+  #   options(1, 2, :a => :b) # => {:a=>:b}
+  def extract_options!
+    last.is_a?(::Hash) ? pop : {}
+  end unless Array.new.respond_to?(:extract_options!)
+  
+  # Wraps the object in an Array unless it's an Array.  Converts the
+  # object to an Array using #to_ary if it implements that.
+  def self.wrap(object)
+    case object
+    when nil
+      []
+    when self
+      object
+    else
+      if object.respond_to?(:to_ary)
+        object.to_ary
+      else
+        [object]
+      end
+    end
+  end unless Array.respond_to?(:wrap)
 end
 
