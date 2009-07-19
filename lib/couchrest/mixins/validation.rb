@@ -50,7 +50,7 @@ module CouchRest
     
     def self.included(base)
       base.extlib_inheritable_accessor(:auto_validation)
-      base.class_eval <<-EOS, __FILE__, __LINE__
+      base.class_eval <<-EOS, __FILE__, __LINE__ + 1
           # Callbacks
           define_callbacks :validate
           
@@ -74,7 +74,7 @@ module CouchRest
       EOS
       
       base.extend(ClassMethods)
-      base.class_eval <<-EOS, __FILE__, __LINE__
+      base.class_eval <<-EOS, __FILE__, __LINE__ + 1
         define_callbacks :validate
         if method_defined?(:_run_save_callbacks)
           set_callback :save, :before, :check_validations
@@ -210,7 +210,7 @@ module CouchRest
       def create_context_instance_methods(context)
         name = "valid_for_#{context.to_s}?"           # valid_for_signup?
         if !self.instance_methods.include?(name)
-          class_eval <<-EOS, __FILE__, __LINE__
+          class_eval <<-EOS, __FILE__, __LINE__ + 1
             def #{name}                               # def valid_for_signup?
               valid?('#{context.to_s}'.to_sym)        #   valid?('signup'.to_sym)
             end                                       # end

@@ -21,7 +21,7 @@ module CouchRest
     
     def self.inherited(subklass)
       subklass.send(:include, CouchRest::Mixins::Properties)
-      subklass.class_eval <<-EOS, __FILE__, __LINE__
+      subklass.class_eval <<-EOS, __FILE__, __LINE__ + 1
         def self.inherited(subklass)
           subklass.properties = self.properties.dup
         end
@@ -76,7 +76,7 @@ module CouchRest
     # on the document whenever saving occurs. CouchRest uses a pretty
     # decent time format by default. See Time#to_json
     def self.timestamps!
-      class_eval <<-EOS, __FILE__, __LINE__
+      class_eval <<-EOS, __FILE__, __LINE__ + 1
         property(:updated_at, :read_only => true, :cast_as => 'Time', :auto_validation => false)
         property(:created_at, :read_only => true, :cast_as => 'Time', :auto_validation => false)
         

@@ -226,7 +226,7 @@ module CouchRest
             # end
 
             name = "_conditional_callback_#{@kind}_#{next_id}"
-            txt, line = <<-RUBY_EVAL, __LINE__
+            txt, line = <<-RUBY_EVAL, __LINE__ + 1
               def #{name}(halted)
                 #{@compiled_options[0] || "if true"} && !halted
                   #{@filter} do
@@ -388,7 +388,7 @@ module CouchRest
         body = send("_#{symbol}_callback").
           compile(nil, :terminator => send("_#{symbol}_terminator"))
 
-        body, line = <<-RUBY_EVAL, __LINE__
+        body, line = <<-RUBY_EVAL, __LINE__ + 1
           def _run_#{symbol}_callbacks(key = nil, &blk)
             if key
               name = "_run__\#{self.class.name.hash.abs}__#{symbol}__\#{key.hash.abs}__callbacks"

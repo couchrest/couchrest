@@ -27,7 +27,7 @@ module CouchRest
       class IncludeError < StandardError; end
       
       def self.included(base)
-        base.class_eval <<-EOS, __FILE__, __LINE__
+        base.class_eval <<-EOS, __FILE__, __LINE__ + 1
             extlib_inheritable_accessor(:properties) unless self.respond_to?(:properties)
             self.properties ||= []
         EOS
@@ -144,14 +144,14 @@ module CouchRest
           # defines the getter for the property (and optional aliases)
           def create_property_getter(property)
             # meth = property.name
-            class_eval <<-EOS, __FILE__, __LINE__
+            class_eval <<-EOS, __FILE__, __LINE__ + 1
               def #{property.name}
                 self['#{property.name}']
               end
             EOS
 
             if property.alias
-              class_eval <<-EOS, __FILE__, __LINE__
+              class_eval <<-EOS, __FILE__, __LINE__ + 1
                 alias #{property.alias.to_sym} #{property.name.to_sym}
               EOS
             end
