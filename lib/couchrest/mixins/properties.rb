@@ -58,11 +58,7 @@ module CouchRest
           key = self.has_key?(property.name) ? property.name : property.name.to_sym
           # Don't cast the property unless it has a value
           next if (value = self[key]).nil?
-          obj = property.typecast(value)
-          if obj.respond_to?(:casted_by)
-            obj.casted_by = self
-          end
-          self[property.name] = obj
+          write_property(property, value)
         end
       end
 
@@ -70,14 +66,16 @@ module CouchRest
 
         def write_attribute(name, value)
           unless (property = property(name)).nil?
-            if property.casted
-              self[name] = value
-            else
-              self[name] = property.typecast(value)
-            end
+            write_property(property, value)
           else
             self[name] = value
           end
+        end
+
+        def write_property(property, value)
+          value = property.typecast(value)
+          value.casted_by = self if value.respond_to?(:casted_by)
+          self[property.name] = value
         end
 
         def property(name)

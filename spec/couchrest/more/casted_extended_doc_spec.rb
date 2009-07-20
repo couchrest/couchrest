@@ -50,9 +50,9 @@ describe "assigning a value to casted attribute after initializing an object" do
     @car.driver.name.should == 'Matt'
   end
   
-  it "should not cast attribute" do
+  it "should cast attribute" do
     @car.driver = JSON.parse(JSON.generate(@driver))
-    @car.driver.should_not be_instance_of(Driver)
+    @car.driver.should be_instance_of(Driver)
   end
 
 end
