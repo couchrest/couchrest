@@ -1,3 +1,20 @@
+== 0.40
+
+=== Notes
+
+  This release slightly modifies the API and if you were using a previous version of CouchRest,
+you will need to make the following modifications.
+
+
+
+* Major enhancements
+
+  * 
+  
+* Minor enhancements  
+
+  * Added #amount_pages to a paginated collection. (Matt Aimonetti)
+
 == 0.31
 
 * Major enhancements
