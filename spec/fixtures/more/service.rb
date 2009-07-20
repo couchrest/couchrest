@@ -7,6 +7,6 @@ class Service < CouchRest::ExtendedDocument
   
   # Official Schema
   property :name, :length => 4...20
-  property :price, :type => Integer
+  property :price, :type => 'Integer'
   
 end

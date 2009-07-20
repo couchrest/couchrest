@@ -7,11 +7,11 @@ describe "ExtendedDocument" do
   
   class WithDefaultValues < CouchRest::ExtendedDocument
     use_database TEST_SERVER.default_database
-    property :preset,       :default => {:right => 10, :top_align => false}
-    property :set_by_proc,  :default => Proc.new{Time.now},       :cast_as => 'Time'
-    property :tags,         :default => []
+    property :preset, :type => 'Object', :default => {:right => 10, :top_align => false}
+    property :set_by_proc, :default => Proc.new{Time.now}, :cast_as => 'Time'
+    property :tags, :type => ['String'], :default => []
     property :read_only_with_default, :default => 'generic', :read_only => true
-    property :default_false, :default => false
+    property :default_false, :type => 'Boolean', :default => false
     property :name
     timestamps!
   end
@@ -314,7 +314,7 @@ describe "ExtendedDocument" do
         "professor" => {
           "name" => ["Mark", "Hinchliff"]
         },
-        "final_test_at" => "2008/12/19 13:00:00 +0800"
+        "ends_at" => "2008/12/19 13:00:00 +0800"
       }
       r = Course.database.save_doc course_doc
       @course = Course.get r['id']
@@ -325,8 +325,8 @@ describe "ExtendedDocument" do
     it "should instantiate the professor as a person" do
       @course['professor'].last_name.should == "Hinchliff"
     end
-    it "should instantiate the final_test_at as a Time" do
-      @course['final_test_at'].should == Time.parse("2008/12/19 13:00:00 +0800")
+    it "should instantiate the ends_at as a Time" do
+      @course['ends_at'].should == Time.parse("2008/12/19 13:00:00 +0800")
     end
   end
   

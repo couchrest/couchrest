@@ -1,6 +1,6 @@
 class Person < Hash
   include ::CouchRest::CastedModel
-  property :name
+  property :name, :type => ['String']
   
   def last_name
     name.last

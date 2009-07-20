@@ -1,4 +1,3 @@
-require 'time'
 require File.join(File.dirname(__FILE__), '..', 'more', 'property')
 
 class Time                       
@@ -56,46 +55,34 @@ module CouchRest
       def cast_keys
         return unless self.class.properties
         self.class.properties.each do |property|
-          next unless property.casted
           key = self.has_key?(property.name) ? property.name : property.name.to_sym
           # Don't cast the property unless it has a value
-          next unless self[key]   
-          target = property.type
-          if target.is_a?(Array)
-            klass = ::CouchRest.constantize(target[0])
-            self[property.name] = self[key].collect do |value|
-              # Auto parse Time objects
-              obj = ( (property.init_method == 'new') && klass == Time) ? Time.parse(value) : klass.send(property.init_method, value)
-              obj.casted_by = self if obj.respond_to?(:casted_by)
-              obj 
+          next if (value = self[key]).nil?
+          obj = property.typecast(value)
+          if obj.respond_to?(:casted_by)
+            obj.casted_by = self
+          end
+          self[property.name] = obj
+        end
+      end
+
+      protected
+
+        def write_attribute(name, value)
+          unless (property = property(name)).nil?
+            if property.casted
+              self[name] = value
+            else
+              self[name] = property.typecast(value)
             end
           else
-            # Auto parse Time objects
-            self[property.name] = if ((property.init_method == 'new') && target == 'Time')
-              # Using custom time parsing method because Ruby's default method is toooo slow 
-              self[key].is_a?(String) ? Time.mktime_with_offset(self[key].dup) : self[key]
-            # Float instances don't get initialized with #new
-            elsif ((property.init_method == 'new') && target == 'Float')
-              cast_float(self[key])
-            else
-              # Let people use :send as a Time parse arg
-              klass = ::CouchRest.constantize(target)
-              klass.send(property.init_method, self[key].dup)   
-            end  
-            self[property.name].casted_by = self if self[property.name].respond_to?(:casted_by)
-          end 
-          
-        end
-        
-        def cast_float(value)
-          begin 
-            Float(value)
-          rescue 
-            value
+            self[name] = value
           end
         end
-        
-      end
+
+        def property(name)
+          properties.find {|p| p.name == name.to_s}
+        end
       
       module ClassMethods
         
@@ -114,7 +101,7 @@ module CouchRest
             # check if this property is going to casted
             options[:casted] = options[:cast_as] ? options[:cast_as] : false
             property = CouchRest::Property.new(name, (options.delete(:cast_as) || options.delete(:type)), options)
-            create_property_getter(property) 
+            create_property_getter(property)
             create_property_setter(property) unless property.read_only == true
             properties << property
           end
@@ -140,7 +127,7 @@ module CouchRest
             meth = property.name
             class_eval <<-EOS
               def #{meth}=(value)
-                self['#{meth}'] = value
+                write_attribute('#{meth}', value)
               end
             EOS
 
@@ -150,9 +137,7 @@ module CouchRest
               EOS
             end
           end
-          
       end # module ClassMethods
-      
     end
   end
 end
