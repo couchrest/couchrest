@@ -104,6 +104,13 @@ module CouchRest
         entries.empty?
       end
 
+      # Return size of errors hash
+      #
+      # Allows us to play nicely with Rails' helpers
+      def count
+        errors.size
+      end
+
       def method_missing(meth, *args, &block)
         errors.send(meth, *args, &block)
       end
