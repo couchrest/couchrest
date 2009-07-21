@@ -60,7 +60,7 @@ module CouchRest
         end
         
         def count(opts = {}, &block)
-          @klass.all({:raw => true, :limit => 0}.merge(opts), &block)['total_rows']
+          @klass.all({:database => @database, :raw => true, :limit => 0}.merge(opts), &block)['total_rows']
         end
         
         def first(opts = {})
