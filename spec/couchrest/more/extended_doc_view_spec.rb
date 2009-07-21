@@ -212,6 +212,9 @@ describe "ExtendedDocument views" do
       rs = @us.all
       rs.length.should == 4
     end
+    it "should count" do
+      @us.count.should == 4
+    end
     it "should make the design doc upon first query" do
       @us.by_title
       doc = @us.design_doc
