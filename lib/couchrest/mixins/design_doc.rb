@@ -48,6 +48,11 @@ module CouchRest
           save_design_doc
         end
 
+        def refresh_design_doc_on(db)
+          reset_design_doc
+          save_design_doc_on(db)
+        end
+
         # Save the design doc onto the default database, and update the
         # design_doc attribute
         def save_design_doc

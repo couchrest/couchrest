@@ -95,11 +95,11 @@ module CouchRest
 
         # Dispatches to any named view.
         def view(name, query={}, &block)
-          unless design_doc_fresh
-            refresh_design_doc
+          db = query.delete(:database) || database
+          unless design_doc_fresh            
+            refresh_design_doc_on(db)
           end
           query[:raw] = true if query[:reduce]        
-          db = query.delete(:database) || database
           raw = query.delete(:raw)
           fetch_view_with_docs(db, name, query, raw, &block)
         end

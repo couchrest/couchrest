@@ -200,7 +200,7 @@ describe "ExtendedDocument views" do
     before(:all) do
       reset_test_db!
       # setup the class default doc to save the design doc
-      Unattached.use_database DB
+      Unattached.use_database nil # just to be sure it is really unattached
       @us = Unattached.on(DB)
       %w{aaa bbb ddd eee}.each do |title|
         u = @us.new(:title => title)
