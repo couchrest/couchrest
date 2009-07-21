@@ -138,9 +138,11 @@ module CouchRest
         if value.is_a?(Hash)
           typecast_hash_to_time(value)
         else
-          Time.parse(value.to_s)
+          Time.mktime_with_offset(value.to_s)
         end
       rescue ArgumentError
+        value
+      rescue TypeError
         value
       end
 
