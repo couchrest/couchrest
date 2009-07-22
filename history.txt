@@ -1,20 +1,3 @@
-== 0.40
-
-=== Notes
-
-  This release slightly modifies the API and if you were using a previous version of CouchRest,
-you will need to make the following modifications.
-
-
-
-* Major enhancements
-
-  * 
-  
-* Minor enhancements 
-
-  *
-
 == 0.32
   
 * Major enhancements
