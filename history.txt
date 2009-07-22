@@ -17,8 +17,14 @@ you will need to make the following modifications.
 
 == 0.32
   
-* Minor enhancements  
+* Major enhancements
+
+  * ExtendedDocument.get doesn't raise an exception anymore. If no documents are found nil is returned.
+  * ExtendedDocument.get! works the say #get used to work and will raise an exception if a document isn't found.
   
+* Minor enhancements  
+   
+  * Bug fix: Model.all(:keys => [1,2]) was not working (Matt Aimonetti)
   * Added ValidationErrors#count in order to play nicely with Rails (Peter Wagenet)
   * Bug fix: class proxy design doc refresh (Daniel Kirsh)
   * Bug fix: the count method on the proxy collection was missing (Daniel Kirsch)
