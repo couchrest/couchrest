@@ -19,6 +19,7 @@ you will need to make the following modifications.
   
 * Minor enhancements  
   
+  * Added ValidationErrors#count in order to play nicely with Rails (Peter Wagenet)
   * Bug fix: class proxy design doc refresh (Daniel Kirsh)
   * Bug fix: the count method on the proxy collection was missing (Daniel Kirsch)
   * Added #amount_pages to a paginated collection. (Matt Aimonetti)
