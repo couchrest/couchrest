@@ -39,7 +39,38 @@ module CouchRest
         end
         
         # Load a document from the database by id
+        # No exceptions will be raised if the document isn't found
+        #
+        # ==== Returns
+        # Object:: if the document was found
+        # or
+        # Nil::
+        # 
+        # === Parameters
+        # id<String, Integer>:: Document ID
+        # db<Database>:: optional option to pass a custom database to use
         def get(id, db = database)
+          begin
+            doc = db.get id
+          rescue
+            nil
+          else
+            new(doc)
+          end
+        end
+        
+        # Load a document from the database by id
+        # An exception will be raised if the document isn't found
+        #
+        # ==== Returns
+        # Object:: if the document was found
+        # or
+        # Exception
+        # 
+        # === Parameters
+        # id<String, Integer>:: Document ID
+        # db<Database>:: optional option to pass a custom database to use
+        def get!(id, db = database)
           doc = db.get id
           new(doc)
         end

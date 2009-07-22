@@ -168,8 +168,11 @@ describe "ExtendedDocument views" do
       end
       things[0]["doc"]["title"].should =='aaa'
     end
-    it "should barf on get if no database given" do
-      lambda{Unattached.get("aaa")}.should raise_error
+    it "should return nil on get if no database given" do
+      Unattached.get("aaa").should be_nil
+    end
+    it "should barf on get! if no database given" do
+      lambda{Unattached.get!("aaa")}.should raise_error
     end
     it "should get from specific database" do
       u = Unattached.get(@first_id, @db)

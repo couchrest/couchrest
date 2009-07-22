@@ -216,6 +216,15 @@ describe "ExtendedDocument" do
       foundart = Article.get @art.id
       foundart.title.should == "All About Getting"
     end
+    
+    it "should return nil if `get` is used and the document doesn't exist" do
+      foundart = Article.get 'matt aimonetti'
+      foundart.should be_nil
+    end                     
+    
+    it "should raise an error if `get!` is used and the document doesn't exist" do
+       lambda{foundart = Article.get!('matt aimonetti')}.should raise_error
+    end
   end
 
   describe "getting a model with a subobjects array" do
@@ -507,7 +516,7 @@ describe "ExtendedDocument" do
     end
     it "should make it go away" do
       @dobj.destroy
-      lambda{Basic.get(@dobj.id)}.should raise_error
+      lambda{Basic.get!(@dobj.id)}.should raise_error
     end
   end
   
