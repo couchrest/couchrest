@@ -11,8 +11,16 @@ you will need to make the following modifications.
 
   * 
   
-* Minor enhancements  
+* Minor enhancements 
 
+  *
+
+== 0.32
+  
+* Minor enhancements  
+  
+  * Bug fix: class proxy design doc refresh (Daniel Kirsh)
+  * Bug fix: the count method on the proxy collection was missing (Daniel Kirsch)
   * Added #amount_pages to a paginated collection. (Matt Aimonetti)
 
 == 0.31
