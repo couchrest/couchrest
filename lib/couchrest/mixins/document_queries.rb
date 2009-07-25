@@ -12,7 +12,7 @@ module CouchRest
         # name of the current class. Take the standard set of
         # CouchRest::Database#view options.
         def all(opts = {}, &block)
-          view(:all, {:reduce => false}.merge(opts), &block)
+          view(:all, opts, &block)
         end
         
         # Returns the number of documents that have the "couchrest-type" field
