@@ -77,6 +77,9 @@ module CouchRest
             # Float instances don't get initialized with #new
             elsif ((property.init_method == 'new') && target == 'Float')
               cast_float(self[key])
+            # 'boolean' type is simply used to generate a property? accessor method
+            elsif ((property.init_method == 'new') && target == 'boolean')
+              self[key]
             else
               # Let people use :send as a Time parse arg
               klass = ::CouchRest.constantize(target)
@@ -127,6 +130,18 @@ module CouchRest
                 self['#{property.name}']
               end
             EOS
+
+            if property.type == 'boolean'
+              class_eval <<-EOS, __FILE__, __LINE__
+                def #{property.name}?
+                  if self['#{property.name}'].nil? || self['#{property.name}'] == false || self['#{property.name}'].to_s.downcase == 'false'
+                    false
+                  else
+                    true
+                  end
+                end
+              EOS
+            end
 
             if property.alias
               class_eval <<-EOS, __FILE__, __LINE__
