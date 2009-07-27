@@ -1,3 +1,20 @@
+== 0.40
+
+=== Notes
+
+  This release slightly modifies the API and if you were using a previous version of CouchRest,
+you will need to make the following modifications.
+
+
+
+* Major enhancements
+
+  * Added a new Rack logger middleware letting you log/save requests/queries (Matt Aimonetti)
+  
+* Minor enhancements 
+
+  * Bug fix: made ExtendedDocument#all compatible with Couch 0.10 (tc)
+
 == 0.32
   
 * Major enhancements
