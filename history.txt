@@ -12,7 +12,9 @@ you will need to make the following modifications.
   * Added a new Rack logger middleware letting you log/save requests/queries (Matt Aimonetti)
   
 * Minor enhancements 
-
+   
+  * Added an option to force the deletion of a attachments (bypass 409s) (Matt Aimonetti)
+  * Created a new abstraction layer for the REST API (Matt Aimonetti)
   * Bug fix: made ExtendedDocument#all compatible with Couch 0.10 (tc)
 
 == 0.32
