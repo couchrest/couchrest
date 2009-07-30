@@ -372,6 +372,15 @@ describe CouchRest::Database do
       @doc = @db.get('mydocwithattachment') # avoid getting a 409
       lambda{ @db.fetch_attachment(@doc,'test.html')}.should raise_error
     end
+    
+    it "should force a delete even if we get a 409" do
+      @doc['new_attribute'] = 'something new'
+      @db.put_attachment(@doc, 'test', File.open(File.join(File.dirname(__FILE__), '..', '..', 'fixtures', 'attachments', 'test.html')).read)
+      # at this point the revision number changed, if we try to save doc one more time
+      # we would get a 409.
+      lambda{ @db.save_doc(@doc) }.should raise_error
+      lambda{ @db.delete_attachment(@doc, "test", true) }.should_not raise_error
+    end
   end
 
   describe "POST document with attachment (with funky name)" do

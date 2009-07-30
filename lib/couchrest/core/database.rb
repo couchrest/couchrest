@@ -113,10 +113,21 @@ module CouchRest
     end
     
     # DELETE an attachment directly from CouchDB
-    def delete_attachment doc, name
+    def delete_attachment(doc, name, force=false)
       uri = url_for_attachment(doc, name)
       # this needs a rev
-      JSON.parse(HttpAbstraction.delete(uri))
+      begin
+        JSON.parse(HttpAbstraction.delete(uri))
+      rescue Exception => error
+        if force
+          # get over a 409
+          doc = get(doc['_id'])
+          uri = url_for_attachment(doc, name)
+          JSON.parse(HttpAbstraction.delete(uri))
+        else
+          error
+        end
+      end
     end
     
     # Save a document to CouchDB. This will use the <tt>_id</tt> field from
