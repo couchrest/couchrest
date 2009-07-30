@@ -368,8 +368,9 @@ describe CouchRest::Database do
     end
     it "should delete the attachment" do
       lambda { @db.fetch_attachment(@doc,'test.html') }.should_not raise_error
-      @db.delete_attachment(@doc, "test.html")
-      @db.fetch_attachment(@doc,'test.html').should be_nil
+      @db.delete_attachment(@doc, "test.html")  
+      @doc = @db.get('mydocwithattachment') # avoid getting a 409
+      lambda{ @db.fetch_attachment(@doc,'test.html')}.should raise_error
     end
   end
 
