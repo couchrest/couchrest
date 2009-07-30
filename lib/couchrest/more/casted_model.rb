@@ -4,7 +4,7 @@ module CouchRest
   module CastedModel
     
     def self.included(base)
-      base.send(:include, CouchRest::Mixins::Properties)
+      base.send(:include, ::CouchRest::Mixins::Properties)
       base.send(:attr_accessor, :casted_by)
     end
     

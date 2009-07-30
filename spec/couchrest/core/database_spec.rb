@@ -369,7 +369,7 @@ describe CouchRest::Database do
     it "should delete the attachment" do
       lambda { @db.fetch_attachment(@doc,'test.html') }.should_not raise_error
       @db.delete_attachment(@doc, "test.html")
-      lambda { @db.fetch_attachment(@doc,'test.html') }.should raise_error(RestClient::ResourceNotFound)
+      @db.fetch_attachment(@doc,'test.html').should be_nil
     end
   end
 
