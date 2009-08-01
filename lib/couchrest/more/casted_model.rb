@@ -1,4 +1,5 @@
-require File.join(File.dirname(__FILE__), '..', 'mixins', 'properties')
+require File.expand_path('../../mixins/properties', __FILE__)
+
 
 module CouchRest
   module CastedModel

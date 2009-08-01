@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path("../../../spec_helper", __FILE__)
 
 describe CouchRest::Database do
   before(:each) do
@@ -263,7 +263,11 @@ describe CouchRest::Database do
       r['ok'].should == true
       doc = @db.get("attach-this")
       attachment = @db.fetch_attachment(doc,"couchdb.png")
-      attachment.should == image
+      if attachment.respond_to?(:net_http_res)  
+        attachment.net_http_res.body.should == image
+      else
+        attachment.should == image
+      end
     end
   end
 

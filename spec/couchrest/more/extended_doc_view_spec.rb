@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path("../../../spec_helper", __FILE__)
 require File.join(FIXTURE_PATH, 'more', 'article')
 require File.join(FIXTURE_PATH, 'more', 'course')
 
@@ -354,7 +354,8 @@ describe "ExtendedDocument views" do
         a = Article.new(:title => title, :date => Date.today)
         a.save
       end
-    end
+    end 
+    require 'date'
     it "should return a proxy that looks like an array of 7 Article objects" do
       articles = Article.by_date :key => Date.today
       articles.class.should == Array

@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
+require File.expand_path('../../../spec_helper', __FILE__)
 require File.join(FIXTURE_PATH, 'more', 'card')
 require File.join(FIXTURE_PATH, 'more', 'cat')
 require File.join(FIXTURE_PATH, 'more', 'person')
