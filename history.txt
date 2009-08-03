@@ -1,18 +1,14 @@
-== 0.40
-
-=== Notes
-
-  This release slightly modifies the API and if you were using a previous version of CouchRest,
-you will need to make the following modifications.
-
-
+== 0.33
 
 * Major enhancements
 
   * Added a new Rack logger middleware letting you log/save requests/queries (Matt Aimonetti)
   
 * Minor enhancements 
-   
+  
+  * Added #amount_pages to a paginated result array (Matt Aimonetti)
+  * Ruby 1.9.2 compatible (Matt Aimonetti)
+  * Added a property? method for property cast as :boolean (John Wood)
   * Added an option to force the deletion of a attachments (bypass 409s) (Matt Aimonetti)
   * Created a new abstraction layer for the REST API (Matt Aimonetti)
   * Bug fix: made ExtendedDocument#all compatible with Couch 0.10 (tc)
@@ -64,4 +60,4 @@ you will need to make the following modifications.
 ---
 
 Unfortunately, before 0.30 we did not keep a track of the modifications made to CouchRest.
-You can see the full commit history on GitHub: http://github.com/mattetti/couchrest/commits/master/
+You can see the full commit history on GitHub: http://github.com/couchrest/couchrest/commits/master/
