@@ -28,7 +28,7 @@ require 'couchrest/monkeypatches'
 
 # = CouchDB, close to the metal
 module CouchRest
-  VERSION    = '0.32' unless self.const_defined?("VERSION")
+  VERSION    = '0.33' unless self.const_defined?("VERSION")
   
   autoload :Server,       'couchrest/core/server'
   autoload :Database,     'couchrest/core/database'
@@ -45,8 +45,13 @@ module CouchRest
   autoload :ExtendedDocument,     'couchrest/more/extended_document'
   autoload :CastedModel,          'couchrest/more/casted_model'
   
+  require File.join(File.dirname(__FILE__), 'couchrest', 'core', 'rest_api')
   require File.join(File.dirname(__FILE__), 'couchrest', 'core', 'http_abstraction')
   require File.join(File.dirname(__FILE__), 'couchrest', 'mixins')
+
+  # we extend CouchRest with the RestAPI module which gives us acess to
+  # the get, post, put, delete and copy
+  CouchRest.extend(::RestAPI)
   
   # The CouchRest module methods handle the basic JSON serialization 
   # and deserialization, as well as query parameters. The module also includes
@@ -139,52 +144,6 @@ module CouchRest
       cr.database(parsed[:database])
     end
     
-    def put(uri, doc = nil)
-      payload = doc.to_json if doc
-      begin
-        JSON.parse(HttpAbstraction.put(uri, payload))
-      rescue Exception => e
-        if $DEBUG
-          raise "Error while sending a PUT request #{uri}\npayload: #{payload.inspect}\n#{e}"
-        else
-          raise e
-        end
-      end
-    end
-
-    def get(uri)
-      begin
-        JSON.parse(HttpAbstraction.get(uri), :max_nesting => false)
-      rescue => e
-        if $DEBUG
-          raise "Error while sending a GET request #{uri}\n: #{e}"
-        else
-          raise e
-        end
-      end
-    end
-  
-    def post uri, doc = nil
-      payload = doc.to_json if doc
-      begin
-        JSON.parse(HttpAbstraction.post(uri, payload))
-      rescue Exception => e
-        if $DEBUG
-          raise "Error while sending a POST request #{uri}\npayload: #{payload.inspect}\n#{e}"
-        else
-          raise e
-        end
-      end
-    end
-  
-    def delete uri
-      JSON.parse(HttpAbstraction.delete(uri))
-    end
-    
-    def copy uri, destination
-      JSON.parse(HttpAbstraction.copy(uri, {'Destination' => destination}))
-    end
-  
     def paramify_url url, params = {}
       if params && !params.empty?
         query = params.collect do |k,v|

@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
+require File.expand_path('../../../spec_helper', __FILE__)
 require File.join(FIXTURE_PATH, 'more', 'person')
 require File.join(FIXTURE_PATH, 'more', 'card')
 require File.join(FIXTURE_PATH, 'more', 'invoice')
@@ -161,9 +161,35 @@ describe "ExtendedDocument properties" do
       it "should work fine when a float is being passed" do
         RootBeerFloat.new(:price => 9.99).price.should == 9.99
       end
-      
     end
     
+    describe "casting to a boolean value" do
+      class RootBeerFloat < CouchRest::ExtendedDocument
+        use_database DB
+        property :tasty, :cast_as => :boolean
+      end
+
+      it "should add an accessor with a '?' for boolean attributes that returns true or false" do
+        RootBeerFloat.new(:tasty => true).tasty?.should == true
+        RootBeerFloat.new(:tasty => 'you bet').tasty?.should == true
+        RootBeerFloat.new(:tasty => 123).tasty?.should == true
+
+        RootBeerFloat.new(:tasty => false).tasty?.should == false
+        RootBeerFloat.new(:tasty => 'false').tasty?.should == false
+        RootBeerFloat.new(:tasty => 'FaLsE').tasty?.should == false
+        RootBeerFloat.new(:tasty => nil).tasty?.should == false
+      end
+
+      it "should return the real value when the default accessor is used" do
+        RootBeerFloat.new(:tasty => true).tasty.should == true
+        RootBeerFloat.new(:tasty => 'you bet').tasty.should == 'you bet'
+        RootBeerFloat.new(:tasty => 123).tasty.should == 123
+        RootBeerFloat.new(:tasty => 'false').tasty.should == 'false'
+        RootBeerFloat.new(:tasty => false).tasty.should == false
+        RootBeerFloat.new(:tasty => nil).tasty.should == nil
+      end
+    end
+
   end
   
 end

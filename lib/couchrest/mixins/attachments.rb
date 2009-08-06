@@ -19,9 +19,9 @@ module CouchRest
       end
 
       # deletes an attachment directly from couchdb
-      def delete_attachment(name)
+      def delete_attachment(name, force=false)
         raise ArgumentError, "doc.database required to delete_attachment" unless database
-        result = database.delete_attachment(self, name)
+        result = database.delete_attachment(self, name, force)
         self['_rev'] = result['rev']
         result['ok']
       end
