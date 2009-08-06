@@ -58,7 +58,6 @@ describe CouchRest::Database do
     end
     it "should return the result of the temporary function" do
       rs = @db.temp_view(:map => "function(doc){emit(doc.beverage, doc.count)}", :reduce =>  "function(beverage,counts){return sum(counts)}")
-      # rs.should == 'x'
       rs['rows'][0]['value'].should == 9
     end
   end
@@ -239,12 +238,7 @@ describe CouchRest::Database do
       }
       @db.save_doc(@doc)
     end
-    
-    # Depreacated
-    # it "should get the attachment with the doc's _id" do
-    #   @db.fetch_attachment("mydocwithattachment", "test.html").should == @attach
-    # end
-    
+       
     it "should get the attachment with the doc itself" do
       @db.fetch_attachment(@db.get('mydocwithattachment'), 'test.html').should == @attach
     end
@@ -460,7 +454,6 @@ describe CouchRest::Database do
     it "should fail to resave without the rev" do
       @doc['them-keys'] = 'huge'
       @doc['_rev'] = 'wrong'
-      # @db.save_doc(@doc)
       lambda {@db.save_doc(@doc)}.should raise_error
     end
     it "should update the document" do
@@ -640,9 +633,7 @@ describe CouchRest::Database do
     end
     it "should delete the database" do
       db = @cr.database('couchrest-test')
-      # r = 
       db.delete!
-      # r['ok'].should == true
       @cr.databases.should_not include('couchrest-test')
     end
   end
@@ -710,8 +701,5 @@ describe CouchRest::Database do
       begin @db2.recreate! rescue nil end
       @cr.databases.should include(@db2.name)
     end
-    
   end
-
-
 end
