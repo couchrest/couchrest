@@ -59,6 +59,10 @@ module CouchRest
           @klass.all({:database => @database}.merge(opts), &block)
         end
         
+        def count(opts = {}, &block)
+          @klass.all({:database => @database, :raw => true, :limit => 0}.merge(opts), &block)['total_rows']
+        end
+        
         def first(opts = {})
           @klass.first({:database => @database}.merge(opts))
         end
@@ -100,7 +104,7 @@ module CouchRest
         end
         
         def refresh_design_doc
-          @klass.refresh_design_doc
+          @klass.refresh_design_doc_on(@database)
         end
         
         def save_design_doc

@@ -17,7 +17,7 @@ Note: CouchRest only support CouchDB 0.9.0 or newer.
 Alternatively, you can install from Github:
     
     $ gem sources -a http://gems.github.com (you only have to do this once)
-    $ sudo gem install mattetti-couchrest
+    $ sudo gem install couchrest-couchrest
 
 ### Relax, it's RESTful
 

@@ -65,9 +65,8 @@ module CouchRest
         key = self.has_key?(property.name) ? property.name : property.name.to_sym
         # Don't cast the property unless it has a value
         return unless self[key]
-        target = property.type
-        if target.is_a?(Array)
-          klass = ::CouchRest.constantize(target[0])
+        if property.type.is_a?(Array)
+          klass = ::CouchRest.constantize(property.type[0])
           arr = self[key].dup.collect do |value|
             unless value.instance_of?(klass)
               value = convert_property_value(property, klass, value)
@@ -78,7 +77,12 @@ module CouchRest
           self[key] = klass != String ? CastedArray.new(arr) : arr
           self[key].casted_by = self if self[key].respond_to?(:casted_by)
         else
-          klass = ::CouchRest.constantize(target)
+          if property.type == 'boolean'
+            klass = TrueClass
+          else
+            klass = ::CouchRest.constantize(property.type)
+          end
+          
           unless self[key].instance_of?(klass)
             self[key] = convert_property_value(property, klass, self[property.name])
           end
@@ -93,12 +97,15 @@ module CouchRest
       end
       
       def convert_property_value(property, klass, value)
-        if ((property.init_method == 'new') && klass.to_s == 'Time')
+        if ((property.init_method == 'new') && klass == Time)
           # Using custom time parsing method because Ruby's default method is toooo slow
           value.is_a?(String) ? Time.mktime_with_offset(value.dup) : value
         # Float instances don't get initialized with #new
-        elsif ((property.init_method == 'new') && klass.to_s == 'Float')
+        elsif ((property.init_method == 'new') && klass == Float)
           cast_float(value)
+          # 'boolean' type is simply used to generate a property? accessor method
+        elsif ((property.init_method == 'new') && klass == TrueClass)
+          value
         else
           klass.send(property.init_method, value.dup)
         end
@@ -149,6 +156,18 @@ module CouchRest
                 self['#{property.name}']
               end
             EOS
+
+            if property.type == 'boolean'
+              class_eval <<-EOS, __FILE__, __LINE__
+                def #{property.name}?
+                  if self['#{property.name}'].nil? || self['#{property.name}'] == false || self['#{property.name}'].to_s.downcase == 'false'
+                    false
+                  else
+                    true
+                  end
+                end
+              EOS
+            end
 
             if property.alias
               class_eval <<-EOS, __FILE__, __LINE__ + 1

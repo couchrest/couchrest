@@ -35,7 +35,7 @@ module CouchRest
               'all' => {
                 'map' => "function(doc) {
                   if (doc['couchrest-type'] == '#{self.to_s}') {
-                    emit(null,1);
+                    emit(doc['_id'],1);
                   }
                 }"
               }
@@ -46,6 +46,11 @@ module CouchRest
         def refresh_design_doc
           reset_design_doc
           save_design_doc
+        end
+
+        def refresh_design_doc_on(db)
+          reset_design_doc
+          save_design_doc_on(db)
         end
 
         # Save the design doc onto the default database, and update the

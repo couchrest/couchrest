@@ -1,5 +1,14 @@
 module CouchRest
   module Mixins
+    module PaginatedResults
+      def amount_pages
+        @amount_pages ||= 0
+      end   
+      def amount_pages=(value)
+        @amount_pages = value
+      end               
+    end
+    
     module Collection
   
       def self.included(base)
@@ -115,7 +124,10 @@ module CouchRest
           results = @database.view(@view_name, pagination_options(page, per_page)) 
           @amount_pages ||= (results['total_rows'].to_f / per_page.to_f).ceil
           remember_where_we_left_off(results, page)
-          convert_to_container_array(results)
+          results = convert_to_container_array(results)
+          results.extend(PaginatedResults)
+          results.amount_pages = @amount_pages
+          results
         end
 
         # See Collection.paginated_each
@@ -181,7 +193,7 @@ module CouchRest
           @target.inspect
         end
 
-        def convert_to_container_array(results)
+        def convert_to_container_array(results) 
           if @container_class.nil?
             results
           else

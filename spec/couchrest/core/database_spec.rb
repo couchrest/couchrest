@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path("../../../spec_helper", __FILE__)
 
 describe CouchRest::Database do
   before(:each) do
@@ -263,7 +263,11 @@ describe CouchRest::Database do
       r['ok'].should == true
       doc = @db.get("attach-this")
       attachment = @db.fetch_attachment(doc,"couchdb.png")
-      attachment.should == image
+      if attachment.respond_to?(:net_http_res)  
+        attachment.net_http_res.body.should == image
+      else
+        attachment.should == image
+      end
     end
   end
 
@@ -368,8 +372,18 @@ describe CouchRest::Database do
     end
     it "should delete the attachment" do
       lambda { @db.fetch_attachment(@doc,'test.html') }.should_not raise_error
-      @db.delete_attachment(@doc, "test.html")
-      lambda { @db.fetch_attachment(@doc,'test.html') }.should raise_error(RestClient::ResourceNotFound)
+      @db.delete_attachment(@doc, "test.html")  
+      @doc = @db.get('mydocwithattachment') # avoid getting a 409
+      lambda{ @db.fetch_attachment(@doc,'test.html')}.should raise_error
+    end
+    
+    it "should force a delete even if we get a 409" do
+      @doc['new_attribute'] = 'something new'
+      @db.put_attachment(@doc, 'test', File.open(File.join(File.dirname(__FILE__), '..', '..', 'fixtures', 'attachments', 'test.html')).read)
+      # at this point the revision number changed, if we try to save doc one more time
+      # we would get a 409.
+      lambda{ @db.save_doc(@doc) }.should raise_error
+      lambda{ @db.delete_attachment(@doc, "test", true) }.should_not raise_error
     end
   end
 

@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path("../../../spec_helper", __FILE__)
 require File.join(FIXTURE_PATH, 'more', 'article')
 require File.join(FIXTURE_PATH, 'more', 'course')
 
@@ -168,8 +168,11 @@ describe "ExtendedDocument views" do
       end
       things[0]["doc"]["title"].should =='aaa'
     end
-    it "should barf on get if no database given" do
-      lambda{Unattached.get("aaa")}.should raise_error
+    it "should return nil on get if no database given" do
+      Unattached.get("aaa").should be_nil
+    end
+    it "should barf on get! if no database given" do
+      lambda{Unattached.get!("aaa")}.should raise_error
     end
     it "should get from specific database" do
       u = Unattached.get(@first_id, @db)
@@ -200,7 +203,7 @@ describe "ExtendedDocument views" do
     before(:all) do
       reset_test_db!
       # setup the class default doc to save the design doc
-      Unattached.use_database DB
+      Unattached.use_database nil # just to be sure it is really unattached
       @us = Unattached.on(DB)
       %w{aaa bbb ddd eee}.each do |title|
         u = @us.new(:title => title)
@@ -211,6 +214,9 @@ describe "ExtendedDocument views" do
     it "should query all" do
       rs = @us.all
       rs.length.should == 4
+    end
+    it "should count" do
+      @us.count.should == 4
     end
     it "should make the design doc upon first query" do
       @us.by_title
@@ -348,7 +354,8 @@ describe "ExtendedDocument views" do
         a = Article.new(:title => title, :date => Date.today)
         a.save
       end
-    end
+    end 
+    require 'date'
     it "should return a proxy that looks like an array of 7 Article objects" do
       articles = Article.by_date :key => Date.today
       articles.class.should == Array
@@ -368,8 +375,7 @@ describe "ExtendedDocument views" do
     end 
     it "should have the amount of paginated pages" do
       articles = Article.by_date :key => Date.today
-      articles.paginate(:per_page => 3) 
-      articles.amount_pages.should == 3
+      articles.paginate(:per_page => 3).amount_pages.should == 3
     end
     it "should provide a class method to access the collection directly" do
       articles = Article.collection_proxy_for('Article', 'by_date', :descending => true,
