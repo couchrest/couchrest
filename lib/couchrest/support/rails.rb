@@ -19,11 +19,6 @@ CouchRest::Document.class_eval do
     super
   end
   alias_method :kind_of?, :is_a?
-
-  # Gives extended doc a seamless logger
-  def logger
-    ActiveRecord::Base.logger
-  end
 end
 
 CouchRest::CastedModel.class_eval do
