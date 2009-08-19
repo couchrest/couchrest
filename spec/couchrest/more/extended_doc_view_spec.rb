@@ -348,10 +348,17 @@ describe "ExtendedDocument views" do
   describe "with a collection" do
     before(:all) do
       reset_test_db!
-      @titles = ["very uniq one", "really interesting", "some fun",
+      titles = ["very uniq one", "really interesting", "some fun",
         "really awesome", "crazy bob", "this rocks", "super rad"]
-      @titles.each_with_index do |title,i|
+      titles.each_with_index do |title,i|
         a = Article.new(:title => title, :date => Date.today)
+        a.save
+      end
+
+      titles = ["yesterday very uniq one", "yesterday really interesting", "yesterday some fun",
+        "yesterday really awesome", "yesterday crazy bob", "yesterday this rocks"]
+      titles.each_with_index do |title,i|
+        a = Article.new(:title => title, :date => Date.today - 1)
         a.save
       end
     end 
@@ -420,6 +427,14 @@ describe "ExtendedDocument views" do
     it "should raise an exception if view_name is not provided" do
       lambda{Article.collection_proxy_for('Article', nil)}.should raise_error
       lambda{Article.paginate(:design_doc => 'Article')}.should raise_error
+    end
+    it "should be able to span multiple keys" do
+      articles = Article.by_date :startkey => Date.today, :endkey => Date.today - 1
+      articles.paginate(:page => 1, :per_page => 3).size.should == 3
+      articles.paginate(:page => 2, :per_page => 3).size.should == 3
+      articles.paginate(:page => 3, :per_page => 3).size.should == 3
+      articles.paginate(:page => 4, :per_page => 3).size.should == 3
+      articles.paginate(:page => 5, :per_page => 3).size.should == 1
     end
   end
 

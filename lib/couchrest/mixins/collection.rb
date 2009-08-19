@@ -204,8 +204,9 @@ module CouchRest
         def pagination_options(page, per_page)
           view_options = @view_options.clone
           if @last_key && @last_docid && @last_page == page - 1
-            view_options.delete(:key)
-            options = { :startkey => @last_key, :startkey_docid => @last_docid, :limit => per_page, :skip => 1 }
+            key = view_options.delete(:key)
+            end_key = view_options[:endkey] || key
+            options = { :startkey => @last_key, :endkey => end_key, :startkey_docid => @last_docid, :limit => per_page, :skip => 1 }
           else
             options = { :limit => per_page, :skip => per_page * (page - 1) }
           end
