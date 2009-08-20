@@ -380,10 +380,6 @@ describe "ExtendedDocument views" do
         a.should_not be_nil
       end
     end 
-    it "should have the amount of paginated pages" do
-      articles = Article.by_date :key => Date.today
-      articles.paginate(:per_page => 3).amount_pages.should == 3
-    end
     it "should provide a class method to access the collection directly" do
       articles = Article.collection_proxy_for('Article', 'by_date', :descending => true,
         :key => Date.today, :include_docs => true)
