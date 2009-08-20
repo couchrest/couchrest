@@ -217,7 +217,7 @@ module CouchRest
       raise ArgumentError, "a document requires a database to be saved to (The document or the #{self.class} default database were not set)" unless database
       set_unique_id if new_document? && self.respond_to?(:set_unique_id)
       result = database.save_doc(self, bulk)
-      result["ok"] == true
+      return true
     end
     
     # Saves the document to the db using save. Raises an exception
