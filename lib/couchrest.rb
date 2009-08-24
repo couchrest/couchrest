@@ -48,6 +48,7 @@ module CouchRest
   require File.join(File.dirname(__FILE__), 'couchrest', 'core', 'rest_api')
   require File.join(File.dirname(__FILE__), 'couchrest', 'core', 'http_abstraction')
   require File.join(File.dirname(__FILE__), 'couchrest', 'mixins')
+  require File.join(File.dirname(__FILE__), 'couchrest', 'support', 'rails') if defined?(Rails)
 
   # we extend CouchRest with the RestAPI module which gives us acess to
   # the get, post, put, delete and copy

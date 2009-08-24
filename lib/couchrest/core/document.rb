@@ -23,9 +23,10 @@ module CouchRest
     end
     
     # returns true if the document has never been saved
-    def new_document?
+    def new?
       !rev
     end
+    alias :new_document? :new?
     
     # Saves the document to the db using create or update. Also runs the :save
     # callbacks. Sets the <tt>_id</tt> and <tt>_rev</tt> fields based on
@@ -63,7 +64,7 @@ module CouchRest
     
     # Returns the CouchDB uri for the document
     def uri(append_rev = false)
-      return nil if new_document?
+      return nil if new?
       couch_uri = "http://#{database.root}/#{CGI.escape(id)}"
       if append_rev == true
         couch_uri << "?rev=#{rev}"

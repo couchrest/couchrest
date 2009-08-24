@@ -50,7 +50,10 @@ module CouchRest
     
     def self.included(base)
       base.extlib_inheritable_accessor(:auto_validation)
-      base.class_eval <<-EOS, __FILE__, __LINE__
+      base.class_eval <<-EOS, __FILE__, __LINE__ + 1
+          # Callbacks
+          define_callbacks :validate
+          
           # Turn off auto validation by default
           self.auto_validation ||= false
           
@@ -71,9 +74,10 @@ module CouchRest
       EOS
       
       base.extend(ClassMethods)
-      base.class_eval <<-EOS, __FILE__, __LINE__
+      base.class_eval <<-EOS, __FILE__, __LINE__ + 1
+        define_callbacks :validate
         if method_defined?(:_run_save_callbacks)
-          save_callback :before, :check_validations
+          set_callback :save, :before, :check_validations
         end
       EOS
       base.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
@@ -115,8 +119,7 @@ module CouchRest
     # Check if a resource is valid in a given context
     #
     def valid?(context = :default)
-      result = self.class.validators.execute(context, self)
-      result && validate_casted_arrays
+      recursive_valid?(self, context, true)
     end
     
     # checking on casted objects
@@ -133,29 +136,24 @@ module CouchRest
       result
     end
 
-    # Begin a recursive walk of the model checking validity
-    #
-    def all_valid?(context = :default)
-      recursive_valid?(self, context, true)
-    end
-
     # Do recursive validity checking
     #
     def recursive_valid?(target, context, state)
       valid = state
-      target.instance_variables.each do |ivar|
-        ivar_value = target.instance_variable_get(ivar)
-        if ivar_value.validatable?
-          valid = valid && recursive_valid?(ivar_value, context, valid)
-        elsif ivar_value.respond_to?(:each)
-          ivar_value.each do |item|
+      target.each do |key, prop|
+        if prop.is_a?(Array)
+          prop.each do |item|
             if item.validatable?
-              valid = valid && recursive_valid?(item, context, valid)
+              valid = recursive_valid?(item, context, valid) && valid
             end
           end
+        elsif prop.validatable?
+          valid = recursive_valid?(prop, context, valid) && valid
         end
       end
-      return valid && target.valid?
+      target._run_validate_callbacks do
+        target.class.validators.execute(context, target) && valid
+      end
     end
 
 
@@ -212,18 +210,9 @@ module CouchRest
       def create_context_instance_methods(context)
         name = "valid_for_#{context.to_s}?"           # valid_for_signup?
         if !self.instance_methods.include?(name)
-          class_eval <<-EOS, __FILE__, __LINE__
+          class_eval <<-EOS, __FILE__, __LINE__ + 1
             def #{name}                               # def valid_for_signup?
               valid?('#{context.to_s}'.to_sym)        #   valid?('signup'.to_sym)
-            end                                       # end
-          EOS
-        end
-
-        all = "all_valid_for_#{context.to_s}?"        # all_valid_for_signup?
-        if !self.instance_methods.include?(all)
-          class_eval <<-EOS, __FILE__, __LINE__
-            def #{all}                                # def all_valid_for_signup?
-              all_valid?('#{context.to_s}'.to_sym)    #   all_valid?('signup'.to_sym)
             end                                       # end
           EOS
         end
