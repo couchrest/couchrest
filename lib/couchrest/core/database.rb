@@ -175,12 +175,6 @@ module CouchRest
       result
     end
     
-    ### DEPRECATION NOTICE
-    def save(doc, bulk=false)
-      puts "CouchRest::Database's save method is being deprecated, please use save_doc instead"
-      save_doc(doc, bulk)
-    end
-    
     
     # POST an array of documents to CouchDB. If any of the documents are
     # missing ids, supply one from the uuid cache.
@@ -219,12 +213,6 @@ module CouchRest
       CouchRest.delete "#{@root}/#{slug}?rev=#{doc['_rev']}"
     end
     
-    ### DEPRECATION NOTICE
-    def delete(doc, bulk=false)
-      puts "CouchRest::Database's delete method is being deprecated, please use delete_doc instead"
-      delete_doc(doc, bulk)
-    end
-    
     # COPY an existing document to a new id. If the destination id currently exists, a rev must be provided.
     # <tt>dest</tt> can take one of two forms if overwriting: "id_to_overwrite?rev=revision" or the actual doc
     # hash with a '_rev' key
@@ -237,12 +225,6 @@ module CouchRest
         dest
       end
       CouchRest.copy "#{@root}/#{slug}", destination
-    end
-    
-    ### DEPRECATION NOTICE
-    def copy(doc, dest)
-      puts "CouchRest::Database's copy method is being deprecated, please use copy_doc instead"
-      copy_doc(doc, dest)
     end
     
     # Compact the database, removing old document revisions and optimizing space use.
