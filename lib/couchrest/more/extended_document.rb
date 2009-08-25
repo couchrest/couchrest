@@ -168,7 +168,8 @@ module CouchRest
     end
 
     # for compatibility with old-school frameworks
-    alias :new_record? :new_document?
+    alias :new_record? :new?
+    alias :new_document? :new?
     
     # Trigger the callbacks (before, after, around)
     # and create the document
@@ -189,7 +190,7 @@ module CouchRest
     # unlike save, create returns the newly created document
     def create_without_callbacks(bulk =false)
       raise ArgumentError, "a document requires a database to be created to (The document or the #{self.class} default database were not set)" unless database
-      set_unique_id if new_document? && self.respond_to?(:set_unique_id)
+      set_unique_id if new? && self.respond_to?(:set_unique_id)
       result = database.save_doc(self, bulk)
       (result["ok"] == true) ? self : false
     end
@@ -204,7 +205,7 @@ module CouchRest
     # only if the document isn't new
     def update(bulk = false)
       caught = catch(:halt)  do
-        if self.new_document?
+        if self.new?
           save(bulk)
         else
           _run_update_callbacks do
@@ -220,7 +221,7 @@ module CouchRest
     # and save the document
     def save(bulk = false)
       caught = catch(:halt)  do
-        if self.new_document?
+        if self.new?
           _run_save_callbacks do
             save_without_callbacks(bulk)
           end
@@ -234,7 +235,7 @@ module CouchRest
     # Returns a boolean value
     def save_without_callbacks(bulk = false)
       raise ArgumentError, "a document requires a database to be saved to (The document or the #{self.class} default database were not set)" unless database
-      set_unique_id if new_document? && self.respond_to?(:set_unique_id)
+      set_unique_id if new? && self.respond_to?(:set_unique_id)
       result = database.save_doc(self, bulk)
       mark_as_saved 
       true
