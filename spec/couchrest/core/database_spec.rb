@@ -552,7 +552,7 @@ describe CouchRest::Database do
         newdoc['artist'].should == 'Zappa'
       end
       it "should fail without an _id" do
-        lambda{@db.copy({"not"=>"a real doc"})}.should raise_error(ArgumentError)
+        lambda{@db.copy_doc({"not"=>"a real doc"})}.should raise_error(ArgumentError)
       end
     end
     describe "to an existing location" do
