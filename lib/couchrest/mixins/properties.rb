@@ -53,6 +53,9 @@ module CouchRest
             # Auto parse Time objects
             self[property.name] = if ((property.init_method == 'new') && target == 'Time') 
               self[key].is_a?(String) ? Time.parse(self[key].dup) : self[key]
+            elsif 
+              ((property.init_method == 'new') && target == 'Date') 
+                self[key].is_a?(String) ? Date.parse(self[key].dup) : self[key]
             else
               # Let people use :send as a Time parse arg
               klass = ::CouchRest.constantize(target)

@@ -122,13 +122,16 @@ describe "ExtendedDocument properties" do
   describe "casting" do
     describe "cast keys to any type" do
       before(:all) do
-        event_doc = { :subject => "Some event", :occurs_at => Time.now }
+        event_doc = { :subject => "Some event", :occurs_at => Time.now, :end_date => Date.today }
         e = Event.database.save_doc event_doc
 
         @event = Event.get e['id']
       end
       it "should cast occurs_at to Time" do
         @event['occurs_at'].should be_an_instance_of(Time)
+      end
+      it "should cast end_date to Date" do
+        @event['end_date'].should be_an_instance_of(Date)
       end
     end
   end
