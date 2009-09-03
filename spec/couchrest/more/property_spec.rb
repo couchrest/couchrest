@@ -127,7 +127,7 @@ describe "ExtendedDocument properties" do
 
         @event = Event.get e['id']
       end
-      it "should cast created_at to Time" do
+      it "should cast occurs_at to Time" do
         @event['occurs_at'].should be_an_instance_of(Time)
       end
     end
