@@ -90,6 +90,13 @@ you can define some casting rules.
 
     property :casted_attribute, :cast_as => 'WithCastedModelMixin'
     property :keywords,         :cast_as => ["String"]
+    property :occurs_at,        :cast_as => 'Time'
+    property :end_date,         :cast_as => 'Date'
+    property :last_name,        :alias     => :family_name
+    property :read_only_value,  :read_only => true
+    property :name,             :length => 4...20
+    property :price,            :type => Integer
+    
 
 If you want to cast an array of instances from a specific Class, use the trick shown above ["ClassName"]
 
