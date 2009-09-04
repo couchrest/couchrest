@@ -16,7 +16,7 @@ describe CouchRest::Database do
       db.uri.should  == "/foo%2Fbar"
     end
   end
-
+  
   describe "map query with _temp_view in Javascript" do
     before(:each) do
       @db.bulk_save([
@@ -47,7 +47,7 @@ describe CouchRest::Database do
       rs['rows'].length.should == 2
     end
   end
-
+  
   describe "map/reduce query with _temp_view in Javascript" do
     before(:each) do
       @db.bulk_save([
@@ -134,7 +134,7 @@ describe CouchRest::Database do
       rs["total_rows"].should == 3
     end
   end
-
+  
   describe "GET (document by id) when the doc exists" do
     before(:each) do
       @r = @db.save_doc({'lemons' => 'from texas', 'and' => 'spain'})
@@ -182,7 +182,7 @@ describe CouchRest::Database do
         @db.get(r['id']).rev.should == r["rev"]
       end
     end
-
+  
     it "should empty the bulk save cache if no documents are given" do
       @db.save_doc({"_id" => "bulk_cache_1", "val" => "test"}, true)
       lambda do
@@ -191,7 +191,7 @@ describe CouchRest::Database do
       @db.bulk_save
       @db.get("bulk_cache_1")["val"].should == "test"
     end
-
+  
     it "should raise an error that is useful for recovery" do
       @r = @db.save_doc({"_id" => "taken", "field" => "stuff"})
       begin
@@ -255,7 +255,6 @@ describe CouchRest::Database do
     it "should save the attachment to a new doc" do
       r = @db.put_attachment({'_id' => 'attach-this'}, 'couchdb.png', image = @file.read, {:content_type => 'image/png'})
       r['ok'].should == true
-      exec('date')
       doc = @db.get("attach-this")
       attachment = @db.fetch_attachment(doc,"couchdb.png")
       if attachment.respond_to?(:net_http_res)  
@@ -267,7 +266,7 @@ describe CouchRest::Database do
       end
     end
   end
-
+  
   describe "PUT document with attachment" do
     before(:each) do
       @attach = "<html><head><title>My Doc</title></head><body><p>Has words.</p></body></html>"
@@ -317,7 +316,7 @@ describe CouchRest::Database do
       Base64.decode64(attachment).should == @attach
     end
   end
-
+  
   describe "PUT document with multiple attachments" do
     before(:each) do
       @attach = "<html><head><title>My Doc</title></head><body><p>Has words.</p></body></html>"
@@ -383,7 +382,7 @@ describe CouchRest::Database do
       lambda{ @db.delete_attachment(@doc, "test", true) }.should_not raise_error
     end
   end
-
+  
   describe "POST document with attachment (with funky name)" do
     before(:each) do
       @attach = "<html><head><title>My Funky Doc</title></head><body><p>Has words.</p></body></html>"
@@ -408,266 +407,266 @@ describe CouchRest::Database do
       attachment.should == @attach
     end
   end
-
+  
   describe "PUT (new document with url id)" do
-    it "should create the document" do
-      @docid = "http://example.com/stuff.cgi?things=and%20stuff"
-      @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
-      lambda{@db.save_doc({'_id' => @docid})}.should raise_error(RestClient::Request::RequestFailed)
-      @db.get(@docid)['will-exist'].should == 'here'
-    end
-  end
-  
-  describe "PUT (new document with id)" do
-    it "should start without the document" do
-      # r = @db.save_doc({'lemons' => 'from texas', 'and' => 'spain'})
-      @db.documents['rows'].each do |doc|
-        doc['id'].should_not == 'my-doc'
+      it "should create the document" do
+        @docid = "http://example.com/stuff.cgi?things=and%20stuff"
+        @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
+        lambda{@db.save_doc({'_id' => @docid})}.should raise_error(RestClient::Request::RequestFailed)
+        @db.get(@docid)['will-exist'].should == 'here'
       end
-      # should_not include({'_id' => 'my-doc'})
-      # this needs to be a loop over docs on content with the post
-      # or instead make it return something with a fancy <=> method
-    end
-    it "should create the document" do
-      @db.save_doc({'_id' => 'my-doc', 'will-exist' => 'here'})
-      lambda{@db.save_doc({'_id' => 'my-doc'})}.should raise_error(RestClient::Request::RequestFailed)
-    end
-  end
-  
-  describe "PUT (existing document with rev)" do
-    before(:each) do
-      @db.save_doc({'_id' => 'my-doc', 'will-exist' => 'here'})
-      @doc = @db.get('my-doc')
-      @docid = "http://example.com/stuff.cgi?things=and%20stuff"
-      @db.save_doc({'_id' => @docid, 'now' => 'save'})
-    end
-    it "should start with the document" do
-      @doc['will-exist'].should == 'here'
-      @db.get(@docid)['now'].should == 'save'
-    end
-    it "should save with url id" do
-      doc = @db.get(@docid)
-      doc['yaml'] = ['json', 'word.']
-      @db.save_doc doc
-      @db.get(@docid)['yaml'].should == ['json', 'word.']
-    end
-    it "should fail to resave without the rev" do
-      @doc['them-keys'] = 'huge'
-      @doc['_rev'] = 'wrong'
-      lambda {@db.save_doc(@doc)}.should raise_error
-    end
-    it "should update the document" do
-      @doc['them-keys'] = 'huge'
-      @db.save_doc(@doc)
-      now = @db.get('my-doc')
-      now['them-keys'].should == 'huge'
-    end
-  end
-
-  describe "cached bulk save" do
-    it "stores documents in a database-specific cache" do
-      td = {"_id" => "btd1", "val" => "test"}
-      @db.save_doc(td, true)
-      @db.instance_variable_get("@bulk_save_cache").should == [td]
-      
-    end
-
-    it "doesn't save to the database until the configured cache size is exceded" do
-      @db.bulk_save_cache_limit = 3
-      td1 = {"_id" => "td1", "val" => true}
-      td2 = {"_id" => "td2", "val" => 4}
-      @db.save_doc(td1, true)
-      @db.save_doc(td2, true)
-      lambda do
-        @db.get(td1["_id"])
-      end.should raise_error(RestClient::ResourceNotFound)
-      lambda do
-        @db.get(td2["_id"])
-      end.should raise_error(RestClient::ResourceNotFound)
-      td3 = {"_id" => "td3", "val" => "foo"}
-      @db.save_doc(td3, true)
-      @db.get(td1["_id"])["val"].should == td1["val"]
-      @db.get(td2["_id"])["val"].should == td2["val"]
-      @db.get(td3["_id"])["val"].should == td3["val"]
-    end
-
-    it "clears the bulk save cache the first time a non bulk save is requested" do
-      td1 = {"_id" => "blah", "val" => true}
-      td2 = {"_id" => "steve", "val" => 3}
-      @db.bulk_save_cache_limit = 50
-      @db.save_doc(td1, true)
-      lambda do
-        @db.get(td1["_id"])
-      end.should raise_error(RestClient::ResourceNotFound)
-      @db.save_doc(td2)
-      @db.get(td1["_id"])["val"].should == td1["val"]
-      @db.get(td2["_id"])["val"].should == td2["val"]
-    end
-  end
-
-  describe "DELETE existing document" do
-    before(:each) do
-      @r = @db.save_doc({'lemons' => 'from texas', 'and' => 'spain'})
-      @docid = "http://example.com/stuff.cgi?things=and%20stuff"
-      @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
-    end
-    it "should work" do
-      doc = @db.get(@r['id'])
-      doc['and'].should == 'spain'
-      @db.delete_doc doc
-      lambda{@db.get @r['id']}.should raise_error
-    end
-    it "should work with uri id" do
-      doc = @db.get(@docid)
-      @db.delete_doc doc
-      lambda{@db.get @docid}.should raise_error
-    end
-    it "should fail without an _id" do
-      lambda{@db.delete_doc({"not"=>"a real doc"})}.should raise_error(ArgumentError)
-    end
-    it "should defer actual deletion when using bulk save" do
-      doc = @db.get(@docid)
-      @db.delete_doc doc, true
-      lambda{@db.get @docid}.should_not raise_error
-      @db.bulk_save
-      lambda{@db.get @docid}.should raise_error
     end
     
-  end
-  
-  describe "COPY existing document" do
-    before :each do
-      @r = @db.save_doc({'artist' => 'Zappa', 'title' => 'Muffin Man'})
-      @docid = 'tracks/zappa/muffin-man'
-      @doc = @db.get(@r['id'])
-    end
-    describe "to a new location" do
-      it "should work" do
-        @db.copy_doc @doc, @docid
-        newdoc = @db.get(@docid)
-        newdoc['artist'].should == 'Zappa'
+    describe "PUT (new document with id)" do
+      it "should start without the document" do
+        # r = @db.save_doc({'lemons' => 'from texas', 'and' => 'spain'})
+        @db.documents['rows'].each do |doc|
+          doc['id'].should_not == 'my-doc'
+        end
+        # should_not include({'_id' => 'my-doc'})
+        # this needs to be a loop over docs on content with the post
+        # or instead make it return something with a fancy <=> method
       end
-      it "should fail without an _id" do
-        lambda{@db.copy({"not"=>"a real doc"})}.should raise_error(ArgumentError)
+      it "should create the document" do
+        @db.save_doc({'_id' => 'my-doc', 'will-exist' => 'here'})
+        lambda{@db.save_doc({'_id' => 'my-doc'})}.should raise_error(RestClient::Request::RequestFailed)
       end
     end
-    describe "to an existing location" do
-      before :each do
+    
+    describe "PUT (existing document with rev)" do
+      before(:each) do
+        @db.save_doc({'_id' => 'my-doc', 'will-exist' => 'here'})
+        @doc = @db.get('my-doc')
+        @docid = "http://example.com/stuff.cgi?things=and%20stuff"
+        @db.save_doc({'_id' => @docid, 'now' => 'save'})
+      end
+      it "should start with the document" do
+        @doc['will-exist'].should == 'here'
+        @db.get(@docid)['now'].should == 'save'
+      end
+      it "should save with url id" do
+        doc = @db.get(@docid)
+        doc['yaml'] = ['json', 'word.']
+        @db.save_doc doc
+        @db.get(@docid)['yaml'].should == ['json', 'word.']
+      end
+      it "should fail to resave without the rev" do
+        @doc['them-keys'] = 'huge'
+        @doc['_rev'] = 'wrong'
+        lambda {@db.save_doc(@doc)}.should raise_error
+      end
+      it "should update the document" do
+        @doc['them-keys'] = 'huge'
+        @db.save_doc(@doc)
+        now = @db.get('my-doc')
+        now['them-keys'].should == 'huge'
+      end
+    end
+    
+    describe "cached bulk save" do
+      it "stores documents in a database-specific cache" do
+        td = {"_id" => "btd1", "val" => "test"}
+        @db.save_doc(td, true)
+        @db.instance_variable_get("@bulk_save_cache").should == [td]
+        
+      end
+    
+      it "doesn't save to the database until the configured cache size is exceded" do
+        @db.bulk_save_cache_limit = 3
+        td1 = {"_id" => "td1", "val" => true}
+        td2 = {"_id" => "td2", "val" => 4}
+        @db.save_doc(td1, true)
+        @db.save_doc(td2, true)
+        lambda do
+          @db.get(td1["_id"])
+        end.should raise_error(RestClient::ResourceNotFound)
+        lambda do
+          @db.get(td2["_id"])
+        end.should raise_error(RestClient::ResourceNotFound)
+        td3 = {"_id" => "td3", "val" => "foo"}
+        @db.save_doc(td3, true)
+        @db.get(td1["_id"])["val"].should == td1["val"]
+        @db.get(td2["_id"])["val"].should == td2["val"]
+        @db.get(td3["_id"])["val"].should == td3["val"]
+      end
+    
+      it "clears the bulk save cache the first time a non bulk save is requested" do
+        td1 = {"_id" => "blah", "val" => true}
+        td2 = {"_id" => "steve", "val" => 3}
+        @db.bulk_save_cache_limit = 50
+        @db.save_doc(td1, true)
+        lambda do
+          @db.get(td1["_id"])
+        end.should raise_error(RestClient::ResourceNotFound)
+        @db.save_doc(td2)
+        @db.get(td1["_id"])["val"].should == td1["val"]
+        @db.get(td2["_id"])["val"].should == td2["val"]
+      end
+    end
+    
+    describe "DELETE existing document" do
+      before(:each) do
+        @r = @db.save_doc({'lemons' => 'from texas', 'and' => 'spain'})
+        @docid = "http://example.com/stuff.cgi?things=and%20stuff"
         @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
       end
-      it "should fail without a rev" do
-        lambda{@db.copy_doc @doc, @docid}.should raise_error(RestClient::RequestFailed)
+      it "should work" do
+        doc = @db.get(@r['id'])
+        doc['and'].should == 'spain'
+        @db.delete_doc doc
+        lambda{@db.get @r['id']}.should raise_error
       end
-      it "should succeed with a rev" do
-        @to_be_overwritten = @db.get(@docid)
-        @db.copy_doc @doc, "#{@docid}?rev=#{@to_be_overwritten['_rev']}"
-        newdoc = @db.get(@docid)
-        newdoc['artist'].should == 'Zappa'
+      it "should work with uri id" do
+        doc = @db.get(@docid)
+        @db.delete_doc doc
+        lambda{@db.get @docid}.should raise_error
       end
-      it "should succeed given the doc to overwrite" do
-        @to_be_overwritten = @db.get(@docid)
-        @db.copy_doc @doc, @to_be_overwritten
-        newdoc = @db.get(@docid)
-        newdoc['artist'].should == 'Zappa'
+      it "should fail without an _id" do
+        lambda{@db.delete_doc({"not"=>"a real doc"})}.should raise_error(ArgumentError)
       end
-    end
-  end
-  
-  
-  it "should list documents" do
-    5.times do
-      @db.save_doc({'another' => 'doc', 'will-exist' => 'anywhere'})
-    end
-    ds = @db.documents
-    ds['rows'].should be_an_instance_of(Array)
-    ds['rows'][0]['id'].should_not be_nil
-    ds['total_rows'].should == 5
-  end
-  
-  describe "documents / _all_docs" do
-    before(:each) do
-      9.times do |i|
-        @db.save_doc({'_id' => "doc#{i}",'another' => 'doc', 'will-exist' => 'here'})
-      end
-    end
-    it "should list documents with keys and such" do
-      ds = @db.documents
-      ds['rows'].should be_an_instance_of(Array)
-      ds['rows'][0]['id'].should == "doc0"
-      ds['total_rows'].should == 9      
-    end
-    it "should take query params" do
-      ds = @db.documents(:startkey => 'doc0', :endkey => 'doc3')
-      ds['rows'].length.should == 4
-      ds = @db.documents(:key => 'doc0')
-      ds['rows'].length.should == 1
-    end
-    it "should work with multi-key" do
-      rs = @db.documents :keys => ["doc0", "doc7"]
-      rs['rows'].length.should == 2
-    end
-    it "should work with include_docs" do
-      ds = @db.documents(:startkey => 'doc0', :endkey => 'doc3', :include_docs => true)
-      ds['rows'][0]['doc']['another'].should == "doc"
-    end
-    it "should have the bulk_load macro" do
-      rs = @db.bulk_load ["doc0", "doc7"]
-      rs['rows'].length.should == 2
-      rs['rows'][0]['doc']['another'].should == "doc"
-    end
-  end
-  
-
-  describe "compacting a database" do
-    it "should compact the database" do
-      db = @cr.database('couchrest-test')
-      # r = 
-      db.compact!
-      # r['ok'].should == true
-    end
-  end
-
-  describe "deleting a database" do
-    it "should start with the test database" do
-      @cr.databases.should include('couchrest-test')
-    end
-    it "should delete the database" do
-      db = @cr.database('couchrest-test')
-      db.delete!
-      @cr.databases.should_not include('couchrest-test')
-    end
-  end
-  
-  describe "replicating a database" do
-    before do
-      @db.save_doc({'_id' => 'test_doc', 'some-value' => 'foo'})
-      @other_db = @cr.database 'couchrest-test-replication'
-      @other_db.delete! rescue nil
-      @other_db = @cr.create_db 'couchrest-test-replication'
-    end
-
-    describe "via pulling" do
-      before do
-        @other_db.replicate_from @db
+      it "should defer actual deletion when using bulk save" do
+        doc = @db.get(@docid)
+        @db.delete_doc doc, true
+        lambda{@db.get @docid}.should_not raise_error
+        @db.bulk_save
+        lambda{@db.get @docid}.should raise_error
       end
       
-      it "contains the document from the original database" do
-        doc = @other_db.get('test_doc')
-        doc['some-value'].should == 'foo'
+    end
+    
+    describe "COPY existing document" do
+      before :each do
+        @r = @db.save_doc({'artist' => 'Zappa', 'title' => 'Muffin Man'})
+        @docid = 'tracks/zappa/muffin-man'
+        @doc = @db.get(@r['id'])
+      end
+      describe "to a new location" do
+        it "should work" do
+          @db.copy_doc @doc, @docid
+          newdoc = @db.get(@docid)
+          newdoc['artist'].should == 'Zappa'
+        end
+        it "should fail without an _id" do
+          lambda{@db.copy({"not"=>"a real doc"})}.should raise_error(ArgumentError)
+        end
+      end
+      describe "to an existing location" do
+        before :each do
+          @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
+        end
+        it "should fail without a rev" do
+          lambda{@db.copy_doc @doc, @docid}.should raise_error(RestClient::RequestFailed)
+        end
+        it "should succeed with a rev" do
+          @to_be_overwritten = @db.get(@docid)
+          @db.copy_doc @doc, "#{@docid}?rev=#{@to_be_overwritten['_rev']}"
+          newdoc = @db.get(@docid)
+          newdoc['artist'].should == 'Zappa'
+        end
+        it "should succeed given the doc to overwrite" do
+          @to_be_overwritten = @db.get(@docid)
+          @db.copy_doc @doc, @to_be_overwritten
+          newdoc = @db.get(@docid)
+          newdoc['artist'].should == 'Zappa'
+        end
       end
     end
     
-    describe "via pushing" do
-      before do
-        @db.replicate_to @other_db
+    
+    it "should list documents" do
+      5.times do
+        @db.save_doc({'another' => 'doc', 'will-exist' => 'anywhere'})
       end
-      
-      it "copies the document to the other database" do
-        doc = @other_db.get('test_doc')
-        doc['some-value'].should == 'foo'
+      ds = @db.documents
+      ds['rows'].should be_an_instance_of(Array)
+      ds['rows'][0]['id'].should_not be_nil
+      ds['total_rows'].should == 5
+    end
+    
+    describe "documents / _all_docs" do
+      before(:each) do
+        9.times do |i|
+          @db.save_doc({'_id' => "doc#{i}",'another' => 'doc', 'will-exist' => 'here'})
+        end
+      end
+      it "should list documents with keys and such" do
+        ds = @db.documents
+        ds['rows'].should be_an_instance_of(Array)
+        ds['rows'][0]['id'].should == "doc0"
+        ds['total_rows'].should == 9      
+      end
+      it "should take query params" do
+        ds = @db.documents(:startkey => 'doc0', :endkey => 'doc3')
+        ds['rows'].length.should == 4
+        ds = @db.documents(:key => 'doc0')
+        ds['rows'].length.should == 1
+      end
+      it "should work with multi-key" do
+        rs = @db.documents :keys => ["doc0", "doc7"]
+        rs['rows'].length.should == 2
+      end
+      it "should work with include_docs" do
+        ds = @db.documents(:startkey => 'doc0', :endkey => 'doc3', :include_docs => true)
+        ds['rows'][0]['doc']['another'].should == "doc"
+      end
+      it "should have the bulk_load macro" do
+        rs = @db.bulk_load ["doc0", "doc7"]
+        rs['rows'].length.should == 2
+        rs['rows'][0]['doc']['another'].should == "doc"
       end
     end
-  end
+    
+    
+    describe "compacting a database" do
+      it "should compact the database" do
+        db = @cr.database('couchrest-test')
+        # r = 
+        db.compact!
+        # r['ok'].should == true
+      end
+    end
+    
+    describe "deleting a database" do
+      it "should start with the test database" do
+        @cr.databases.should include('couchrest-test')
+      end
+      it "should delete the database" do
+        db = @cr.database('couchrest-test')
+        db.delete!
+        @cr.databases.should_not include('couchrest-test')
+      end
+    end
+    
+    describe "replicating a database" do
+      before do
+        @db.save_doc({'_id' => 'test_doc', 'some-value' => 'foo'})
+        @other_db = @cr.database 'couchrest-test-replication'
+        @other_db.delete! rescue nil
+        @other_db = @cr.create_db 'couchrest-test-replication'
+      end
+    
+      describe "via pulling" do
+        before do
+          @other_db.replicate_from @db
+        end
+        
+        it "contains the document from the original database" do
+          doc = @other_db.get('test_doc')
+          doc['some-value'].should == 'foo'
+        end
+      end
+      
+      describe "via pushing" do
+        before do
+          @db.replicate_to @other_db
+        end
+        
+        it "copies the document to the other database" do
+          doc = @other_db.get('test_doc')
+          doc['some-value'].should == 'foo'
+        end
+      end
+    end
 
   describe "creating a database" do
     before(:each) do
