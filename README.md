@@ -141,7 +141,6 @@ you can define some casting rules.
     property :occurs_at,        :cast_as => 'Time'
     property :end_date,         :cast_as => 'Date'
 
-<<<<<<< HEAD
 If you want to cast an array of instances from a specific Class, use the trick shown above ["ClassName"]
 
 ### Pagination
@@ -172,7 +171,4 @@ Low level usage:
 
 CouchRest is compatible with rails and can even be used a Rails plugin.
 However, you might be interested in the CouchRest companion rails project:
-[http://github.com/hpoydar/couchrest-rails](http://github.com/hpoydar/couchrest-rails)      
-=======
-If you want to cast an array of instances from a specific Class, use the trick shown above ["ClassName"]
->>>>>>> remotes/old/master
+[http://github.com/hpoydar/couchrest-rails](http://github.com/hpoydar/couchrest-rails)
