@@ -124,6 +124,13 @@ CouchRest uses a mixin you can find in lib/mixins/callbacks which is extracted f
     
 Check the mixin or the ExtendedDocument class to see how to implement your own callbacks.
 
+### Properties
+
+    property :last_name,        :alias     => :family_name
+    property :read_only_value,  :read_only => true
+    property :name,             :length => 4...20
+    property :price,            :type => Integer
+
 ### Casting
 
 Often, you will want to store multiple objects within a document, to be able to retrieve your objects when you load the document, 
@@ -131,7 +138,10 @@ you can define some casting rules.
 
     property :casted_attribute, :cast_as => 'WithCastedModelMixin'
     property :keywords,         :cast_as => ["String"]
+    property :occurs_at,        :cast_as => 'Time'
+    property :end_date,         :cast_as => 'Date'
 
+<<<<<<< HEAD
 If you want to cast an array of instances from a specific Class, use the trick shown above ["ClassName"]
 
 ### Pagination
@@ -163,3 +173,6 @@ Low level usage:
 CouchRest is compatible with rails and can even be used a Rails plugin.
 However, you might be interested in the CouchRest companion rails project:
 [http://github.com/hpoydar/couchrest-rails](http://github.com/hpoydar/couchrest-rails)      
+=======
+If you want to cast an array of instances from a specific Class, use the trick shown above ["ClassName"]
+>>>>>>> remotes/old/master

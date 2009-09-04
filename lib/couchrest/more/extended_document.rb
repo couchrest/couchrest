@@ -224,6 +224,7 @@ module CouchRest
     # if the document is not saved properly.
     def save!
       raise "#{self.inspect} failed to save" unless self.save
+      true
     end
 
     # Deletes the document from the database. Runs the :destroy callbacks.

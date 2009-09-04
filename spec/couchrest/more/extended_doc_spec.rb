@@ -1,6 +1,7 @@
 require File.expand_path("../../../spec_helper", __FILE__)
 require File.join(FIXTURE_PATH, 'more', 'article')
 require File.join(FIXTURE_PATH, 'more', 'course')
+require File.join(FIXTURE_PATH, 'more', 'card')
 
 
 describe "ExtendedDocument" do
@@ -409,6 +410,25 @@ describe "ExtendedDocument" do
     it "should set the type" do
       @sobj['couchrest-type'].should == 'Basic'
     end
+    
+    describe "save!" do
+      
+      before(:each) do
+        @sobj = Card.new(:first_name => "Marcos", :last_name => "Tapajós")
+      end
+      
+      it "should return true if save the document" do
+        @sobj.save!.should == true
+      end
+      
+      it "should raise error if don't save the document" do
+        @sobj.first_name = nil
+        lambda {  @sobj.save!.should == true }.should raise_error(RuntimeError)
+      end
+
+    end
+    
+    
   end
   
   describe "saving a model with a unique_id configured" do

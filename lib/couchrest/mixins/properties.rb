@@ -80,6 +80,8 @@ module CouchRest
             # 'boolean' type is simply used to generate a property? accessor method
             elsif ((property.init_method == 'new') && target == 'boolean')
               self[key]
+            elsif ((property.init_method == 'new') && target == 'Date') 
+                self[key].is_a?(String) ? Date.parse(self[key].dup) : self[key]
             else
               # Let people use :send as a Time parse arg
               klass = ::CouchRest.constantize(target)
