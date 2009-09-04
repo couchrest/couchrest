@@ -128,8 +128,8 @@ Check the mixin or the ExtendedDocument class to see how to implement your own c
 
     property :last_name,        :alias     => :family_name
     property :read_only_value,  :read_only => true
-    property :name,             :length => 4...20
-    property :price,            :type => Integer
+    property :name,             :length    => 4...20
+    property :price,            :type      => Integer
 
 ### Casting
 
@@ -165,7 +165,6 @@ Low level usage:
 
     Article.paginate(:design_doc => 'Article', :view_name => 'by_date',
       :per_page => 3, :page => 2, :descending => true, :key => Date.today, :include_docs => true)
-      
       
 ## Ruby on Rails
 
