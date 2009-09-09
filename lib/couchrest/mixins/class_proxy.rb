@@ -56,7 +56,9 @@ module CouchRest
         # Mixins::DocumentQueries
         
         def all(opts = {}, &block)
-          @klass.all({:database => @database}.merge(opts), &block)
+          docs = @klass.all({:database => @database}.merge(opts), &block)
+          docs.each { |doc| doc.database = @database if doc.respond_to?(:database) } if docs
+          docs
         end
         
         def count(opts = {}, &block)
@@ -64,11 +66,15 @@ module CouchRest
         end
         
         def first(opts = {})
-          @klass.first({:database => @database}.merge(opts))
+          doc = @klass.first({:database => @database}.merge(opts))
+          doc.database = @database if doc && doc.respond_to?(:database)
+          doc
         end
         
         def get(id)
-          @klass.get(id, @database)
+          doc = @klass.get(id, @database)
+          doc.database = @database if doc && doc.respond_to?(:database)
+          doc
         end
         
         # Mixins::Views
@@ -78,7 +84,9 @@ module CouchRest
         end
         
         def view(name, query={}, &block)
-          @klass.view(name, {:database => @database}.merge(query), &block)
+          docs = @klass.view(name, {:database => @database}.merge(query), &block)
+          docs.each { |doc| doc.database = @database if doc.respond_to?(:database) } if docs
+          docs
         end
         
         def all_design_doc_versions
