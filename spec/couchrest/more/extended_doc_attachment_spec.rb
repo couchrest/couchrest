@@ -66,7 +66,7 @@ describe "ExtendedDocument attachments" do
   
     it 'should set the content-type if passed' do
       @obj.create_attachment(:file => @file_ext, :name => @attachment_name, :content_type => @content_type)
-      @obj['_attachments'][@attachment_name]['content-type'].should == @content_type
+      @obj['_attachments'][@attachment_name]['content_type'].should == @content_type
     end
   end
 
@@ -100,7 +100,7 @@ describe "ExtendedDocument attachments" do
       file = File.open(FIXTURE_PATH + '/attachments/README')
       @file.should_not == file
       @obj.update_attachment(:file => file, :name => @attachment_name, :content_type => @content_type)
-      @obj['_attachments'][@attachment_name]['content-type'].should == @content_type
+      @obj['_attachments'][@attachment_name]['content_type'].should == @content_type
     end
   
     it 'should delete an attachment that exists' do

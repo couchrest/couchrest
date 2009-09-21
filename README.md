@@ -135,6 +135,13 @@ To halt the callback, simply return a :halt symbol in your callback method.
     
 Check the mixin or the ExtendedDocument class to see how to implement your own callbacks.
 
+### Properties
+
+    property :last_name,        :alias     => :family_name
+    property :read_only_value,  :read_only => true
+    property :name,             :length    => 4...20
+    property :price,            :type      => Integer
+
 ### Casting
 
 Often, you will want to store multiple objects within a document, to be able to retrieve your objects when you load the document, 
@@ -142,6 +149,8 @@ you can define some casting rules.
 
     property :casted_attribute, :cast_as => 'WithCastedModelMixin'
     property :keywords,         :cast_as => ["String"]
+    property :occurs_at,        :cast_as => 'Time', :send => 'parse
+    property :end_date,         :cast_as => 'Date', :send => 'parse
 
 If you want to cast an array of instances from a specific Class, use the trick shown above ["ClassName"]
 
@@ -167,7 +176,6 @@ Low level usage:
 
     Article.paginate(:design_doc => 'Article', :view_name => 'by_date',
       :per_page => 3, :page => 2, :descending => true, :key => Date.today, :include_docs => true)
-      
       
 ## Ruby on Rails
 
