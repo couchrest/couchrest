@@ -4,7 +4,7 @@ require File.join(File.dirname(__FILE__), '..', 'more', 'property')
 class Time                       
   # returns a local time value much faster than Time.parse
   def self.mktime_with_offset(string)
-    string =~ /(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ([\+\-])(\d{2})/
+    string =~ /(\d{4})[\-|\/](\d{2})[\-|\/](\d{2})[T|\s](\d{2}):(\d{2}):(\d{2})([\+|\s|\-])*(\d{2}):?(\d{2})/
     # $1 = year
     # $2 = month
     # $3 = day
