@@ -83,6 +83,14 @@ describe CouchRest::Document do
       @doc.id.should == @resp["id"]
       @doc.rev.should == @resp["rev"]
     end
+    it "should generate a correct URI" do
+      @doc.uri.should == "#{@db.root}/#{@doc.id}"
+      URI.parse(@doc.uri).to_s.should == @doc.uri
+    end
+    it "should generate a correct URI with revision" do
+      @doc.uri(true).should == "#{@db.root}/#{@doc.id}?rev=#{@doc.rev}"
+      URI.parse(@doc.uri(true)).to_s.should == @doc.uri(true)
+    end
   end
 
   describe  "bulk saving" do
