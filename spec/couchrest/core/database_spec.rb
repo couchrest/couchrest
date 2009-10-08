@@ -131,8 +131,15 @@ describe CouchRest::Database do
       rs = @db.view('first/test', :include_docs => true) do |row|
         rows << row
       end
-      rows.length.should == 4
+      rows.length.should == 3
       rs["total_rows"].should == 3
+    end
+    it "should accept a block with several params" do
+      rows = []
+      rs = @db.view('first/test', :include_docs => true, :limit => 2) do |row|
+        rows << row
+      end
+      rows.length.should == 2
     end
   end
 
