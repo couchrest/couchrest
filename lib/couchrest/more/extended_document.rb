@@ -238,7 +238,7 @@ module CouchRest
       set_unique_id if new? && self.respond_to?(:set_unique_id)
       result = database.save_doc(self, bulk)
       mark_as_saved 
-      true
+      result["ok"] == true
     end
     
     # Saves the document to the db using save. Raises an exception
