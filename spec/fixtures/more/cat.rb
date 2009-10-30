@@ -15,5 +15,5 @@ class CatToy < Hash
 
   property :name
 
-  validates_present :name
+  validates_presence_of :name
 end

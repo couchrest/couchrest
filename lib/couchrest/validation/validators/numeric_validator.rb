@@ -94,9 +94,14 @@ module CouchRest
 
       # Validate whether a field is numeric
       #
-      def validates_is_number(*fields)
+      def validates_numericality_of(*fields)
         opts = opts_from_validator_args(fields)
         add_validator_to_context(opts, fields, CouchRest::Validation::NumericValidator)
+      end
+      
+      def validates_is_number(*fields)
+        warn "[DEPRECATION] `validates_is_number` is deprecated.  Please use `validates_numericality_of` instead."
+        validates_numericality_of(*fields)
       end
 
     end # module ValidatesIsNumber

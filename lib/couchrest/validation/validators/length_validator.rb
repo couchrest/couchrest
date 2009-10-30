@@ -115,20 +115,25 @@ module CouchRest
       #     property low, Integer
       #     property just_right, Integer
       #
-      #     validates_length :high, :min => 100000000000
-      #     validates_length :low, :equals => 0
-      #     validates_length :just_right, :within => 1..10
+      #     validates_length_of :high, :min => 100000000000
+      #     validates_length_of :low, :equals => 0
+      #     validates_length_of :just_right, :within => 1..10
       #
       #     # a call to valid? will return false unless:
       #     # high is greater than or equal to 100000000000
       #     # low is equal to 0
       #     # just_right is between 1 and 10 (inclusive of both 1 and 10)
       #
-      def validates_length(*fields)
+      def validates_length_of(*fields)
         opts = opts_from_validator_args(fields)
         add_validator_to_context(opts, fields, CouchRest::Validation::LengthValidator)
       end
-
+      
+      def validates_length(*fields)
+        warn "[DEPRECATION] `validates_length` is deprecated.  Please use `validates_length_of` instead."
+        validates_length_of(*fields)
+      end
+      
     end # module ValidatesLength
   end # module Validation
 end # module CouchRest

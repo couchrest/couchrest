@@ -11,7 +11,7 @@ class Invoice < CouchRest::ExtendedDocument
   property :location
   
   # Validation
-  validates_present :client_name, :employee_name
-  validates_present :location, :message => "Hey stupid!, you forgot the location"
+  validates_presence_of :client_name, :employee_name
+  validates_presence_of :location, :message => "Hey stupid!, you forgot the location"
   
 end

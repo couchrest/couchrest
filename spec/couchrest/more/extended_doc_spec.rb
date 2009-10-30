@@ -730,7 +730,7 @@ describe "ExtendedDocument" do
     
     it "should not fail if the nested casted model doesn't have validation" do
       Cat.property :trainer, :cast_as => 'Person'
-      Cat.validates_present :name
+      Cat.validates_presence_of :name
       cat = Cat.new(:name => 'Mr Bigglesworth')
       cat.trainer = Person.new
       cat.trainer.validatable?.should be_false
