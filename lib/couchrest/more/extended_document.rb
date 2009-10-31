@@ -277,16 +277,16 @@ module CouchRest
 		private
 
 		def check_properties_exist(attrs)
-      attrs.each do |k, v|
-        raise NoMethodError, "#{k}= method not available, use property :#{k}" unless self.respond_to?("#{k}=")
+      attrs.each do |attribute_name, attribute_value|
+        raise NoMethodError, "#{attribute_name}= method not available, use property :#{attribute_name}" unless self.respond_to?("#{attribute_name}=")
       end      
 		end
 
 		def set_attributes(hash)
 			attrs = remove_protected_attributes(hash)
-      attrs.each do |k,v|
-        if self.respond_to?("#{k}=")
-          self.send("#{k}=", attrs.delete(k))
+      attrs.each do |attribute_name, attribute_value|
+        if self.respond_to?("#{attribute_name}=")
+          self.send("#{attribute_name}=", attrs.delete(attribute_name))
         end
       end
 		end
