@@ -46,8 +46,8 @@ module CouchRest
         protected_names = properties_to_remove_from_mass_assignment.map { |prop| prop.name }
         return attributes if protected_names.empty?
 
-        attributes.reject! do |key, value|
-          protected_names.include?(key.to_s)
+        attributes.reject! do |property_name, property_value|
+          protected_names.include?(property_name.to_s)
         end
 
         attributes || {}
