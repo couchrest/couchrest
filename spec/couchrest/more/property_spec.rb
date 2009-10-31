@@ -1,3 +1,4 @@
+# encoding: utf-8
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.join(FIXTURE_PATH, 'more', 'person')
 require File.join(FIXTURE_PATH, 'more', 'card')
@@ -5,6 +6,7 @@ require File.join(FIXTURE_PATH, 'more', 'invoice')
 require File.join(FIXTURE_PATH, 'more', 'service')
 require File.join(FIXTURE_PATH, 'more', 'event')
 require File.join(FIXTURE_PATH, 'more', 'cat')
+require File.join(FIXTURE_PATH, 'more', 'user')
 
 
 describe "ExtendedDocument properties" do
@@ -53,6 +55,30 @@ describe "ExtendedDocument properties" do
     @card.save.should be_true
     @card.created_at.should_not be_nil
     @card.updated_at.should_not be_nil
+  end
+  
+  
+  describe "mass assignment protection" do
+
+    it "should not store protected attribute using mass assignment" do
+      cat_toy = CatToy.new(:name => "Zorro")
+      cat = Cat.create(:name => "Helena", :toys => [cat_toy], :favorite_toy => cat_toy, :number => 1)
+      cat.number.should be_nil
+      cat.number = 1
+      cat.save
+      cat.number.should == 1
+    end
+
+    it "should not store protected attribute when 'declare accessible poperties, assume all the rest are protected'" do
+      user = User.create(:name => "Marcos Tapajós", :admin => true)
+      user.admin.should be_nil
+    end
+
+    it "should not store protected attribute when 'declare protected properties, assume all the rest are accessible'" do
+      user = SpecialUser.create(:name => "Marcos Tapajós", :admin => true)
+      user.admin.should be_nil
+    end
+
   end
   
   describe "validation" do
