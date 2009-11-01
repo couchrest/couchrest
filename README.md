@@ -141,6 +141,18 @@ Check the mixin or the ExtendedDocument class to see how to implement your own c
     property :read_only_value,  :read_only => true
     property :name,             :length    => 4...20
     property :price,            :type      => Integer
+    
+Attribute protection from mass assignment to CouchRest properties. There are two modes of protection:
+
+1) Declare accessible poperties, assume all the rest are protected 
+    property :name,       :accessible => true
+    property :admin       # this will be automatically protected
+
+2) Declare protected properties, assume all the rest are accessible
+    property :name        # this will not be protected
+    property :admin,      :protected => true
+
+Note: you cannot set both flags in a single class
 
 ### Casting
 
