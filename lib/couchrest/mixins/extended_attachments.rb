@@ -65,7 +65,7 @@ module CouchRest
           content_type = args[:content_type] ? args[:content_type] : get_mime_type(args[:file])
           self['_attachments'][args[:name]] = {
             'content_type' => content_type,
-            'data'         => encode_attachment(args[:file].read)
+            'data'         => args[:file].read
           }
         end
       
