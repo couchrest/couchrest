@@ -129,6 +129,11 @@ describe "ExtendedDocument" do
       @obj.should be_new_document
       @obj.should be_new_record
     end
+
+    it "should not failed on a nil value in argument" do
+      @obj = Basic.new(nil)
+      @obj.should == { 'couchrest-type' => 'Basic' }
+    end
   end
   
   describe "creating a new document" do

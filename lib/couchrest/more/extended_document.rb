@@ -41,7 +41,7 @@ module CouchRest
     
     def initialize(passed_keys={})
       apply_defaults # defined in CouchRest::Mixins::Properties
-			set_attributes(passed_keys)
+	  set_attributes(passed_keys) unless passed_keys.nil?
       super
       cast_keys      # defined in CouchRest::Mixins::Properties
       unless self['_id'] && self['_rev']
