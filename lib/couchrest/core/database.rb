@@ -189,6 +189,15 @@ module CouchRest
       result
     end
     
+    # Save a document to CouchDB in bulk mode. See #save_doc's +bulk+ argument.
+    def bulk_save_doc(doc)
+      save_doc(doc, true)
+    end
+
+    # Save a document to CouchDB in batch mode. See #save_doc's +batch+ argument.
+    def batch_save_doc(doc)
+      save_doc(doc, false, true)
+    end
     
     # POST an array of documents to CouchDB. If any of the documents are
     # missing ids, supply one from the uuid cache.
