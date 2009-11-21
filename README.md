@@ -144,7 +144,7 @@ Check the mixin or the ExtendedDocument class to see how to implement your own c
     
 Attribute protection from mass assignment to CouchRest properties. There are two modes of protection:
 
-1) Declare accessible poperties, assume all the rest are protected 
+1) Declare accessible properties, assume all the rest are protected 
     property :name,       :accessible => true
     property :admin       # this will be automatically protected
 
