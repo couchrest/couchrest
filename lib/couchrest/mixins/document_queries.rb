@@ -51,11 +51,9 @@ module CouchRest
         # db<Database>:: optional option to pass a custom database to use
         def get(id, db = database)
           begin
-            doc = db.get id
+            get!(id, db)
           rescue
             nil
-          else
-            new(doc)
           end
         end
         
@@ -72,7 +70,7 @@ module CouchRest
         # db<Database>:: optional option to pass a custom database to use
         def get!(id, db = database)
           doc = db.get id
-          new(doc)
+          create_from_database(doc)
         end
         
       end

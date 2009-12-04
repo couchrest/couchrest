@@ -38,11 +38,20 @@ module CouchRest
     define_callbacks :save, "result == :halt"
     define_callbacks :update, "result == :halt"
     define_callbacks :destroy, "result == :halt"
+
+    # Creates a new instance, bypassing attribute protection
+    #
+    # ==== Returns
+    #  a document instance
+    def self.create_from_database(passed_keys={})
+      new(passed_keys, :directly_set_attributes => true)      
+    end
     
-    def initialize(passed_keys={})
+    def initialize(passed_keys={}, options={})
       apply_defaults # defined in CouchRest::Mixins::Properties
-	  set_attributes(passed_keys) unless passed_keys.nil?
-      super
+      remove_protected_attributes(passed_keys) unless options[:directly_set_attributes]
+      directly_set_attributes(passed_keys) unless passed_keys.nil?
+      super(passed_keys)
       cast_keys      # defined in CouchRest::Mixins::Properties
       unless self['_id'] && self['_rev']
         self['couchrest-type'] = self.class.to_s
@@ -281,14 +290,18 @@ module CouchRest
         raise NoMethodError, "#{attribute_name}= method not available, use property :#{attribute_name}" unless self.respond_to?("#{attribute_name}=")
       end      
 		end
-
-		def set_attributes(hash)
-			attrs = remove_protected_attributes(hash)
-      attrs.each do |attribute_name, attribute_value|
+    
+    def directly_set_attributes(hash)
+      hash.each do |attribute_name, attribute_value|
         if self.respond_to?("#{attribute_name}=")
-          self.send("#{attribute_name}=", attrs.delete(attribute_name))
+          self.send("#{attribute_name}=", hash.delete(attribute_name))
         end
       end
+    end
+    
+		def set_attributes(hash)
+			attrs = remove_protected_attributes(hash)
+			directly_set_attributes(attrs)
 		end
   end
 end
