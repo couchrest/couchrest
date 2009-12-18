@@ -551,6 +551,53 @@ describe CouchRest::Database do
     
   end
   
+  describe  "UPDATE existing document" do
+    before :each do
+      @id = @db.save_doc({
+          'article' => 'Pete Doherty Kicked Out For Nazi Anthem',
+          'upvotes' => 10,
+          'link' => 'http://beatcrave.com/2009-11-30/pete-doherty-kicked-out-for-nazi-anthem/'})['id']
+    end
+    it "should work under normal conditions" do
+      @db.update_doc @id do |doc|
+        doc['upvotes'] += 1
+        doc
+      end
+      @db.get(@id)['upvotes'].should == 11
+    end
+    it "should fail if update_limit is reached" do
+      lambda do
+        @db.update_doc @id do |doc|
+          # modify and save the doc so that a collision happens
+          conflicting_doc = @db.get @id
+          conflicting_doc['upvotes'] += 1
+          @db.save_doc conflicting_doc
+        
+          # then try saving it through the update
+          doc['upvotes'] += 1
+          doc
+        end
+      end.should raise_error(RestClient::RequestFailed)
+    end
+    it "should not fail if update_limit is not reached" do
+      limit = 5
+      lambda do
+      @db.update_doc @id do |doc|
+          # same as the last spec except we're only forcing 5 conflicts
+          if limit > 0
+            conflicting_doc = @db.get @id
+            conflicting_doc['upvotes'] += 1
+            @db.save_doc conflicting_doc
+            limit -= 1
+          end
+          doc['upvotes'] += 1
+          doc
+        end
+      end.should_not raise_error
+      @db.get(@id)['upvotes'].should == 16
+    end
+  end
+  
   describe "COPY existing document" do
     before :each do
       @r = @db.save_doc({'artist' => 'Zappa', 'title' => 'Muffin Man'})

@@ -249,6 +249,33 @@ module CouchRest
       CouchRest.copy "#{@root}/#{slug}", destination
     end
     
+    # Updates the given doc by yielding the current state of the doc
+    # and trying to update update_limit times. Returns the new doc
+    # if the doc was successfully updated without hitting the limit
+    def update_doc(doc_id, params = {}, update_limit=10)
+      resp = {'ok' => false}
+      new_doc = nil
+      last_fail = nil
+
+      until resp['ok'] or update_limit <= 0
+        doc = self.get(doc_id, params)  # grab the doc
+        new_doc = yield doc # give it to the caller to be updated
+        begin
+          resp = self.save_doc new_doc # try to PUT the updated doc into the db
+        rescue RestClient::RequestFailed => e
+          if e.http_code == 409 # Update collision
+            update_limit -= 1
+            last_fail = e
+          else # some other error
+            raise e
+          end
+        end
+      end
+
+      raise last_fail unless resp['ok']
+      new_doc
+    end
+    
     # Compact the database, removing old document revisions and optimizing space use.
     def compact!
       CouchRest.post "#{@root}/_compact"
