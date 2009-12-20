@@ -65,22 +65,27 @@ describe CouchRest::Database do
   
   describe "saving a view" do
     before(:each) do
-      @view = {'test' => {'map' => 'function(doc) {
-        if (doc.word && !/\W/.test(doc.word)) {
-          emit(doc.word,null);
+      @view = {'test' => {'map' => <<-JS
+        function(doc) {
+          var reg = new RegExp("\\\\W");
+          if (doc.word && !reg.test(doc.word)) {
+            emit(doc.word,null);
+          }
         }
-      }'}}
+      JS
+      }}
       @db.save_doc({
         "_id" => "_design/test",
         :views => @view
       })
     end
     it "should work properly" do
-      @db.bulk_save([
+      r = @db.bulk_save([
         {"word" => "once"},
         {"word" => "and again"}
       ])
-      @db.view('test/test')['total_rows'].should == 1
+      r = @db.view('test/test')
+      r['total_rows'].should == 1
     end
     it "should round trip" do
       @db.get("_design/test")['views'].should == @view
