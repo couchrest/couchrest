@@ -14,6 +14,6 @@ changes. A list of these people is included below.
  * Simon Rozet (simon /at/ rozet /dot/ name)
  * [Marcos Tapajós](http://tapajos.me)
  
-Patches are welcome. The primary source for this software project is [on Github](http://github.com/jchris/couchrest/tree/master)
+Patches are welcome. The primary source for this software project is [on Github](http://github.com/couchrest/couchrest)
 
 A lot of people have active forks - thank you all - even the patches I don't end up using are helpful.
