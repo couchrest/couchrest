@@ -1,4 +1,4 @@
-== Next Version
+== 0.34
 
 * Major enhancements
 
