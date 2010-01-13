@@ -21,6 +21,7 @@
   * Streamer fixes (Julien Sanchez)
   * Fix Save on Document & ExtendedDocument crashed if bulk (Julien Sanchez)
   * Fix Initialization of ExtendentDocument model shouldn't failed on a nil value in argument (deepj)
+  * Change to use Jeweler and Gemcutter (Marcos Tapajós)
 
 == 0.33
 
