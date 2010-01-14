@@ -25,11 +25,13 @@ The most complete documentation is the spec/ directory. To validate your
 CouchRest install, from the project root directory run `rake`, or `autotest`
 (requires RSpec and optionally ZenTest for autotest support).
 
-### Docs
+## Docs
+
+API: [http://rdoc.info/projects/couchrest/couchrest](http://rdoc.info/projects/couchrest/couchrest)
 
 Check the wiki for documentation and examples [http://wiki.github.com/couchrest/couchrest](http://wiki.github.com/couchrest/couchrest)
 
-### Contact
+## Contact
 
 Please post bugs, suggestions and patches to the bug tracker at <http://jchris.lighthouseapp.com/projects/17807-couchrest/overview>.
 
