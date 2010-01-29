@@ -14,7 +14,7 @@ module CouchRest
 
       # reads the data from an attachment
       def read_attachment(attachment_name)
-        Base64.decode64(database.fetch_attachment(self, attachment_name))
+        database.fetch_attachment(self, attachment_name)
       end
 
       # modifies a file attachment on the current doc
@@ -52,10 +52,6 @@ module CouchRest
       
       private
       
-        def encode_attachment(data)
-          ::Base64.encode64(data).gsub(/\r|\n/,'')
-        end
-
         def get_mime_type(file)
           ::MIME::Types.type_for(file.path).empty? ? 
             'text\/plain' : MIME::Types.type_for(file.path).first.content_type.gsub(/\//,'\/')
