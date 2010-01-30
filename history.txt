@@ -1,3 +1,10 @@
+== Next Version
+
+* Major enhancements
+
+* Minor enhancements
+  * Fix attachment bug (Johannes Jörg Schmidt)
+
 == 0.34
 
 * Major enhancements
