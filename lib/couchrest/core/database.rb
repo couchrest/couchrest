@@ -265,7 +265,7 @@ module CouchRest
     def recreate!
       delete!
       create!
-    rescue HttpAbstraction::ResourceNotFound
+    rescue RestClient::ResourceNotFound
     ensure
       create!
     end

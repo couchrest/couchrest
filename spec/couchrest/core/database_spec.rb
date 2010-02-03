@@ -716,7 +716,7 @@ describe CouchRest::Database do
     
     it "should recreate a db even tho it doesn't exist" do
       @cr.databases.should_not include(@db2.name)
-      begin @db2.recreate! rescue nil end
+      @db2.recreate!
       @cr.databases.should include(@db2.name)
     end
     
