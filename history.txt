@@ -4,6 +4,7 @@
 
 * Minor enhancements
   * Fix attachment bug (Johannes Jörg Schmidt)
+  * Fix create database exception bug (Damien Mathieu)
 
 == 0.34
 
