@@ -20,10 +20,10 @@ class Article < CouchRest::ExtendedDocument
         return sum(values);
       }"  
 
-  property :date
+  property :date, :type => 'Date'
   property :slug, :read_only => true
   property :title
-  property :tags
+  property :tags, :type => ['String']
 
   timestamps!
   

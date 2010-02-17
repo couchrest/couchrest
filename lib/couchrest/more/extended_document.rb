@@ -73,9 +73,9 @@ module CouchRest
     # on the document whenever saving occurs. CouchRest uses a pretty
     # decent time format by default. See Time#to_json
     def self.timestamps!
-      class_eval <<-EOS, __FILE__, __LINE__ + 1
-        property(:updated_at, :read_only => true, :cast_as => 'Time', :auto_validation => false)
-        property(:created_at, :read_only => true, :cast_as => 'Time', :auto_validation => false)
+      class_eval <<-EOS, __FILE__, __LINE__
+        property(:updated_at, :read_only => true, :type => 'Time', :auto_validation => false)
+        property(:created_at, :read_only => true, :type => 'Time', :auto_validation => false)
         
         set_callback :save, :before do |object|
           object['updated_at'] = Time.now

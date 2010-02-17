@@ -12,7 +12,7 @@ class WithCastedModelMixin < Hash
   include CouchRest::CastedModel
   property :name
   property :no_value
-  property :details,          :default => {}
+  property :details, :type => 'Object', :default => {}
   property :casted_attribute, :cast_as => 'WithCastedModelMixin'
 end
 

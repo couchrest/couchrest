@@ -7,6 +7,7 @@ require File.join(FIXTURE_PATH, 'more', 'service')
 require File.join(FIXTURE_PATH, 'more', 'event')
 require File.join(FIXTURE_PATH, 'more', 'cat')
 require File.join(FIXTURE_PATH, 'more', 'user')
+require File.join(FIXTURE_PATH, 'more', 'course')
 
 
 describe "ExtendedDocument properties" do
@@ -42,11 +43,11 @@ describe "ExtendedDocument properties" do
   
   it "should let you use an alias for a casted attribute" do
     @card.cast_alias = Person.new(:name => "Aimonetti")
-    @card.cast_alias.name.should == "Aimonetti"
-    @card.calias.name.should == "Aimonetti"
+    @card.cast_alias.name.should == ["Aimonetti"]
+    @card.calias.name.should == ["Aimonetti"]
     card = Card.new(:first_name => "matt", :cast_alias => {:name => "Aimonetti"})
-    card.cast_alias.name.should == "Aimonetti"
-    card.calias.name.should == "Aimonetti"
+    card.cast_alias.name.should == ["Aimonetti"]
+    card.calias.name.should == ["Aimonetti"]
   end
   
   it "should be auto timestamped" do
@@ -157,108 +158,445 @@ describe "ExtendedDocument properties" do
   end
   
   describe "casting" do
-    describe "cast keys to any type" do
-      before(:all) do
-        event_doc = { :subject => "Some event", :occurs_at => Time.now, :end_date => Date.today }
-        e = Event.database.save_doc event_doc
+    before(:each) do
+      @course = Course.new(:title => 'Relaxation')
+    end
 
-        @event = Event.get e['id']
+    describe "when value is nil" do
+      it "leaves the value unchanged" do
+        @course.title = nil
+        @course['title'].should == nil
       end
-      it "should cast occurs_at to Time" do
-        @event['occurs_at'].should be_an_instance_of(Time)
+    end
+
+    describe "when type primitive is an Object" do
+      it "it should not cast given value" do
+        @course.participants = [{}, 'q', 1]
+        @course['participants'].should eql([{}, 'q', 1])
       end
+
       it "should cast end_date to Date" do
         @event['end_date'].should be_an_instance_of(Date)
       end
     end
     
-    describe "casting to Float object" do
-      class RootBeerFloat < CouchRest::ExtendedDocument
-        use_database DB
-        property :price, :cast_as => 'Float'
+    describe "when type primitive is a String" do
+      it "keeps string value unchanged" do
+        value = "1.0"
+        @course.title = value
+        @course['title'].should equal(value)
       end
       
-      it "should convert a string into a float if casted as so" do
-        RootBeerFloat.new(:price => '12.50').price.should == 12.50
-        RootBeerFloat.new(:price => '9').price.should == 9.0
-        RootBeerFloat.new(:price => '-9').price.should == -9.0
+      it "it casts to string representation of the value" do
+        @course.title = 1.0
+        @course['title'].should eql("1.0")
       end
-      
-      it "should not convert a string if it's not a string that can be cast as a float" do
-        RootBeerFloat.new(:price => 'test').price.should == 'test'
+    end
+
+    describe 'when type primitive is a Float' do
+      it 'returns same value if a float' do
+        value = 24.0
+        @course.estimate = value
+        @course['estimate'].should equal(value)
       end
-      
-      it "should work fine when a float is being passed" do
-        RootBeerFloat.new(:price => 9.99).price.should == 9.99
+
+      it 'returns float representation of a zero string integer' do
+        @course.estimate = '0'
+        @course['estimate'].should eql(0.0)
+      end
+
+      it 'returns float representation of a positive string integer' do
+        @course.estimate = '24'
+        @course['estimate'].should eql(24.0)
+      end
+
+      it 'returns float representation of a negative string integer' do
+        @course.estimate = '-24'
+        @course['estimate'].should eql(-24.0)
+      end
+
+      it 'returns float representation of a zero string float' do
+        @course.estimate = '0.0'
+        @course['estimate'].should eql(0.0)
+      end
+
+      it 'returns float representation of a positive string float' do
+        @course.estimate = '24.35'
+        @course['estimate'].should eql(24.35)
+      end
+
+      it 'returns float representation of a negative string float' do
+        @course.estimate = '-24.35'
+        @course['estimate'].should eql(-24.35)
+      end
+
+      it 'returns float representation of a zero string float, with no leading digits' do
+        @course.estimate = '.0'
+        @course['estimate'].should eql(0.0)
+      end
+
+      it 'returns float representation of a positive string float, with no leading digits' do
+        @course.estimate = '.41'
+        @course['estimate'].should eql(0.41)
+      end
+
+      it 'returns float representation of a zero integer' do
+        @course.estimate = 0
+        @course['estimate'].should eql(0.0)
+      end
+
+      it 'returns float representation of a positive integer' do
+        @course.estimate = 24
+        @course['estimate'].should eql(24.0)
+      end
+
+      it 'returns float representation of a negative integer' do
+        @course.estimate = -24
+        @course['estimate'].should eql(-24.0)
+      end
+
+      it 'returns float representation of a zero decimal' do
+        @course.estimate = BigDecimal('0.0')
+        @course['estimate'].should eql(0.0)
+      end
+
+      it 'returns float representation of a positive decimal' do
+        @course.estimate = BigDecimal('24.35')
+        @course['estimate'].should eql(24.35)
+      end
+
+      it 'returns float representation of a negative decimal' do
+        @course.estimate = BigDecimal('-24.35')
+        @course['estimate'].should eql(-24.35)
+      end
+
+      [ Object.new, true, '00.0', '0.', '-.0', 'string' ].each do |value|
+        it "does not typecast non-numeric value #{value.inspect}" do
+          @course.estimate = value
+          @course['estimate'].should equal(value)
+        end
+      end
+    end
+
+    describe 'when type primitive is a Integer' do
+      it 'returns same value if an integer' do
+        value = 24
+        @course.hours = value
+        @course['hours'].should equal(value)
+      end
+
+      it 'returns integer representation of a zero string integer' do
+        @course.hours = '0'
+        @course['hours'].should eql(0)
+      end
+
+      it 'returns integer representation of a positive string integer' do
+        @course.hours = '24'
+        @course['hours'].should eql(24)
+      end
+
+      it 'returns integer representation of a negative string integer' do
+        @course.hours = '-24'
+        @course['hours'].should eql(-24)
+      end
+
+      it 'returns integer representation of a zero string float' do
+        @course.hours = '0.0'
+        @course['hours'].should eql(0)
+      end
+
+      it 'returns integer representation of a positive string float' do
+        @course.hours = '24.35'
+        @course['hours'].should eql(24)
+      end
+
+      it 'returns integer representation of a negative string float' do
+        @course.hours = '-24.35'
+        @course['hours'].should eql(-24)
+      end
+
+      it 'returns integer representation of a zero string float, with no leading digits' do
+        @course.hours = '.0'
+        @course['hours'].should eql(0)
+      end
+
+      it 'returns integer representation of a positive string float, with no leading digits' do
+        @course.hours = '.41'
+        @course['hours'].should eql(0)
+      end
+
+      it 'returns integer representation of a zero float' do
+        @course.hours = 0.0
+        @course['hours'].should eql(0)
+      end
+
+      it 'returns integer representation of a positive float' do
+        @course.hours = 24.35
+        @course['hours'].should eql(24)
+      end
+
+      it 'returns integer representation of a negative float' do
+        @course.hours = -24.35
+        @course['hours'].should eql(-24)
+      end
+
+      it 'returns integer representation of a zero decimal' do
+        @course.hours = '0.0'
+        @course['hours'].should eql(0)
+      end
+
+      it 'returns integer representation of a positive decimal' do
+        @course.hours = '24.35'
+        @course['hours'].should eql(24)
+      end
+
+      it 'returns integer representation of a negative decimal' do
+        @course.hours = '-24.35'
+        @course['hours'].should eql(-24)
+      end
+
+      [ Object.new, true, '00.0', '0.', '-.0', 'string' ].each do |value|
+        it "does not typecast non-numeric value #{value.inspect}" do
+          @course.hours = value
+          @course['hours'].should equal(value)
+        end
+      end
+    end
+
+    describe 'when type primitive is a BigDecimal' do
+      it 'returns same value if a decimal' do
+        value = BigDecimal('24.0')
+        @course.profit = value
+        @course['profit'].should equal(value)
+      end
+
+      it 'returns decimal representation of a zero string integer' do
+        @course.profit = '0'
+        @course['profit'].should eql(BigDecimal('0.0'))
+      end
+
+      it 'returns decimal representation of a positive string integer' do
+        @course.profit = '24'
+        @course['profit'].should eql(BigDecimal('24.0'))
+      end
+
+      it 'returns decimal representation of a negative string integer' do
+        @course.profit = '-24'
+        @course['profit'].should eql(BigDecimal('-24.0'))
+      end
+
+      it 'returns decimal representation of a zero string float' do
+        @course.profit = '0.0'
+        @course['profit'].should eql(BigDecimal('0.0'))
+      end
+
+      it 'returns decimal representation of a positive string float' do
+        @course.profit = '24.35'
+        @course['profit'].should eql(BigDecimal('24.35'))
+      end
+
+      it 'returns decimal representation of a negative string float' do
+        @course.profit = '-24.35'
+        @course['profit'].should eql(BigDecimal('-24.35'))
+      end
+
+      it 'returns decimal representation of a zero string float, with no leading digits' do
+        @course.profit = '.0'
+        @course['profit'].should eql(BigDecimal('0.0'))
+      end
+
+      it 'returns decimal representation of a positive string float, with no leading digits' do
+        @course.profit = '.41'
+        @course['profit'].should eql(BigDecimal('0.41'))
+      end
+
+      it 'returns decimal representation of a zero integer' do
+        @course.profit = 0
+        @course['profit'].should eql(BigDecimal('0.0'))
+      end
+
+      it 'returns decimal representation of a positive integer' do
+        @course.profit = 24
+        @course['profit'].should eql(BigDecimal('24.0'))
+      end
+
+      it 'returns decimal representation of a negative integer' do
+        @course.profit = -24
+        @course['profit'].should eql(BigDecimal('-24.0'))
+      end
+
+      it 'returns decimal representation of a zero float' do
+        @course.profit = 0.0
+        @course['profit'].should eql(BigDecimal('0.0'))
+      end
+
+      it 'returns decimal representation of a positive float' do
+        @course.profit = 24.35
+        @course['profit'].should eql(BigDecimal('24.35'))
+      end
+
+      it 'returns decimal representation of a negative float' do
+        @course.profit = -24.35
+        @course['profit'].should eql(BigDecimal('-24.35'))
+      end
+
+      [ Object.new, true, '00.0', '0.', '-.0', 'string' ].each do |value|
+        it "does not typecast non-numeric value #{value.inspect}" do
+          @course.profit = value
+          @course['profit'].should equal(value)
+        end
+      end
+    end
+
+    describe 'when type primitive is a DateTime' do
+      describe 'and value given as a hash with keys like :year, :month, etc' do
+        it 'builds a DateTime instance from hash values' do
+          @course.updated_at = {
+            :year  => '2006',
+            :month => '11',
+            :day   => '23',
+            :hour  => '12',
+            :min   => '0',
+            :sec   => '0'
+          }
+          result = @course['updated_at']
+
+          result.should be_kind_of(DateTime)
+          result.year.should eql(2006)
+          result.month.should eql(11)
+          result.day.should eql(23)
+          result.hour.should eql(12)
+          result.min.should eql(0)
+          result.sec.should eql(0)
+        end
+      end
+
+      describe 'and value is a string' do
+        it 'parses the string' do
+          @course.updated_at = 'Dec, 2006'
+          @course['updated_at'].month.should == 12
+        end
+      end
+
+      it 'does not typecast non-datetime values' do
+        @course.updated_at = 'not-datetime'
+        @course['updated_at'].should eql('not-datetime')
+      end
+    end
+
+    describe 'when type primitive is a Date' do
+      describe 'and value given as a hash with keys like :year, :month, etc' do
+        it 'builds a Date instance from hash values' do
+          @course.started_on = {
+            :year  => '2007',
+            :month => '3',
+            :day   => '25'
+          }
+          result = @course['started_on']
+
+          result.should be_kind_of(Date)
+          result.year.should eql(2007)
+          result.month.should eql(3)
+          result.day.should eql(25)
+        end
+      end
+
+      describe 'and value is a string' do
+        it 'parses the string' do
+          @course.started_on = 'Dec 20th, 2006'
+          @course.started_on.month.should == 12
+          @course.started_on.day.should == 20
+          @course.started_on.year.should == 2006
+        end
+      end
+
+      it 'does not typecast non-date values' do
+        @course.started_on = 'not-date'
+        @course['started_on'].should eql('not-date')
+      end
+    end
+
+    describe 'when type primitive is a Time' do
+      describe 'and value given as a hash with keys like :year, :month, etc' do
+        it 'builds a Time instance from hash values' do
+          @course.ends_at = {
+            :year  => '2006',
+            :month => '11',
+            :day   => '23',
+            :hour  => '12',
+            :min   => '0',
+            :sec   => '0'
+          }
+          result = @course['ends_at']
+
+          result.should be_kind_of(Time)
+          result.year.should  eql(2006)
+          result.month.should eql(11)
+          result.day.should   eql(23)
+          result.hour.should  eql(12)
+          result.min.should   eql(0)
+          result.sec.should   eql(0)
+        end
+      end
+
+      describe 'and value is a string' do
+        it 'parses the string' do
+          t = Time.now
+          @course.ends_at = t.strftime('%Y/%m/%d %H:%M:%S %z')
+          @course['ends_at'].year.should  eql(t.year)
+          @course['ends_at'].month.should eql(t.month)
+          @course['ends_at'].day.should   eql(t.day)
+          @course['ends_at'].hour.should  eql(t.hour)
+          @course['ends_at'].min.should   eql(t.min)
+          @course['ends_at'].sec.should   eql(t.sec)
+        end
+      end
+
+      it 'does not typecast non-time values' do
+        @course.ends_at = 'not-time'
+        @course['ends_at'].should eql('not-time')
+      end
+    end
+
+    describe 'when type primitive is a Class' do
+      it 'returns same value if a class' do
+        value = Course
+        @course.klass = value
+        @course['klass'].should equal(value)
+      end
+
+      it 'returns the class if found' do
+        @course.klass = 'Course'
+        @course['klass'].should eql(Course)
+      end
+
+      it 'does not typecast non-class values' do
+        @course.klass = 'NoClass'
+        @course['klass'].should eql('NoClass')
       end
     end
     
-    describe "casting to a boolean value" do
-      class RootBeerFloat < CouchRest::ExtendedDocument
-        use_database DB
-        property :tasty, :cast_as => :boolean
+    describe 'when type primitive is a Boolean' do
+      [ true, 'true', 'TRUE', '1', 1, 't', 'T' ].each do |value|
+        it "returns true when value is #{value.inspect}" do
+          @course.active = value
+          @course['active'].should be_true
+        end
       end
 
-      it "should add an accessor with a '?' for boolean attributes that returns true or false" do
-        RootBeerFloat.new(:tasty => true).tasty?.should == true
-        RootBeerFloat.new(:tasty => 'you bet').tasty?.should == true
-        RootBeerFloat.new(:tasty => 123).tasty?.should == true
-
-        RootBeerFloat.new(:tasty => false).tasty?.should == false
-        RootBeerFloat.new(:tasty => 'false').tasty?.should == false
-        RootBeerFloat.new(:tasty => 'FaLsE').tasty?.should == false
-        RootBeerFloat.new(:tasty => nil).tasty?.should == false
+      [ false, 'false', 'FALSE', '0', 0, 'f', 'F' ].each do |value|
+        it "returns false when value is #{value.inspect}" do
+          @course.active = value
+          @course['active'].should be_false
+        end
       end
 
-      it "should return the real value when the default accessor is used" do
-        RootBeerFloat.new(:tasty => true).tasty.should == true
-        RootBeerFloat.new(:tasty => 'you bet').tasty.should == 'you bet'
-        RootBeerFloat.new(:tasty => 123).tasty.should == 123
-        RootBeerFloat.new(:tasty => 'false').tasty.should == 'false'
-        RootBeerFloat.new(:tasty => false).tasty.should == false
-        RootBeerFloat.new(:tasty => nil).tasty.should == nil
+      [ 'string', 2, 1.0, BigDecimal('1.0'), DateTime.now, Time.now, Date.today, Class, Object.new, ].each do |value|
+        it "does not typecast value #{value.inspect}" do
+          @course.active = value
+          @course['active'].should equal(value)
+        end
       end
-    end
-
-  end
-end
-
-describe "a newly created casted model" do
-  before(:each) do
-    reset_test_db!
-    @cat = Cat.new(:name => 'Toonces')
-    @squeaky_mouse = CatToy.new(:name => 'Squeaky')
-  end
-  
-  describe "assigned assigned to a casted property" do
-    it "should have casted_by set to its parent" do
-      @squeaky_mouse.casted_by.should be_nil
-      @cat.favorite_toy = @squeaky_mouse
-      @squeaky_mouse.casted_by.should === @cat
-    end
-  end
-  
-  describe "appended to a casted collection" do
-    it "should have casted_by set to its parent" do
-      @squeaky_mouse.casted_by.should be_nil
-      @cat.toys << @squeaky_mouse
-      @squeaky_mouse.casted_by.should === @cat
-      @cat.save
-      @cat.toys.first.casted_by.should === @cat
-    end
-  end
-  
-  describe "list assigned to a casted collection" do
-    it "should have casted_by set on all elements" do
-      toy1 = CatToy.new(:name => 'Feather')
-      toy2 = CatToy.new(:name => 'Mouse')
-      @cat.toys = [toy1, toy2]
-      toy1.casted_by.should === @cat
-      toy2.casted_by.should === @cat
-      @cat.save
-      @cat = Cat.get(@cat.id)
-      @cat.toys[0].casted_by.should === @cat
-      @cat.toys[1].casted_by.should === @cat
     end
   end
 end

@@ -37,7 +37,7 @@ module CouchRest
 
       def call(target)
         value = target.validation_property_value(field_name)
-        property = target.validation_property(field_name)
+        property = target.validation_property(field_name.to_s)
         return true if present?(value, property)
 
         error_message = @options[:message] || default_error(property)
@@ -66,7 +66,7 @@ module CouchRest
       # Returns false for other property types.
       # Returns false for non-properties.
       def boolean_type?(property)
-        property ? property.type == TrueClass : false
+        property ? property.type == 'Boolean' : false
       end
 
     end # class RequiredFieldValidator
