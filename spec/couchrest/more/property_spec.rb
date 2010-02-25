@@ -175,8 +175,9 @@ describe "ExtendedDocument properties" do
         @course['participants'].should eql([{}, 'q', 1])
       end
 
-      it "should cast end_date to Date" do
-        @event['end_date'].should be_an_instance_of(Date)
+      it "should cast started_on to Date" do
+        @course.started_on = Date.today
+        @course['started_on'].should be_an_instance_of(Date)
       end
     end
     

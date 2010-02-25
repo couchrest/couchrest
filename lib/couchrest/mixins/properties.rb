@@ -58,6 +58,10 @@ module CouchRest
           key = self.has_key?(property.name) ? property.name : property.name.to_sym
           # Don't cast the property unless it has a value
           next if (value = self[key]).nil?
+          # Don't cast the property if it is not accessible
+          if self.class.respond_to? :accessible_properties
+            next if self.class.accessible_properties.index(key).nil?
+          end
           write_property(property, value)
         end
       end
