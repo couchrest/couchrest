@@ -1,6 +1,7 @@
 == Next Version
 
 * Major enhancements
+  * CouchRest::ExtendedDocument allow chaining the inherit class callback (Kenneth Kalmer) - http://github.com/couchrest/couchrest/issues#issue/8
 
 * Minor enhancements
   * Fix attachment bug (Johannes Jörg Schmidt)

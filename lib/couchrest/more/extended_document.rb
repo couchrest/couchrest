@@ -21,9 +21,11 @@ module CouchRest
     end
     
     def self.inherited(subklass)
+      super
       subklass.send(:include, CouchRest::Mixins::Properties)
       subklass.class_eval <<-EOS, __FILE__, __LINE__ + 1
         def self.inherited(subklass)
+          super
           subklass.properties = self.properties.dup
         end
       EOS
