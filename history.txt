@@ -9,6 +9,7 @@
   * Compatible with restclient >= 1.4.0 new responses (Julien Kirch)
   * Bug fix: Attribute protection no longer strips attributes coming from the database (Will Leinweber)
   * Bug fix: Remove double CGI escape when PUTting an attachment (nzoschke)
+  * Bug fix: Changing Class proxy to set database on result sets (Peter Gumeson)
 
 == 0.34
 
