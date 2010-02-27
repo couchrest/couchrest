@@ -7,6 +7,7 @@
   * Fix create database exception bug (Damien Mathieu)
   * Compatible with restclient >= 1.4.0 new responses (Julien Kirch)
   * Bug fix: Attribute protection no longer strips attributes coming from the database (Will Leinweber)
+  * Bug fix: Remove double CGI escape when PUTting an attachment (nzoschke)
 
 == 0.34
 
