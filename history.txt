@@ -1,6 +1,12 @@
 == Next Version
 
 * Major enhancements
+
+* Minor enhancements
+
+== 0.35
+
+* Major enhancements
   * CouchRest::ExtendedDocument allow chaining the inherit class callback (Kenneth Kalmer) - http://github.com/couchrest/couchrest/issues#issue/8
 
 * Minor enhancements
@@ -12,6 +18,7 @@
   * Bug fix: Changing Class proxy to set database on result sets (Peter Gumeson)
   * Bug fix: Updated time regexp (Nolan Darilek)
   * Added an update_doc method to database to handle conflicts during atomic updates. (Pierre Larochelle)
+  * Bug fix: http://github.com/couchrest/couchrest/issues/#issue/2 (Luke Burton)
 
 == 0.34
 
