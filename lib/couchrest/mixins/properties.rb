@@ -1,4 +1,3 @@
-require 'time'
 require File.join(File.dirname(__FILE__), '..', 'more', 'property')
 
 class Time                       
@@ -56,40 +55,36 @@ module CouchRest
       def cast_keys
         return unless self.class.properties
         self.class.properties.each do |property|
-          cast_property(property)
+          key = self.has_key?(property.name) ? property.name : property.name.to_sym
+          # Don't cast the property unless it has a value
+          next if (value = self[key]).nil?
+          # Don't cast the property if it is not accessible
+          if self.class.respond_to? :accessible_properties
+            next if self.class.accessible_properties.index(key).nil?
+          end
+          write_property(property, value)
         end
       end
-      
-      def cast_property(property, assigned=false)
-        return unless property.casted
-        key = self.has_key?(property.name) ? property.name : property.name.to_sym
-        # Don't cast the property unless it has a value
-        return unless self[key]
-        if property.type.is_a?(Array)
-          klass = ::CouchRest.constantize(property.type[0])
-          arr = self[key].dup.collect do |value|
-            unless value.instance_of?(klass)
-              value = convert_property_value(property, klass, value)
-            end
-            associate_casted_to_parent(value, assigned)
-            value
-          end
-          self[key] = klass != String ? CastedArray.new(arr) : arr
-          self[key].casted_by = self if self[key].respond_to?(:casted_by)
-        else
-          if property.type == 'boolean'
-            klass = TrueClass
+
+      protected
+
+        def write_attribute(name, value)
+          unless (property = property(name)).nil?
+            write_property(property, value)
           else
-            klass = ::CouchRest.constantize(property.type)
+            self[name] = value
           end
-          
-          unless self[key].instance_of?(klass)
-            self[key] = convert_property_value(property, klass, self[property.name])
-          end
-          associate_casted_to_parent(self[property.name], assigned)
         end
-        
-      end
+
+        def write_property(property, value)
+          value = property.typecast(value)
+          value.casted_by = self if value.respond_to?(:casted_by)
+          self[property.name] = value
+        end
+
+        def property(name)
+          properties.find {|p| p.name == name.to_s}
+        end
       
       def associate_casted_to_parent(casted, assigned)
         casted.casted_by = self if casted.respond_to?(:casted_by)
@@ -143,7 +138,7 @@ module CouchRest
             # check if this property is going to casted
             options[:casted] = options[:cast_as] ? options[:cast_as] : false
             property = CouchRest::Property.new(name, (options.delete(:cast_as) || options.delete(:type)), options)
-            create_property_getter(property) 
+            create_property_getter(property)
             create_property_setter(property) unless property.read_only == true
             properties << property
           end
@@ -181,8 +176,7 @@ module CouchRest
             property_name = property.name
             class_eval <<-EOS
               def #{property_name}=(value)
-                self['#{property_name}'] = value
-                cast_property_by_name('#{property_name}')
+                write_attribute('#{property_name}', value)
               end
             EOS
 
@@ -192,9 +186,7 @@ module CouchRest
               EOS
             end
           end
-          
       end # module ClassMethods
-      
     end
   end
 end
