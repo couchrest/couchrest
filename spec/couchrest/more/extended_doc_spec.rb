@@ -104,6 +104,18 @@ describe "ExtendedDocument" do
       self.other_arg = "foo-#{value}"
     end
   end
+
+  class WithAfterInitializeMethod < CouchRest::ExtendedDocument
+    use_database TEST_SERVER.default_database
+    
+    property :some_value
+
+    def after_initialize
+      self.some_value ||= "value"
+    end
+
+  end
+
   
   before(:each) do
     @obj = WithDefaultValues.new
@@ -696,6 +708,13 @@ describe "ExtendedDocument" do
       @doc['arg'].should be_nil
       @doc[:arg].should be_nil
       @doc.other_arg.should == "foo-foo"
+    end
+  end
+
+  describe "initialization" do
+    it "should call after_initialize method if available" do
+      @doc = WithAfterInitializeMethod.new
+      @doc['some_value'].should eql('value')
     end
   end
   

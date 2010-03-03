@@ -58,6 +58,7 @@ module CouchRest
       unless self['_id'] && self['_rev']
         self['couchrest-type'] = self.class.to_s
       end
+      after_initialize if respond_to?(:after_initialize)
     end
     
     # Defines an instance and save it directly to the database 
