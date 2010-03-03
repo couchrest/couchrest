@@ -65,22 +65,27 @@ describe CouchRest::Database do
   
   describe "saving a view" do
     before(:each) do
-      @view = {'test' => {'map' => 'function(doc) {
-        if (doc.word && !/\W/.test(doc.word)) {
-          emit(doc.word,null);
+      @view = {'test' => {'map' => <<-JS
+        function(doc) {
+          var reg = new RegExp("\\\\W");
+          if (doc.word && !reg.test(doc.word)) {
+            emit(doc.word,null);
+          }
         }
-      }'}}
+      JS
+      }}
       @db.save_doc({
         "_id" => "_design/test",
         :views => @view
       })
     end
     it "should work properly" do
-      @db.bulk_save([
+      r = @db.bulk_save([
         {"word" => "once"},
         {"word" => "and again"}
       ])
-      @db.view('test/test')['total_rows'].should == 1
+      r = @db.view('test/test')
+      r['total_rows'].should == 1
     end
     it "should round trip" do
       @db.get("_design/test")['views'].should == @view
@@ -131,8 +136,15 @@ describe CouchRest::Database do
       rs = @db.view('first/test', :include_docs => true) do |row|
         rows << row
       end
-      rows.length.should == 4
+      rows.length.should == 3
       rs["total_rows"].should == 3
+    end
+    it "should accept a block with several params" do
+      rows = []
+      rs = @db.view('first/test', :include_docs => true, :limit => 2) do |row|
+        rows << row
+      end
+      rows.length.should == 2
     end
   end
 
@@ -539,6 +551,53 @@ describe CouchRest::Database do
     
   end
   
+  describe  "UPDATE existing document" do
+    before :each do
+      @id = @db.save_doc({
+          'article' => 'Pete Doherty Kicked Out For Nazi Anthem',
+          'upvotes' => 10,
+          'link' => 'http://beatcrave.com/2009-11-30/pete-doherty-kicked-out-for-nazi-anthem/'})['id']
+    end
+    it "should work under normal conditions" do
+      @db.update_doc @id do |doc|
+        doc['upvotes'] += 1
+        doc
+      end
+      @db.get(@id)['upvotes'].should == 11
+    end
+    it "should fail if update_limit is reached" do
+      lambda do
+        @db.update_doc @id do |doc|
+          # modify and save the doc so that a collision happens
+          conflicting_doc = @db.get @id
+          conflicting_doc['upvotes'] += 1
+          @db.save_doc conflicting_doc
+        
+          # then try saving it through the update
+          doc['upvotes'] += 1
+          doc
+        end
+      end.should raise_error(RestClient::RequestFailed)
+    end
+    it "should not fail if update_limit is not reached" do
+      limit = 5
+      lambda do
+      @db.update_doc @id do |doc|
+          # same as the last spec except we're only forcing 5 conflicts
+          if limit > 0
+            conflicting_doc = @db.get @id
+            conflicting_doc['upvotes'] += 1
+            @db.save_doc conflicting_doc
+            limit -= 1
+          end
+          doc['upvotes'] += 1
+          doc
+        end
+      end.should_not raise_error
+      @db.get(@id)['upvotes'].should == 16
+    end
+  end
+  
   describe "COPY existing document" do
     before :each do
       @r = @db.save_doc({'artist' => 'Zappa', 'title' => 'Muffin Man'})
@@ -704,7 +763,7 @@ describe CouchRest::Database do
     
     it "should recreate a db even tho it doesn't exist" do
       @cr.databases.should_not include(@db2.name)
-      begin @db2.recreate! rescue nil end
+      @db2.recreate!
       @cr.databases.should include(@db2.name)
     end
     

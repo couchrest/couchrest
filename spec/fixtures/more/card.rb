@@ -17,6 +17,6 @@ class Card < CouchRest::ExtendedDocument
   timestamps!
   
   # Validation
-  validates_present :first_name
+  validates_presence_of :first_name
   
 end

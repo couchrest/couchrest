@@ -65,7 +65,7 @@ module CouchRest
       #       validator to be automatically created on the property
       #
       #   Integer type
-      #       Using a Integer type causes a validates_is_number
+      #       Using a Integer type causes a validates_numericality_of
       #       validator to be created for the property.  integer_only
       #       is set to true
       #
@@ -97,8 +97,7 @@ module CouchRest
 
         # presence
         if opts[:allow_nil] == false
-          # validates_present property.name, opts
-          validates_present property.name, options_with_message(opts, property, :presence)
+          validates_presence_of property.name, options_with_message(opts, property, :presence)
         end
 
         # length
@@ -111,8 +110,7 @@ module CouchRest
           else
             opts[:maximum] = len
           end
-          # validates_length property.name, opts
-          validates_length property.name, options_with_message(opts, property, :length)
+          validates_length_of property.name, options_with_message(opts, property, :length)
         end
 
         # format
@@ -142,13 +140,11 @@ module CouchRest
         # numeric validator
         if "Integer" == property.type
           opts[:integer_only] = true
-          # validates_is_number property.name, opts
-          validates_is_number property.name, options_with_message(opts, property, :is_number)
+          validates_numericality_of property.name, options_with_message(opts, property, :is_number)
         elsif Float == property.type
           opts[:precision] = property.precision
           opts[:scale]     = property.scale
-          # validates_is_number property.name, opts
-          validates_is_number property.name, options_with_message(opts, property, :is_number)
+          validates_numericality_of property.name, options_with_message(opts, property, :is_number)
         end
         
         # marked the property has checked

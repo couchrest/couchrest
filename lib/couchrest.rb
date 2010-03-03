@@ -28,7 +28,7 @@ require 'couchrest/monkeypatches'
 
 # = CouchDB, close to the metal
 module CouchRest
-  VERSION    = '0.34' unless self.const_defined?("VERSION")
+  VERSION    = '0.35' unless self.const_defined?("VERSION")
   
   autoload :Server,       'couchrest/core/server'
   autoload :Database,     'couchrest/core/database'
@@ -96,14 +96,14 @@ module CouchRest
     
     def parse url
       case url
-      when /^http:\/\/(.*)\/(.*)\/(.*)/
+      when /^https?:\/\/(.*)\/(.*)\/(.*)/
         host = $1
         db = $2
         docid = $3
-      when /^http:\/\/(.*)\/(.*)/
+      when /^https?:\/\/(.*)\/(.*)/
         host = $1
         db = $2
-      when /^http:\/\/(.*)/
+      when /^https?:\/\/(.*)/
         host = $1
       when /(.*)\/(.*)\/(.*)/
         host = $1

@@ -81,18 +81,26 @@ module CouchRest
       #     attr_accessor :password_confirmation
       #     attr_accessor :email_repeated
       #
-      #     validates_is_confirmed :password
-      #     validates_is_confirmed :email, :confirm => :email_repeated
+      #     validates_confirmation_of :password
+      #     validates_confirmation_of :email, :confirm => :email_repeated
       #
       #     # a call to valid? will return false unless:
       #     # password == password_confirmation
       #     # and
       #     # email == email_repeated
       #
-      def validates_is_confirmed(*fields)
+      def validates_confirmation_of(*fields)
         opts = opts_from_validator_args(fields)
         add_validator_to_context(opts, fields, CouchRest::Validation::ConfirmationValidator)
       end
+      
+      def validates_is_confirmed(*fields)
+        warn "[DEPRECATION] `validates_is_confirmed` is deprecated.  Please use `validates_confirmation_of` instead."
+        validates_confirmation_of(*fields)
+      end
+      
+      
+      
 
     end # module ValidatesIsConfirmed
   end # module Validation

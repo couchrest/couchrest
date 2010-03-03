@@ -93,15 +93,20 @@ module CouchRest
       #     property :another_required, String
       #     property :yet_again, String
       #
-      #     validates_present :required_attribute
-      #     validates_present :another_required, :yet_again
+      #     validates_presence_of :required_attribute
+      #     validates_presence_of :another_required, :yet_again
       #
       #     # a call to valid? will return false unless
       #     # all three attributes are !blank?
       #   end
-      def validates_present(*fields)
+      def validates_presence_of(*fields)
         opts = opts_from_validator_args(fields)
         add_validator_to_context(opts, fields, CouchRest::Validation::RequiredFieldValidator)
+      end
+      
+      def validates_present(*fields)
+        warn "[DEPRECATION] `validates_present` is deprecated.  Please use `validates_presence_of` instead."
+        validates_presence_of(*fields)
       end
 
     end # module ValidatesPresent

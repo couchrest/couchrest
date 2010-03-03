@@ -25,39 +25,33 @@ describe "ExtendedDocument views" do
         written_at += 24 * 3600
       end
     end
-
     it "should have a design doc" do
       Article.design_doc["views"]["by_date"].should_not be_nil
     end
-  
     it "should save the design doc" do
       Article.by_date #rescue nil
       doc = Article.database.get Article.design_doc.id
       doc['views']['by_date'].should_not be_nil
     end
-  
     it "should return the matching raw view result" do
       view = Article.by_date :raw => true
       view['rows'].length.should == 4
     end
-  
     it "should not include non-Articles" do
       Article.database.save_doc({"date" => 1})
       view = Article.by_date :raw => true
       view['rows'].length.should == 4
     end
-  
     it "should return the matching objects (with default argument :descending => true)" do
       articles = Article.by_date
       articles.collect{|a|a.title}.should == @titles.reverse
     end
-  
     it "should allow you to override default args" do
       articles = Article.by_date :descending => false
       articles.collect{|a|a.title}.should == @titles
     end
   end
-
+  
   describe "another model with a simple view" do
     before(:all) do
       reset_test_db!
@@ -96,8 +90,7 @@ describe "ExtendedDocument views" do
       courses[0]["doc"]["title"].should =='aaa'
     end
   end
-
-
+  
   describe "a ducktype view" do
     before(:all) do
       reset_test_db!
@@ -117,7 +110,7 @@ describe "ExtendedDocument views" do
       @as[0]['_id'].should == @id
     end
   end
-
+  
   describe "a model class not tied to a database" do
     before(:all) do
       reset_test_db!
@@ -198,7 +191,7 @@ describe "ExtendedDocument views" do
       Unattached.model_design_doc(@db)['_rev'].should_not == original_revision
     end
   end
-
+  
   describe "class proxy" do
     before(:all) do
       reset_test_db!
@@ -254,6 +247,36 @@ describe "ExtendedDocument views" do
       u = @us.first
       u.title.should =~ /\A...\z/
     end
+    it "should set database on first retreived document" do
+      u = @us.first
+      u.database.should === DB
+    end
+    it "should set database on all retreived documents" do
+      @us.all.each do |u|
+        u.database.should === DB
+      end
+    end
+    it "should set database on each retreived document" do
+      rs = @us.by_title :startkey=>"bbb", :endkey=>"eee"
+      rs.length.should == 3
+      rs.each do |u|
+        u.database.should === DB
+      end
+    end
+    it "should set database on document retreived by id" do
+      u = @us.get(@first_id)
+      u.database.should === DB
+    end
+    it "should not attempt to set database on raw results using :all" do
+      @us.all(:raw => true).each do |u|
+        u.respond_to?(:database).should be_false
+      end
+    end
+    it "should not attempt to set database on raw results using view" do
+      @us.by_title(:raw => true).each do |u|
+        u.respond_to?(:database).should be_false
+      end
+    end
     it "should clean up design docs left around on specific database" do
       @us.by_title
       original_id = @us.model_design_doc['_rev']
@@ -262,7 +285,7 @@ describe "ExtendedDocument views" do
       @us.model_design_doc['_rev'].should_not == original_id
     end
   end
-
+  
   describe "a model with a compound key view" do
     before(:all) do
       Article.by_user_id_and_date.each{|a| a.destroy(true)}
@@ -295,7 +318,7 @@ describe "ExtendedDocument views" do
       articles[0].title.should == "even more interesting"
     end
   end
-
+  
   describe "with a custom view" do
     before(:all) do
       @titles = ["very uniq one", "even less interesting", "some fun", 
@@ -311,18 +334,18 @@ describe "ExtendedDocument views" do
       view = Article.by_tags :raw => true
       view['rows'].length.should == 5
     end
-
+    
     it "should be default to :reduce => false" do
       ars = Article.by_tags
       ars.first.tags.first.should == 'cool'
     end
-  
+    
     it "should be raw when reduce is true" do
       view = Article.by_tags :reduce => true, :group => true
       view['rows'].find{|r|r['key'] == 'cool'}['value'].should == 3
     end
   end
-
+  
   # TODO: moved to Design, delete
   describe "adding a view" do
     before(:each) do
@@ -344,7 +367,7 @@ describe "ExtendedDocument views" do
       Article.design_doc["views"].keys.should include("by_updated_at")
     end
   end
-
+  
   describe "with a collection" do
     before(:all) do
       reset_test_db!
@@ -354,7 +377,7 @@ describe "ExtendedDocument views" do
         a = Article.new(:title => title, :date => Date.today)
         a.save
       end
-
+      
       titles = ["yesterday very uniq one", "yesterday really interesting", "yesterday some fun",
         "yesterday really awesome", "yesterday crazy bob", "yesterday this rocks"]
       titles.each_with_index do |title,i|
@@ -390,11 +413,11 @@ describe "ExtendedDocument views" do
       articles = Article.paginate(:design_doc => 'Article', :view_name => 'by_date',
         :per_page => 3, :descending => true, :key => Date.today, :include_docs => true)
       articles.size.should == 3
-
+      
       articles = Article.paginate(:design_doc => 'Article', :view_name => 'by_date',
         :per_page => 3, :page => 2, :descending => true, :key => Date.today, :include_docs => true)
       articles.size.should == 3
-
+      
       articles = Article.paginate(:design_doc => 'Article', :view_name => 'by_date',
         :per_page => 3, :page => 3, :descending => true, :key => Date.today, :include_docs => true)
       articles.size.should == 1
@@ -408,10 +431,6 @@ describe "ExtendedDocument views" do
       end
     end
     it "should provide a class method to get a collection for a view" do
-      class Article
-        provides_collection :article_details, 'Article', 'by_date', :descending => true, :include_docs => true
-      end
-
       articles = Article.find_all_article_details(:key => Date.today)
       articles.class.should == Array
       articles.size.should == 7

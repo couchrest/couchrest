@@ -4,9 +4,10 @@ class Cat < CouchRest::ExtendedDocument
   # Set the default database to use
   use_database DB
 
-  property :name
-  property :toys, :cast_as => ['CatToy'], :default => []
-  property :favorite_toy, :cast_as => 'CatToy'
+  property :name, :accessible => true
+  property :toys, :cast_as => ['CatToy'], :default => [], :accessible => true
+  property :favorite_toy, :cast_as => 'CatToy', :accessible => true
+  property :number
 end
 
 class CatToy < Hash
@@ -15,5 +16,5 @@ class CatToy < Hash
 
   property :name
 
-  validates_present :name
+  validates_presence_of :name
 end

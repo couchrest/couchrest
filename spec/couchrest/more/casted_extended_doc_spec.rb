@@ -49,7 +49,7 @@ describe "assigning a value to casted attribute after initializing an object" do
   end
   
   it "should cast attribute" do
-    @car.driver = JSON.parse(JSON.generate(@driver))
+    @car.driver = JSON.parse(@driver.to_json)
     @car.driver.should be_instance_of(Driver)
   end
 
@@ -60,7 +60,7 @@ describe "casting an extended document from parsed JSON" do
   before(:each) do
     @driver = Driver.new(:name => 'Matt')
     @car    = Car.new(:name => 'Renault 306', :driver => @driver)
-    @new_car = Car.new(JSON.parse(JSON.generate(@car)))
+    @new_car = Car.new(JSON.parse(@car.to_json))
   end
 
   it "should cast casted attribute" do

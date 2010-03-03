@@ -1,3 +1,5 @@
 .DS_Store
 html/*
 pkg
+*.swp
+couchrest.gemspec

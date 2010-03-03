@@ -14,15 +14,18 @@ module CouchRest
     include CouchRest::Mixins::ExtendedAttachments
     include CouchRest::Mixins::ClassProxy
     include CouchRest::Mixins::Collection
+		include CouchRest::Mixins::AttributeProtection
 
     def self.subclasses
       @subclasses ||= []
     end
     
     def self.inherited(subklass)
+      super
       subklass.send(:include, CouchRest::Mixins::Properties)
       subklass.class_eval <<-EOS, __FILE__, __LINE__ + 1
         def self.inherited(subklass)
+          super
           subklass.properties = self.properties.dup
         end
       EOS
@@ -37,15 +40,20 @@ module CouchRest
     define_callbacks :save, "result == :halt"
     define_callbacks :update, "result == :halt"
     define_callbacks :destroy, "result == :halt"
+
+    # Creates a new instance, bypassing attribute protection
+    #
+    # ==== Returns
+    #  a document instance
+    def self.create_from_database(passed_keys={})
+      new(passed_keys, :directly_set_attributes => true)      
+    end
     
-    def initialize(passed_keys={})
+    def initialize(passed_keys={}, options={})
       apply_defaults # defined in CouchRest::Mixins::Properties
-      passed_keys.each do |k,v|
-        if self.respond_to?("#{k}=")
-          self.send("#{k}=", passed_keys.delete(k))
-        end
-      end if passed_keys
-      super
+      remove_protected_attributes(passed_keys) unless options[:directly_set_attributes]
+      directly_set_attributes(passed_keys) unless passed_keys.nil?
+      super(passed_keys)
       cast_keys      # defined in CouchRest::Mixins::Properties
       unless self['_id'] && self['_rev']
         self['couchrest-type'] = self.class.to_s
@@ -150,12 +158,8 @@ module CouchRest
       # make a copy, we don't want to change arguments
       attrs = hash.dup
       %w[_id _rev created_at updated_at].each {|attr| attrs.delete(attr)}
-      attrs.each do |k, v|
-        raise NoMethodError, "#{k}= method not available, use property :#{k}" unless self.respond_to?("#{k}=")
-      end      
-      attrs.each do |k, v|
-        self.send("#{k}=",v)
-      end
+      check_properties_exist(attrs)
+			set_attributes(attrs)
     end
     alias :attributes= :update_attributes_without_saving
 
@@ -238,7 +242,7 @@ module CouchRest
       set_unique_id if new? && self.respond_to?(:set_unique_id)
       result = database.save_doc(self, bulk)
       mark_as_saved 
-      true
+      result["ok"] == true
     end
     
     # Saves the document to the db using save. Raises an exception
@@ -280,6 +284,26 @@ module CouchRest
         end
       end
     end
+
+		private
+
+		def check_properties_exist(attrs)
+      attrs.each do |attribute_name, attribute_value|
+        raise NoMethodError, "#{attribute_name}= method not available, use property :#{attribute_name}" unless self.respond_to?("#{attribute_name}=")
+      end      
+		end
     
+    def directly_set_attributes(hash)
+      hash.each do |attribute_name, attribute_value|
+        if self.respond_to?("#{attribute_name}=")
+          self.send("#{attribute_name}=", hash.delete(attribute_name))
+        end
+      end
+    end
+    
+		def set_attributes(hash)
+			attrs = remove_protected_attributes(hash)
+			directly_set_attributes(attrs)
+		end
   end
 end

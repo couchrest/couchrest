@@ -107,7 +107,6 @@ module CouchRest
     # PUT an attachment directly to CouchDB
     def put_attachment(doc, name, file, options = {})
       docid = escape_docid(doc['_id'])
-      name = CGI.escape(name)
       uri = url_for_attachment(doc, name)
       JSON.parse(HttpAbstraction.put(uri, file, options))
     end
@@ -129,7 +128,7 @@ module CouchRest
         end
       end
     end
-    
+
     # Save a document to CouchDB. This will use the <tt>_id</tt> field from
     # the document as the id for PUT, or request a new UUID from CouchDB, if
     # no <tt>_id</tt> is present on the document. IDs are attached to
@@ -139,13 +138,25 @@ module CouchRest
     #
     # If <tt>bulk</tt> is true (false by default) the document is cached for bulk-saving later.
     # Bulk saving happens automatically when #bulk_save_cache limit is exceded, or on the next non bulk save.
-    def save_doc(doc, bulk = false)
+    #
+    # If <tt>batch</tt> is true (false by default) the document is saved in
+    # batch mode, "used to achieve higher throughput at the cost of lower
+    # guarantees. When [...] sent using this option, it is not immediately
+    # written to disk. Instead it is stored in memory on a per-user basis for a
+    # second or so (or the number of docs in memory reaches a certain point).
+    # After the threshold has passed, the docs are committed to disk. Instead
+    # of waiting for the doc to be written to disk before responding, CouchDB
+    # sends an HTTP 202 Accepted response immediately. batch=ok is not suitable
+    # for crucial data, but it ideal for applications like logging which can
+    # accept the risk that a small proportion of updates could be lost due to a
+    # crash."
+    def save_doc(doc, bulk = false, batch = false)
       if doc['_attachments']
         doc['_attachments'] = encode_attachments(doc['_attachments'])
       end
       if bulk
         @bulk_save_cache << doc
-        return bulk_save if @bulk_save_cache.length >= @bulk_save_cache_limit
+        bulk_save if @bulk_save_cache.length >= @bulk_save_cache_limit
         return {"ok" => true} # Compatibility with Document#save
       elsif !bulk && @bulk_save_cache.length > 0
         bulk_save
@@ -153,7 +164,9 @@ module CouchRest
       result = if doc['_id']
         slug = escape_docid(doc['_id'])
         begin     
-          CouchRest.put "#{@root}/#{slug}", doc
+          uri = "#{@root}/#{slug}"
+          uri << "?batch=ok" if batch
+          CouchRest.put uri, doc
         rescue HttpAbstraction::ResourceNotFound
           p "resource not found when saving even tho an id was passed"
           slug = doc['_id'] = @server.next_uuid
@@ -175,6 +188,15 @@ module CouchRest
       result
     end
     
+    # Save a document to CouchDB in bulk mode. See #save_doc's +bulk+ argument.
+    def bulk_save_doc(doc)
+      save_doc(doc, true)
+    end
+
+    # Save a document to CouchDB in batch mode. See #save_doc's +batch+ argument.
+    def batch_save_doc(doc)
+      save_doc(doc, false, true)
+    end
     
     # POST an array of documents to CouchDB. If any of the documents are
     # missing ids, supply one from the uuid cache.
@@ -227,6 +249,33 @@ module CouchRest
       CouchRest.copy "#{@root}/#{slug}", destination
     end
     
+    # Updates the given doc by yielding the current state of the doc
+    # and trying to update update_limit times. Returns the new doc
+    # if the doc was successfully updated without hitting the limit
+    def update_doc(doc_id, params = {}, update_limit=10)
+      resp = {'ok' => false}
+      new_doc = nil
+      last_fail = nil
+
+      until resp['ok'] or update_limit <= 0
+        doc = self.get(doc_id, params)  # grab the doc
+        new_doc = yield doc # give it to the caller to be updated
+        begin
+          resp = self.save_doc new_doc # try to PUT the updated doc into the db
+        rescue RestClient::RequestFailed => e
+          if e.http_code == 409 # Update collision
+            update_limit -= 1
+            last_fail = e
+          else # some other error
+            raise e
+          end
+        end
+      end
+
+      raise last_fail unless resp['ok']
+      new_doc
+    end
+    
     # Compact the database, removing old document revisions and optimizing space use.
     def compact!
       CouchRest.post "#{@root}/_compact"
@@ -242,7 +291,7 @@ module CouchRest
     def recreate!
       delete!
       create!
-    rescue HttpAbstraction::ResourceNotFound
+    rescue RestClient::ResourceNotFound
     ensure
       create!
     end

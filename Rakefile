@@ -1,8 +1,6 @@
 require 'rake'
 require "rake/rdoctask"
-require 'rake/gempackagetask'
 require File.join(File.expand_path(File.dirname(__FILE__)),'lib','couchrest')
-
 
 begin
   require 'spec/rake/spectask'
@@ -14,41 +12,26 @@ EOS
   exit(0)
 end
 
-spec = Gem::Specification.new do |s|
-  s.name = "couchrest"
-  s.version = CouchRest::VERSION
-  s.date = "2008-11-22"
-  s.summary = "Lean and RESTful interface to CouchDB."
-  s.email = "jchris@apache.org"
-  s.homepage = "http://github.com/jchris/couchrest"
-  s.description = "CouchRest provides a simple interface on top of CouchDB's RESTful HTTP API, as well as including some utility scripts for managing views and attachments."
-  s.has_rdoc = true
-  s.authors = ["J. Chris Anderson", "Matt Aimonetti"]
-  s.files = %w( LICENSE README.md Rakefile THANKS.md history.txt) + 
-    Dir["{examples,lib,spec,utils}/**/*"] - 
-    Dir["spec/tmp"]
-  s.extra_rdoc_files = %w( README.md LICENSE THANKS.md )
-  s.require_path = "lib"
-  s.add_dependency("rest-client", ">= 0.5")
-  s.add_dependency("mime-types", ">= 1.15")
-end
-
-
-desc "Create .gemspec file (useful for github)"
-task :gemspec do
-  filename = "#{spec.name}.gemspec"
-  File.open(filename, "w") do |f|
-    f.puts spec.to_ruby
+begin
+  require 'jeweler'
+  Jeweler::Tasks.new do |gemspec|
+    gemspec.name = "couchrest"
+    gemspec.summary = "Lean and RESTful interface to CouchDB."
+    gemspec.description = "CouchRest provides a simple interface on top of CouchDB's RESTful HTTP API, as well as including some utility scripts for managing views and attachments."
+    gemspec.email = "jchris@apache.org"
+    gemspec.homepage = "http://github.com/couchrest/couchrest"
+    gemspec.authors = ["J. Chris Anderson", "Matt Aimonetti", "Marcos Tapajos"]
+    gemspec.extra_rdoc_files = %w( README.md LICENSE THANKS.md )
+    gemspec.files = %w( LICENSE README.md Rakefile THANKS.md history.txt) + Dir["{examples,lib,spec,utils}/**/*"] - Dir["spec/tmp"]
+    gemspec.has_rdoc = true
+    gemspec.add_dependency("rest-client", ">= 0.5")
+    gemspec.add_dependency("mime-types", ">= 1.15")
+    gemspec.version = CouchRest::VERSION
+    gemspec.date = "2008-11-22"
+    gemspec.require_path = "lib"
   end
-end
-
-Rake::GemPackageTask.new(spec) do |pkg|
-  pkg.gem_spec = spec
-end
-
-desc "Install the gem locally"
-task :install => [:package] do
-  sh %{sudo gem install pkg/couchrest-#{CouchRest::VERSION}}
+rescue LoadError
+  puts "Jeweler not available. Install it with: gem install jeweler"
 end
 
 desc "Run all specs"
@@ -73,3 +56,12 @@ end
 
 desc "Run the rspec"
 task :default => :spec
+
+module Rake
+  def self.remove_task(task_name)
+    Rake.application.instance_variable_get('@tasks').delete(task_name.to_s)
+  end
+end
+
+Rake.remove_task("github:release")
+Rake.remove_task("release")

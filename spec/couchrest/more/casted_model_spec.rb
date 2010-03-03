@@ -224,7 +224,7 @@ describe CouchRest::CastedModel do
     
     it "should not fail if the casted model doesn't have validation" do
       Cat.property :masters, :cast_as => ['Person'], :default => []
-      Cat.validates_present :name
+      Cat.validates_presence_of :name
       cat = Cat.new(:name => 'kitty')
       cat.should be_valid
       cat.masters.push Person.new

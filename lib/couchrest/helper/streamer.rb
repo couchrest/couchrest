@@ -7,15 +7,22 @@ module CouchRest
     
     # Stream a view, yielding one row at a time. Shells out to <tt>curl</tt> to keep RAM usage low when you have millions of rows.
     def view name, params = nil, &block
-      urlst = /^_/.match(name) ? "#{@db.root}/#{name}" : "#{@db.root}/_view/#{name}"
+      urlst = if /^_/.match(name) then
+        "#{@db.root}/#{name}"
+      else
+        name = name.split('/')
+        dname = name.shift
+        vname = name.join('/')
+        "#{@db.root}/_design/#{dname}/_view/#{vname}"
+      end
       url = CouchRest.paramify_url urlst, params
       # puts "stream #{url}"
       first = nil
-      IO.popen("curl --silent #{url}") do |view|
+      IO.popen("curl --silent \"#{url}\"") do |view|
         first = view.gets # discard header
         while line = view.gets 
           row = parse_line(line)
-          block.call row
+          block.call row unless row.nil? # last line "}]" discarded
         end
       end
       parse_first(first)

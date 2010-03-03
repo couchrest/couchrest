@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require File.expand_path("../../../spec_helper", __FILE__)
 require File.join(FIXTURE_PATH, 'more', 'article')
 require File.join(FIXTURE_PATH, 'more', 'course')
@@ -126,6 +128,11 @@ describe "ExtendedDocument" do
       @obj.should be_new
       @obj.should be_new_document
       @obj.should be_new_record
+    end
+
+    it "should not failed on a nil value in argument" do
+      @obj = Basic.new(nil)
+      @obj.should == { 'couchrest-type' => 'Basic' }
     end
   end
   
@@ -728,7 +735,7 @@ describe "ExtendedDocument" do
     
     it "should not fail if the nested casted model doesn't have validation" do
       Cat.property :trainer, :cast_as => 'Person'
-      Cat.validates_present :name
+      Cat.validates_presence_of :name
       cat = Cat.new(:name => 'Mr Bigglesworth')
       cat.trainer = Person.new
       cat.trainer.validatable?.should be_false

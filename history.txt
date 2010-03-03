@@ -1,3 +1,50 @@
+== Next Version
+
+* Major enhancements
+
+* Minor enhancements
+
+== 0.35
+
+* Major enhancements
+  * CouchRest::ExtendedDocument allow chaining the inherit class callback (Kenneth Kalmer) - http://github.com/couchrest/couchrest/issues#issue/8
+
+* Minor enhancements
+  * Fix attachment bug (Johannes Jörg Schmidt)
+  * Fix create database exception bug (Damien Mathieu)
+  * Compatible with restclient >= 1.4.0 new responses (Julien Kirch)
+  * Bug fix: Attribute protection no longer strips attributes coming from the database (Will Leinweber)
+  * Bug fix: Remove double CGI escape when PUTting an attachment (nzoschke)
+  * Bug fix: Changing Class proxy to set database on result sets (Peter Gumeson)
+  * Bug fix: Updated time regexp (Nolan Darilek)
+  * Added an update_doc method to database to handle conflicts during atomic updates. (Pierre Larochelle)
+  * Bug fix: http://github.com/couchrest/couchrest/issues/#issue/2 (Luke Burton)
+
+== 0.34
+
+* Major enhancements
+
+  * Added support for https database URIs. (Mathias Meyer)
+  * Changing some validations to be compatible with activemodel. (Marcos Tapajós)
+  * Adds attribute protection to properties. (Will Leinweber)
+  * Improved CouchRest::Database#save_doc, added "batch" mode to significantly speed up saves at cost of lower durability gurantees. (Igal Koshevoy)
+  * Added CouchRest::Database#bulk_save_doc and #batch_save_doc as human-friendlier wrappers around #save_doc. (Igal Koshevoy)
+  
+* Minor enhancements 
+  
+  * Fix content_type handling for attachments
+  * Fixed a bug in the pagination code that caused it to paginate over records outside of the scope of the view parameters.(John Wood)
+  * Removed amount_pages calculation for the pagination collection, since it cannot be reliably calculated without a view.(John Wood)
+  * Bug fix: http://github.com/couchrest/couchrest/issues/#issue/2 (Luke Burton)
+  * Bug fix: http://github.com/couchrest/couchrest/issues/#issue/1 (Marcos Tapajós)
+  * Removed the Database class deprecation notices (Matt Aimonetti)
+  * Adding support to :cast_as => 'Date'.  (Marcos Tapajós)
+  * Improve documentation  (Marcos Tapajós)
+  * Streamer fixes (Julien Sanchez)
+  * Fix Save on Document & ExtendedDocument crashed if bulk (Julien Sanchez)
+  * Fix Initialization of ExtendentDocument model shouldn't failed on a nil value in argument (deepj)
+  * Change to use Jeweler and Gemcutter (Marcos Tapajós)
+
 == 0.33
 
 * Major enhancements
