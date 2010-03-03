@@ -156,7 +156,7 @@ describe "ExtendedDocument properties" do
       end
     end
   end
-  
+ 
   describe "casting" do
     before(:each) do
       @course = Course.new(:title => 'Relaxation')

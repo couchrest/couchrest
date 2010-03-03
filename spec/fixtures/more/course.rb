@@ -4,7 +4,7 @@ require File.join(FIXTURE_PATH, 'more', 'person')
 class Course < CouchRest::ExtendedDocument
   use_database TEST_SERVER.default_database
   
-  property :title
+  property :title, :cast_as => 'String'
   property :questions, :cast_as => ['Question']
   property :professor, :cast_as => 'Person'
   property :participants, :type => ['Object']
