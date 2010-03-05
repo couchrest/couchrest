@@ -14,7 +14,7 @@ module CouchRest
     include CouchRest::Mixins::ExtendedAttachments
     include CouchRest::Mixins::ClassProxy
     include CouchRest::Mixins::Collection
-		include CouchRest::Mixins::AttributeProtection
+    include CouchRest::Mixins::AttributeProtection
 
     def self.subclasses
       @subclasses ||= []
