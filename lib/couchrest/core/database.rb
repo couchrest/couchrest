@@ -297,15 +297,13 @@ module CouchRest
     end
     
     # Replicates via "pulling" from another database to this database. Makes no attempt to deal with conflicts.
-    def replicate_from other_db
-      raise ArgumentError, "must provide a CouchReset::Database" unless other_db.kind_of?(CouchRest::Database)
-      CouchRest.post "#{@host}/_replicate", :source => other_db.root, :target => name
+    def replicate_from other_db, continuous=false
+      replicate other_db, continuous, :target => name
     end
     
     # Replicates via "pushing" to another database. Makes no attempt to deal with conflicts.
-    def replicate_to other_db
-      raise ArgumentError, "must provide a CouchReset::Database" unless other_db.kind_of?(CouchRest::Database)
-      CouchRest.post "#{@host}/_replicate", :target => other_db.root, :source => name
+    def replicate_to other_db, continuous=false
+      replicate other_db, continuous, :source => name
     end
     
     # DELETE the database itself. This is not undoable and could be rather
@@ -316,6 +314,19 @@ module CouchRest
     end
 
     private
+    
+    def replicate other_db, continuous, options
+      raise ArgumentError, "must provide a CouchReset::Database" unless other_db.kind_of?(CouchRest::Database)
+      raise ArgumentError, "must provide a target or source option" unless (options.key?(:target) || options.key?(:source))
+      payload = options
+      if options.has_key?(:target)
+        payload[:source] = other_db.root
+      else
+        payload[:target] = other_db.root
+      end
+      payload[:continuous] = continuous
+      CouchRest.post "#{@host}/_replicate", payload
+    end
     
     def clear_extended_doc_fresh_cache
       ::CouchRest::ExtendedDocument.subclasses.each{|klass| klass.design_doc_fresh = false if klass.respond_to?(:design_doc_fresh=) }

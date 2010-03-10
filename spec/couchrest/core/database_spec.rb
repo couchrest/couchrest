@@ -703,12 +703,12 @@ describe CouchRest::Database do
     end
   end
   
-  describe "replicating a database" do
+  describe "simply replicating a database" do
     before do
       @db.save_doc({'_id' => 'test_doc', 'some-value' => 'foo'})
-      @other_db = @cr.database 'couchrest-test-replication'
+      @other_db = @cr.database REPLICATIONDB
       @other_db.delete! rescue nil
-      @other_db = @cr.create_db 'couchrest-test-replication'
+      @other_db = @cr.create_db REPLICATIONDB
     end
 
     describe "via pulling" do
@@ -730,6 +730,53 @@ describe CouchRest::Database do
       it "copies the document to the other database" do
         doc = @other_db.get('test_doc')
         doc['some-value'].should == 'foo'
+      end
+    end
+  end
+    
+  describe "continuously replicating a database" do
+    before do
+      @db.save_doc({'_id' => 'test_doc', 'some-value' => 'foo'})
+      @other_db = @cr.database REPLICATIONDB
+      @other_db.delete! rescue nil
+      @other_db = @cr.create_db REPLICATIONDB
+    end
+
+    describe "via pulling" do
+      before do
+        @other_db.replicate_from @db, true
+      end
+      
+      it "contains the document from the original database" do
+        sleep(1) # Allow some time to replicate
+        doc = @other_db.get('test_doc')
+        doc['some-value'].should == 'foo'
+      end
+      
+      it "contains documents saved after replication initiated" do
+        @db.save_doc({'_id' => 'test_doc_after', 'some-value' => 'bar'})
+        sleep(1) # Allow some time to replicate
+        doc = @other_db.get('test_doc_after')
+        doc['some-value'].should == 'bar'
+      end
+    end
+    
+    describe "via pushing" do
+      before do
+        @db.replicate_to @other_db, true
+      end
+      
+      it "copies the document to the other database" do
+        sleep(1) # Allow some time to replicate
+        doc = @other_db.get('test_doc')
+        doc['some-value'].should == 'foo'
+      end
+      
+      it "copies documents saved after replication initiated" do
+        @db.save_doc({'_id' => 'test_doc_after', 'some-value' => 'bar'})
+        sleep(1) # Allow some time to replicate
+        doc = @other_db.get('test_doc_after')
+        doc['some-value'].should == 'bar'
       end
     end
   end
