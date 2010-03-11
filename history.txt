@@ -1,7 +1,7 @@
 == Next Version
 
 * Major enhancements
-
+  * Adds support for continuous replication (sauy7)
 * Minor enhancements
 
 == 0.35
