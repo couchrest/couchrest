@@ -51,7 +51,8 @@ module CouchRest
         return unless self[key]
         if property.type.is_a?(Array)
           klass = ::CouchRest.constantize(property.type[0])
-          arr = self[key].dup.collect do |value|
+          self[key] = [self[key]] unless self[key].is_a?(Array)
+          arr = self[key].collect do |value|
             value = typecast_value(value, klass, property.init_method)
             associate_casted_to_parent(value, assigned)
             value
