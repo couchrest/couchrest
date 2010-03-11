@@ -816,5 +816,25 @@ describe CouchRest::Database do
     
   end
 
+  describe "searching a database" do
+    before(:each) do
+      search_function = { 'defaults' => {'store' => 'no', 'index' => 'analyzed_no_norms'},
+          'index' => "function(doc) { ret = new Document(); ret.add(doc['name'], {'field':'name'}); ret.add(doc['age'], {'field':'age'}); return ret; }" }
+      @db.save_doc({'_id' => '_design/search', 'fulltext' => {'people' => search_function}})
+      @db.save_doc({'_id' => 'john', 'name' => 'John', 'age' => '31'})
+      @db.save_doc({'_id' => 'jack', 'name' => 'Jack', 'age' => '32'})
+      @db.save_doc({'_id' => 'dave', 'name' => 'Dave', 'age' => '33'})
+    end
+
+    it "should be able to search a database using couchdb-lucene" do
+      if couchdb_lucene_available?
+        result = @db.search('search/people', :q => 'name:J*')
+        doc_ids = result['rows'].collect{ |row| row['id'] }
+        doc_ids.size.should == 2
+        doc_ids.should include('john')
+        doc_ids.should include('jack')
+      end
+    end
+  end
 
 end

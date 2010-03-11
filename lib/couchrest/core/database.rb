@@ -44,7 +44,14 @@ module CouchRest
         CouchRest.get url
       end
     end
-  
+
+    # Query a CouchDB-Lucene search view
+    def search(name, params={})
+      # -> http://localhost:5984/yourdb/_fti/YourDesign/by_name?include_docs=true&q=plop*'
+      url = CouchRest.paramify_url "#{root}/_fti/#{name}", params
+      CouchRest.get url
+    end
+
     # load a set of documents by passing an array of ids
     def get_bulk(ids)
       documents(:keys => ids, :include_docs => true)

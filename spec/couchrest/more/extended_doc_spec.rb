@@ -762,4 +762,36 @@ describe "ExtendedDocument" do
       cat.save.should be_true
     end
   end
+
+  describe "searching the contents of an extended document" do
+    before :each do
+      @db = reset_test_db!
+
+      names = ["Fuzzy", "Whiskers", "Mr Bigglesworth", "Sockington", "Smitty", "Sammy", "Samson", "Simon"]
+      names.each { |name| Cat.create(:name => name) }
+
+      search_function = { 'defaults' => {'store' => 'no', 'index' => 'analyzed_no_norms'},
+          'index' => "function(doc) { ret = new Document(); ret.add(doc['name'], {'field':'name'}); return ret; }" }
+      @db.save_doc({'_id' => '_design/search', 'fulltext' => {'cats' => search_function}})
+    end
+
+    it "should be able to paginate through a large set of search results" do
+      if couchdb_lucene_available?
+        names = []
+        Cat.paginated_each(:design_doc => "search", :view_name => "cats",
+             :q => 'name:S*', :search => true, :include_docs => true, :per_page => 3) do |cat|
+           cat.should_not be_nil
+           names << cat.name
+        end
+
+        names.size.should == 5
+        names.should include('Sockington')
+        names.should include('Smitty')
+        names.should include('Sammy')
+        names.should include('Samson')
+        names.should include('Simon')
+      end
+    end
+  end
+
 end
