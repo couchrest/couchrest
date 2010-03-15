@@ -20,7 +20,7 @@ module CouchRest
           class_eval <<-END, __FILE__, __LINE__ + 1
             def self.find_all_#{collection_name}(options = {})
               view_options = #{view_options.inspect} || {}
-              CollectionProxy.new(@database, "#{design_doc}", "#{view_name}", view_options.merge(options), Kernel.const_get('#{self}'))
+              CollectionProxy.new(database, "#{design_doc}", "#{view_name}", view_options.merge(options), Kernel.const_get('#{self}'))
             end
           END
         end
@@ -58,7 +58,7 @@ module CouchRest
 
         def create_collection_proxy(options)
           design_doc, view_name, view_options = parse_view_options(options)
-          CollectionProxy.new(@database, design_doc, view_name, view_options, self)
+          CollectionProxy.new(database, design_doc, view_name, view_options, self)
         end
 
         def parse_view_options(options)

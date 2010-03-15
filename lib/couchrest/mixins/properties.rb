@@ -1,24 +1,6 @@
 require 'time'
 require File.join(File.dirname(__FILE__), '..', 'more', 'property')
-
-class Time                       
-  # returns a local time value much faster than Time.parse
-  def self.mktime_with_offset(string)
-    string =~ /(\d{4})[\-|\/](\d{2})[\-|\/](\d{2})[T|\s](\d{2}):(\d{2}):(\d{2})([\+|\s|\-])*(\d{2}):?(\d{2})/
-    # $1 = year
-    # $2 = month
-    # $3 = day
-    # $4 = hours
-    # $5 = minutes
-    # $6 = seconds
-    # $7 = time zone direction
-    # $8 = tz difference
-    # utc time with wrong TZ info: 
-    time = mktime($1, RFC2822_MONTH_NAME[$2.to_i - 1], $3, $4, $5, $6, $7)
-    tz_difference = ("#{$7 == '-' ? '+' : '-'}#{$8}".to_i * 3600)
-    time + tz_difference + zone_offset(time.zone) 
-  end 
-end
+require File.join(File.dirname(__FILE__), '..', 'more', 'typecast')
 
 module CouchRest
   module Mixins
@@ -26,6 +8,8 @@ module CouchRest
       
       class IncludeError < StandardError; end
       
+      include ::CouchRest::More::Typecast
+
       def self.included(base)
         base.class_eval <<-EOS, __FILE__, __LINE__ + 1
             extlib_inheritable_accessor(:properties) unless self.respond_to?(:properties)
@@ -67,48 +51,29 @@ module CouchRest
         return unless self[key]
         if property.type.is_a?(Array)
           klass = ::CouchRest.constantize(property.type[0])
-          arr = self[key].dup.collect do |value|
-            unless value.instance_of?(klass)
-              value = convert_property_value(property, klass, value)
-            end
+          self[key] = [self[key]] unless self[key].is_a?(Array)
+          arr = self[key].collect do |value|
+            value = typecast_value(value, klass, property.init_method)
             associate_casted_to_parent(value, assigned)
             value
           end
           self[key] = klass != String ? CastedArray.new(arr) : arr
           self[key].casted_by = self if self[key].respond_to?(:casted_by)
         else
-          if property.type == 'boolean'
+          if property.type.downcase == 'boolean'
             klass = TrueClass
           else
             klass = ::CouchRest.constantize(property.type)
           end
           
-          unless self[key].instance_of?(klass)
-            self[key] = convert_property_value(property, klass, self[property.name])
-          end
-          associate_casted_to_parent(self[property.name], assigned)
+          self[key] = typecast_value(self[key], klass, property.init_method)
+          associate_casted_to_parent(self[key], assigned)
         end
-        
       end
       
       def associate_casted_to_parent(casted, assigned)
         casted.casted_by = self if casted.respond_to?(:casted_by)
         casted.document_saved = true if !assigned && casted.respond_to?(:document_saved)
-      end
-      
-      def convert_property_value(property, klass, value)
-        if ((property.init_method == 'new') && klass == Time)
-          # Using custom time parsing method because Ruby's default method is toooo slow
-          value.is_a?(String) ? Time.mktime_with_offset(value.dup) : value
-        # Float instances don't get initialized with #new
-        elsif ((property.init_method == 'new') && klass == Float)
-          cast_float(value)
-          # 'boolean' type is simply used to generate a property? accessor method
-        elsif ((property.init_method == 'new') && klass == TrueClass)
-          value
-        else
-          klass.send(property.init_method, value.dup)
-        end
       end
       
       def cast_property_by_name(property_name)
@@ -118,14 +83,7 @@ module CouchRest
         cast_property(property, true)
       end
       
-      def cast_float(value)
-        begin 
-          Float(value)
-        rescue
-          value
-        end
-      end
-      
+     
       module ClassMethods
         
         def property(name, options={})
@@ -141,7 +99,7 @@ module CouchRest
           # make sure to use a mutex.
           def define_property(name, options={})
             # check if this property is going to casted
-            options[:casted] = options[:cast_as] ? options[:cast_as] : false
+            options[:casted] = !!(options[:cast_as] || options[:type])
             property = CouchRest::Property.new(name, (options.delete(:cast_as) || options.delete(:type)), options)
             create_property_getter(property) 
             create_property_setter(property) unless property.read_only == true

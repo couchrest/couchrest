@@ -1,9 +1,9 @@
 module CouchRest
-  
+
   # Basic attribute support for adding getter/setter + validation
   class Property
     attr_reader :name, :type, :read_only, :alias, :default, :casted, :init_method, :options
-    
+
     # attribute to define
     def initialize(name, type = nil, options = {})
       @name = name.to_s
@@ -11,20 +11,19 @@ module CouchRest
       parse_options(options)
       self
     end
-    
-    
+
     private
-    
+
       def parse_type(type)
         if type.nil?
           @type = 'String'
         elsif type.is_a?(Array) && type.empty?
-          @type = 'Array'
+          @type = ['Object']
         else
           @type = type.is_a?(Array) ? [type.first.to_s] : type.to_s
         end
       end
-      
+
       def parse_options(options)
         return if options.empty?
         @validation_format  = options.delete(:format)     if options[:format]
@@ -35,7 +34,7 @@ module CouchRest
         @init_method        = options[:init_method] ? options.delete(:init_method) : 'new'
         @options            = options
       end
-    
+
   end
 end
 
