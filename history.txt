@@ -4,6 +4,7 @@
   * Adds support for continuous replication (sauy7)
   * Automatic Type Casting (Alexander Uvarov, Sam Lown, Tim Heighes, Will Leinweber)
 * Minor enhancements
+  * Provide a description of the timeout error (John Wood)
 
 == 0.35
 
