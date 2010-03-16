@@ -2,6 +2,7 @@
 
 * Major enhancements
   * Adds support for continuous replication (sauy7)
+  * Automatic Type Casting (Alexander Uvarov, Sam Lown, Tim Heighes, Will Leinweber)
 * Minor enhancements
 
 == 0.35
