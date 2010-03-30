@@ -16,11 +16,19 @@ module CouchRest
 
       def parse_type(type)
         if type.nil?
-          @type = 'String'
+          @type = String
         elsif type.is_a?(Array) && type.empty?
-          @type = ['Object']
+          @type = [Object]
         else
-          @type = type.is_a?(Array) ? [type.first.to_s] : type.to_s
+          base_type = type.is_a?(Array) ? type.first : type
+          if base_type.is_a?(String)
+            base_type = TrueClass if base_type.downcase == 'boolean'
+            begin
+              base_type = ::CouchRest.constantize(base_type) unless base_type.is_a?(Class)
+            rescue  # leave base type as is and convert in more/typecast 
+            end
+          end
+          @type = type.is_a?(Array) ? [base_type] : base_type 
         end
       end
 

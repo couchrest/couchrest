@@ -50,24 +50,18 @@ module CouchRest
         # Don't cast the property unless it has a value
         return unless self[key]
         if property.type.is_a?(Array)
-          klass = ::CouchRest.constantize(property.type[0])
+          klass = property.type[0]
           self[key] = [self[key]] unless self[key].is_a?(Array)
           arr = self[key].collect do |value|
             value = typecast_value(value, klass, property.init_method)
             associate_casted_to_parent(value, assigned)
             value
           end
-          # only cast arrays of more complex objects (i.e. not strings)
+          # allow casted_by calls to be passed up chain by wrapping in CastedArray
           self[key] = klass != String ? CastedArray.new(arr) : arr
           self[key].casted_by = self if self[key].respond_to?(:casted_by)
         else
-          if property.type.downcase == 'boolean'
-            klass = TrueClass
-          else
-            klass = ::CouchRest.constantize(property.type)
-          end
-          
-          self[key] = typecast_value(self[key], klass, property.init_method)
+          self[key] = typecast_value(self[key], property.type, property.init_method)
           associate_casted_to_parent(self[key], assigned)
         end
       end

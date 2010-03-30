@@ -124,7 +124,7 @@ describe CouchRest::CastedModel do
       @obj = DummyModel.new(:keywords => ['couch', 'sofa', 'relax', 'canapé'])
     end
     
-    it "should cast the array propery" do
+    it "should cast the array properly" do
       @obj.keywords.should be_an_instance_of(Array)
       @obj.keywords.first.should == 'couch'
     end

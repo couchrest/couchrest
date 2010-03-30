@@ -28,6 +28,7 @@ module CouchRest
 
       def typecast_value(value, klass, init_method)
         return nil if value.nil?
+        klass = ::CouchRest.constantize(klass) unless klass.is_a?(Class)
         if value.instance_of?(klass) || klass == Object
           value
         elsif [String, TrueClass, Integer, Float, BigDecimal, DateTime, Time, Date, Class].include?(klass)

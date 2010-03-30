@@ -1,12 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.join(FIXTURE_PATH, 'more', 'cat')
+require File.join(FIXTURE_PATH, 'more', 'person')
 require File.join(FIXTURE_PATH, 'more', 'card')
-
-class Car < CouchRest::ExtendedDocument
-  use_database TEST_SERVER.default_database
-  
-  property :name
-  property :driver, :cast_as => 'Driver'
-end
 
 class Driver < CouchRest::ExtendedDocument
   use_database TEST_SERVER.default_database
@@ -16,19 +11,30 @@ class Driver < CouchRest::ExtendedDocument
   property :name
 end
 
+class Car < CouchRest::ExtendedDocument
+  use_database TEST_SERVER.default_database
+  
+  property :name
+  property :driver, :cast_as => 'Driver'
+  property :backseat_driver, :cast_as => Driver
+end
+
 describe "casting an extended document" do
   
   before(:each) do
     @driver = Driver.new(:name => 'Matt')
     @car    = Car.new(:name => 'Renault 306', :driver => @driver)
+    @car2   = Car.new(:name => 'Renault 306', :backseat_driver => @driver.dup)
   end
 
   it "should retain all properties of the casted attribute" do
     @car.driver.should == @driver
+    @car2.backseat_driver.should == @driver
   end
   
   it "should let the casted document know who casted it" do
     @car.driver.casted_by.should == @car
+    @car2.backseat_driver.casted_by.should == @car2
   end
 end
 
