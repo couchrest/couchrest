@@ -3,6 +3,7 @@
 require File.expand_path("../../../spec_helper", __FILE__)
 require File.join(FIXTURE_PATH, 'more', 'article')
 require File.join(FIXTURE_PATH, 'more', 'course')
+require File.join(FIXTURE_PATH, 'more', 'card')
 require File.join(FIXTURE_PATH, 'more', 'cat')
 
 describe "ExtendedDocument" do
@@ -426,7 +427,16 @@ describe "ExtendedDocument" do
       obj.created_at.should be_an_instance_of(Time)
       obj.updated_at.should be_an_instance_of(Time)
       obj.created_at.to_s.should == @obj.updated_at.to_s
-    end 
+    end
+    
+    it "should not change created_at on update" do
+      2.times do 
+        lambda do
+          @art.save
+        end.should_not change(@art, :created_at)
+      end
+    end
+     
     it "should set the time on create" do
       (Time.now - @art.created_at).should < 2
       foundart = Article.get @art.id
