@@ -28,10 +28,9 @@ module CouchRest
 
       def typecast_value(value, klass, init_method)
         return nil if value.nil?
-
-        if value.instance_of?(klass) || klass.to_s == 'Object'
-          value 
-        elsif ['String', 'TrueClass', 'Integer', 'Float', 'BigDecimal', 'DateTime', 'Time', 'Date', 'Class'].include?(klass.to_s)
+        if value.instance_of?(klass) || klass == Object
+          value
+        elsif [String, TrueClass, Integer, Float, BigDecimal, DateTime, Time, Date, Class].include?(klass)
           send('typecast_to_'+klass.to_s.downcase, value)
         else
           # Allow the init_method to be defined as a Proc for advanced conversion
@@ -43,7 +42,7 @@ module CouchRest
 
         # Typecast a value to an Integer
         def typecast_to_integer(value)
-          value.kind_of?(Integer) ? value : typecast_to_numeric(value, :to_i)
+          typecast_to_numeric(value, :to_i)
         end
 
         # Typecast a value to a String
@@ -65,8 +64,6 @@ module CouchRest
 
         # Typecast a value to a BigDecimal
         def typecast_to_bigdecimal(value)
-          return value if value.kind_of?(BigDecimal)
-
           if value.kind_of?(Integer)
             value.to_s.to_d
           else
@@ -76,7 +73,6 @@ module CouchRest
 
         # Typecast a value to a Float
         def typecast_to_float(value)
-          return value if value.kind_of?(Float)
           typecast_to_numeric(value, :to_f)
         end
 
@@ -97,9 +93,8 @@ module CouchRest
 
         # Typecasts an arbitrary value to a DateTime.
         # Handles both Hashes and DateTime instances.
+        # This is slow!! Use Time instead.
         def typecast_to_datetime(value)
-          return value if value.kind_of?(DateTime)
-
           if value.is_a?(Hash)
             typecast_hash_to_datetime(value)
           else
@@ -112,12 +107,15 @@ module CouchRest
         # Typecasts an arbitrary value to a Date
         # Handles both Hashes and Date instances.
         def typecast_to_date(value)
-          return value if value.kind_of?(Date)
-
           if value.is_a?(Hash)
             typecast_hash_to_date(value)
+          elsif value.is_a?(Time) # sometimes people think date is time!
+            value.to_date
+          elsif value.to_s =~ /(\d{4})[\-|\/](\d{2})[\-|\/](\d{2})/
+            # Faster than parsing the date
+            Date.new($1.to_i, $2.to_i, $3.to_i)
           else
-            Date.parse(value.to_s)
+            Date.parse(value)
           end
         rescue ArgumentError
           value
@@ -126,8 +124,6 @@ module CouchRest
         # Typecasts an arbitrary value to a Time
         # Handles both Hashes and Time instances.
         def typecast_to_time(value)
-          return value if value.kind_of?(Time)
-
           if value.is_a?(Hash)
             typecast_hash_to_time(value)
           else
@@ -160,7 +156,6 @@ module CouchRest
         # uses the value of Time.now.
         def extract_time(value)
           now  = Time.now
-
           [:year, :month, :day, :hour, :min, :sec].map do |segment|
             typecast_to_numeric(value.fetch(segment, now.send(segment)), :to_i)
           end
@@ -168,7 +163,6 @@ module CouchRest
 
         # Typecast a value to a Class
         def typecast_to_class(value)
-          return value if value.kind_of?(Class)
           ::CouchRest.constantize(value.to_s)
         rescue NameError
           value

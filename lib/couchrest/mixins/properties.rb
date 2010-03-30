@@ -57,6 +57,7 @@ module CouchRest
             associate_casted_to_parent(value, assigned)
             value
           end
+          # only cast arrays of more complex objects (i.e. not strings)
           self[key] = klass != String ? CastedArray.new(arr) : arr
           self[key].casted_by = self if self[key].respond_to?(:casted_by)
         else
