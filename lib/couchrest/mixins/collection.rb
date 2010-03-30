@@ -42,7 +42,12 @@ module CouchRest
         #
         # Defaults are used if these options are not specified.
         def paginated_each(options, &block)
-          proxy = create_collection_proxy(options)
+          search = options.delete(:search)
+          unless search == true
+            proxy = create_collection_proxy(options)
+          else
+            proxy = create_search_collection_proxy(options)
+          end
           proxy.paginated_each(options, &block)
         end
 
@@ -61,6 +66,11 @@ module CouchRest
           CollectionProxy.new(database, design_doc, view_name, view_options, self)
         end
 
+        def create_search_collection_proxy(options)
+          design_doc, search_name, search_options = parse_search_options(options)
+          CollectionProxy.new(@database, design_doc, search_name, search_options, self, :search)
+        end
+
         def parse_view_options(options)
           design_doc = options.delete(:design_doc)
           raise ArgumentError, 'design_doc is required' if design_doc.nil?
@@ -75,6 +85,18 @@ module CouchRest
 
           [design_doc, view_name, view_options]
         end
+
+        def parse_search_options(options)
+          design_doc = options.delete(:design_doc)
+          raise ArgumentError, 'design_doc is required' if design_doc.nil?
+
+          search_name = options.delete(:view_name)
+          raise ArgumentError, 'search_name is required' if search_name.nil?
+
+          search_options = options.clone
+          [design_doc, search_name, search_options]
+        end
+
       end
 
       class CollectionProxy
@@ -91,11 +113,12 @@ module CouchRest
         #
         # The CollectionProxy provides support for paginating over a collection
         # via the paginate, and paginated_each methods.
-        def initialize(database, design_doc, view_name, view_options = {}, container_class = nil)
+        def initialize(database, design_doc, view_name, view_options = {}, container_class = nil, query_type = :view)
           raise ArgumentError, "database is a required parameter" if database.nil?
 
           @database = database
           @container_class = container_class
+          @query_type = query_type
 
           strip_pagination_options(view_options)
           @view_options = view_options
@@ -110,10 +133,22 @@ module CouchRest
         # See Collection.paginate
         def paginate(options = {})
           page, per_page = parse_options(options)
-          results = @database.view(@view_name, pagination_options(page, per_page)) 
+          results = @database.send(@query_type, @view_name, pagination_options(page, per_page))
           remember_where_we_left_off(results, page)
-          results = convert_to_container_array(results)
-          results
+          instances = convert_to_container_array(results)
+
+          begin
+            if Kernel.const_get('WillPaginate')
+              total_rows = results['total_rows'].to_i
+              paginated = WillPaginate::Collection.create(page, per_page, total_rows) do |pager|
+                pager.replace(instances)
+              end
+              return paginated
+            end
+          rescue NameError
+            # When not using will_paginate, not much we could do about this. :x
+          end
+          return instances
         end
 
         # See Collection.paginated_each
@@ -152,7 +187,8 @@ module CouchRest
 
         def load_target
           unless loaded?
-            results = @database.view(@view_name, @view_options)
+            @view_options.merge!({:include_docs => true}) if @query_type == :search
+            results = @database.send(@query_type, @view_name, @view_options)
             @target = convert_to_container_array(results)
           end
           @loaded = true
@@ -189,7 +225,7 @@ module CouchRest
 
         def pagination_options(page, per_page)
           view_options = @view_options.clone
-          if @last_key && @last_docid && @last_page == page - 1
+          if @query_type == :view && @last_key && @last_docid && @last_page == page - 1
             key = view_options.delete(:key)
             end_key = view_options[:endkey] || key
             options = { :startkey => @last_key, :endkey => end_key, :startkey_docid => @last_docid, :limit => per_page, :skip => 1 }

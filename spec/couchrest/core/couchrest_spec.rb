@@ -46,137 +46,74 @@ describe CouchRest do
     it "should parse just a dbname" do
       db = CouchRest.parse "my-db"
       db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1:5984"
+      db[:host].should == "http://127.0.0.1:5984"
     end
     it "should parse a host and db" do
       db = CouchRest.parse "127.0.0.1/my-db"
       db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1"
-    end
-    it "should parse a host and db with http" do
-      db = CouchRest.parse "https://127.0.0.1/my-db"
-      db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1"
-    end
-    it "should parse a host with a port and db" do
-      db = CouchRest.parse "127.0.0.1:5555/my-db"
-      db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1:5555"
-    end
-    it "should parse a host with a port and db with http" do
-      db = CouchRest.parse "http://127.0.0.1:5555/my-db"
-      db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1:5555"
-    end
-    it "should parse a host with a port and db with https" do
-      db = CouchRest.parse "https://127.0.0.1:5555/my-db"
-      db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1:5555"
-    end
-    it "should parse just a host" do
-      db = CouchRest.parse "http://127.0.0.1:5555/"
-      db[:database].should be_nil
-      db[:host].should == "127.0.0.1:5555"
-    end
-    it "should parse just a host with https" do
-      db = CouchRest.parse "https://127.0.0.1:5555/"
-      db[:database].should be_nil
-      db[:host].should == "127.0.0.1:5555"
-    end
-    it "should parse just a host no slash" do
-      db = CouchRest.parse "http://127.0.0.1:5555"
-      db[:host].should == "127.0.0.1:5555"
-      db[:database].should be_nil
-    end
-    it "should parse just a host no slash and https" do
-      db = CouchRest.parse "https://127.0.0.1:5555"
-      db[:host].should == "127.0.0.1:5555"
-      db[:database].should be_nil
-    end
-    it "should get docid" do
-      db = CouchRest.parse "127.0.0.1:5555/my-db/my-doc"
-      db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1:5555"
-      db[:doc].should == "my-doc"
-    end
-    it "should get docid with http" do
-      db = CouchRest.parse "http://127.0.0.1:5555/my-db/my-doc"
-      db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1:5555"
-      db[:doc].should == "my-doc"
-    end
-    it "should get docid with https" do
-      db = CouchRest.parse "https://127.0.0.1:5555/my-db/my-doc"
-      db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1:5555"
-      db[:doc].should == "my-doc"
-    end
-    it "should parse a host and db" do
-      db = CouchRest.parse "127.0.0.1/my-db"
-      db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1"
+      db[:host].should == "http://127.0.0.1"
     end
     it "should parse a host and db with http" do
       db = CouchRest.parse "http://127.0.0.1/my-db"
       db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1"
+      db[:host].should == "http://127.0.0.1"
     end
     it "should parse a host and db with https" do
       db = CouchRest.parse "https://127.0.0.1/my-db"
       db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1"
+      db[:host].should == "https://127.0.0.1"
     end
     it "should parse a host with a port and db" do
       db = CouchRest.parse "127.0.0.1:5555/my-db"
       db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1:5555"
+      db[:host].should == "http://127.0.0.1:5555"
     end
     it "should parse a host with a port and db with http" do
       db = CouchRest.parse "http://127.0.0.1:5555/my-db"
       db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1:5555"
+      db[:host].should == "http://127.0.0.1:5555"
     end
     it "should parse a host with a port and db with https" do
-      db = CouchRest.parse "http://127.0.0.1:5555/my-db"
+      db = CouchRest.parse "https://127.0.0.1:5555/my-db"
       db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1:5555"
+      db[:host].should == "https://127.0.0.1:5555"
     end
     it "should parse just a host" do
       db = CouchRest.parse "http://127.0.0.1:5555/"
       db[:database].should be_nil
-      db[:host].should == "127.0.0.1:5555"
+      db[:host].should == "http://127.0.0.1:5555"
     end
     it "should parse just a host with https" do
       db = CouchRest.parse "https://127.0.0.1:5555/"
       db[:database].should be_nil
-      db[:host].should == "127.0.0.1:5555"
+      db[:host].should == "https://127.0.0.1:5555"
     end
     it "should parse just a host no slash" do
       db = CouchRest.parse "http://127.0.0.1:5555"
-      db[:host].should == "127.0.0.1:5555"
+      db[:host].should == "http://127.0.0.1:5555"
       db[:database].should be_nil
     end
     it "should parse just a host no slash and https" do
       db = CouchRest.parse "https://127.0.0.1:5555"
-      db[:host].should == "127.0.0.1:5555"
+      db[:host].should == "https://127.0.0.1:5555"
       db[:database].should be_nil
     end
     it "should get docid" do
       db = CouchRest.parse "127.0.0.1:5555/my-db/my-doc"
       db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1:5555"
+      db[:host].should == "http://127.0.0.1:5555"
       db[:doc].should == "my-doc"
     end
     it "should get docid with http" do
       db = CouchRest.parse "http://127.0.0.1:5555/my-db/my-doc"
       db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1:5555"
+      db[:host].should == "http://127.0.0.1:5555"
       db[:doc].should == "my-doc"
     end
     it "should get docid with https" do
       db = CouchRest.parse "https://127.0.0.1:5555/my-db/my-doc"
       db[:database].should == "my-db"
-      db[:host].should == "127.0.0.1:5555"
+      db[:host].should == "https://127.0.0.1:5555"
       db[:doc].should == "my-doc"
     end
   end
@@ -185,7 +122,7 @@ describe CouchRest do
     it "should be possible without an explicit CouchRest instantiation" do
       db = CouchRest.database "http://127.0.0.1:5984/couchrest-test"
       db.should be_an_instance_of(CouchRest::Database)
-      db.host.should == "127.0.0.1:5984"
+      db.host.should == "http://127.0.0.1:5984"
     end
     # TODO add https support (need test environment...)
     # it "should work with https" # do

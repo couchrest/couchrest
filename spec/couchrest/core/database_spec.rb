@@ -703,12 +703,12 @@ describe CouchRest::Database do
     end
   end
   
-  describe "replicating a database" do
+  describe "simply replicating a database" do
     before do
       @db.save_doc({'_id' => 'test_doc', 'some-value' => 'foo'})
-      @other_db = @cr.database 'couchrest-test-replication'
+      @other_db = @cr.database REPLICATIONDB
       @other_db.delete! rescue nil
-      @other_db = @cr.create_db 'couchrest-test-replication'
+      @other_db = @cr.create_db REPLICATIONDB
     end
 
     describe "via pulling" do
@@ -730,6 +730,53 @@ describe CouchRest::Database do
       it "copies the document to the other database" do
         doc = @other_db.get('test_doc')
         doc['some-value'].should == 'foo'
+      end
+    end
+  end
+    
+  describe "continuously replicating a database" do
+    before do
+      @db.save_doc({'_id' => 'test_doc', 'some-value' => 'foo'})
+      @other_db = @cr.database REPLICATIONDB
+      @other_db.delete! rescue nil
+      @other_db = @cr.create_db REPLICATIONDB
+    end
+
+    describe "via pulling" do
+      before do
+        @other_db.replicate_from @db, true
+      end
+      
+      it "contains the document from the original database" do
+        sleep(1) # Allow some time to replicate
+        doc = @other_db.get('test_doc')
+        doc['some-value'].should == 'foo'
+      end
+      
+      it "contains documents saved after replication initiated" do
+        @db.save_doc({'_id' => 'test_doc_after', 'some-value' => 'bar'})
+        sleep(1) # Allow some time to replicate
+        doc = @other_db.get('test_doc_after')
+        doc['some-value'].should == 'bar'
+      end
+    end
+    
+    describe "via pushing" do
+      before do
+        @db.replicate_to @other_db, true
+      end
+      
+      it "copies the document to the other database" do
+        sleep(1) # Allow some time to replicate
+        doc = @other_db.get('test_doc')
+        doc['some-value'].should == 'foo'
+      end
+      
+      it "copies documents saved after replication initiated" do
+        @db.save_doc({'_id' => 'test_doc_after', 'some-value' => 'bar'})
+        sleep(1) # Allow some time to replicate
+        doc = @other_db.get('test_doc_after')
+        doc['some-value'].should == 'bar'
       end
     end
   end
@@ -769,5 +816,25 @@ describe CouchRest::Database do
     
   end
 
+  describe "searching a database" do
+    before(:each) do
+      search_function = { 'defaults' => {'store' => 'no', 'index' => 'analyzed_no_norms'},
+          'index' => "function(doc) { ret = new Document(); ret.add(doc['name'], {'field':'name'}); ret.add(doc['age'], {'field':'age'}); return ret; }" }
+      @db.save_doc({'_id' => '_design/search', 'fulltext' => {'people' => search_function}})
+      @db.save_doc({'_id' => 'john', 'name' => 'John', 'age' => '31'})
+      @db.save_doc({'_id' => 'jack', 'name' => 'Jack', 'age' => '32'})
+      @db.save_doc({'_id' => 'dave', 'name' => 'Dave', 'age' => '33'})
+    end
+
+    it "should be able to search a database using couchdb-lucene" do
+      if couchdb_lucene_available?
+        result = @db.search('search/people', :q => 'name:J*')
+        doc_ids = result['rows'].collect{ |row| row['id'] }
+        doc_ids.size.should == 2
+        doc_ids.should include('john')
+        doc_ids.should include('jack')
+      end
+    end
+  end
 
 end

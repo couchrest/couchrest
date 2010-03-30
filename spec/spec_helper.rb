@@ -10,6 +10,7 @@ unless defined?(FIXTURE_PATH)
 
   COUCHHOST = "http://127.0.0.1:5984"
   TESTDB    = 'couchrest-test'
+  REPLICATIONDB = 'couchrest-test-replication'
   TEST_SERVER    = CouchRest.new
   TEST_SERVER.default_database = TESTDB
   DB = TEST_SERVER.database(TESTDB)
@@ -35,3 +36,14 @@ Spec::Runner.configure do |config|
     end
   end
 end
+
+def couchdb_lucene_available?
+  lucene_path = "http://localhost:5985/"
+  url = URI.parse(lucene_path)
+  req = Net::HTTP::Get.new(url.path)
+  res = Net::HTTP.new(url.host, url.port).start { |http| http.request(req) }
+  true
+ rescue Exception => e
+  false
+end
+

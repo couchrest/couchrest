@@ -1,8 +1,12 @@
 == Next Version
 
 * Major enhancements
-
+  * Adds support for continuous replication (sauy7)
+  * Automatic Type Casting (Alexander Uvarov, Sam Lown, Tim Heighes, Will Leinweber)
+  * Added a search method to CouchRest:Database to search the documents in a
+      given database. (Dave Farkas, Arnaud Berthomier, John Wood)
 * Minor enhancements
+  * Provide a description of the timeout error (John Wood)
 
 == 0.35
 

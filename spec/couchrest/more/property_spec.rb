@@ -172,7 +172,7 @@ describe "ExtendedDocument properties" do
     describe "when type primitive is an Object" do
       it "it should not cast given value" do
         @course.participants = [{}, 'q', 1]
-        @course['participants'].should eql([{}, 'q', 1])
+        @course['participants'].should == [{}, 'q', 1]
       end
 
       it "should cast started_on to Date" do
