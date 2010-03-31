@@ -33,11 +33,11 @@ Check the wiki for documentation and examples [http://wiki.github.com/couchrest/
 
 ## Contact
 
-Please post bugs, suggestions and patches to the bug tracker at <http://jchris.lighthouseapp.com/projects/17807-couchrest/overview>.
+Please post bugs, suggestions and patches to the bug tracker at [http://github.com/couchrest/couchrest/issues](http://github.com/couchrest/couchrest/issues).
 
-Follow us on Twitter: http://twitter.com/couchrest
+Follow us on Twitter: [http://twitter.com/couchrest](http://twitter.com/couchrest)
 
-Also, check http://twitter.com/#search?q=%23couchrest
+Also, check [http://twitter.com/#search?q=%23couchrest](http://twitter.com/#search?q=%23couchrest)
       
 ## Ruby on Rails
 

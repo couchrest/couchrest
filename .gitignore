@@ -2,4 +2,3 @@
 html/*
 pkg
 *.swp
-couchrest.gemspec
