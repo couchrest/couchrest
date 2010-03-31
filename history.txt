@@ -3,6 +3,7 @@
 * Major enhancements
 
 * Minor enhancements
+  * Added gemspec (needed for Bundler install) (Tapajós)
 
 == 0.36
 
