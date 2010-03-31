@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{couchrest}
-  s.version = "0.36"
+  s.version = "0.37"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["J. Chris Anderson", "Matt Aimonetti", "Marcos Tapajos", "Will Leinweber"]
@@ -22,6 +22,7 @@ Gem::Specification.new do |s|
      "README.md",
      "Rakefile",
      "THANKS.md",
+     "couchrest.gemspec",
      "examples/model/example.rb",
      "examples/word_count/markov",
      "examples/word_count/views/books/chunked-map.js",
