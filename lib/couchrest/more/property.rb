@@ -22,10 +22,13 @@ module CouchRest
         else
           base_type = type.is_a?(Array) ? type.first : type
           if base_type.is_a?(String)
-            base_type = TrueClass if base_type.downcase == 'boolean'
-            begin
-              base_type = ::CouchRest.constantize(base_type) unless base_type.is_a?(Class)
-            rescue  # leave base type as is and convert in more/typecast 
+            if base_type.downcase == 'boolean'
+              base_type = TrueClass 
+            else
+              begin
+                base_type = ::CouchRest.constantize(base_type)
+              rescue  # leave base type as a string and convert in more/typecast
+              end
             end
           end
           @type = type.is_a?(Array) ? [base_type] : base_type 
@@ -43,24 +46,5 @@ module CouchRest
         @options            = options
       end
 
-  end
-end
-
-class CastedArray < Array
-  attr_accessor :casted_by
-  
-  def << obj
-    obj.casted_by = self.casted_by if obj.respond_to?(:casted_by)
-    super(obj)
-  end
-  
-  def push(obj)
-    obj.casted_by = self.casted_by if obj.respond_to?(:casted_by)
-    super(obj)
-  end
-  
-  def []= index, obj
-    obj.casted_by = self.casted_by if obj.respond_to?(:casted_by)
-    super(index, obj)
   end
 end

@@ -1,5 +1,6 @@
 require 'time'
 require File.join(File.dirname(__FILE__), '..', 'more', 'property')
+require File.join(File.dirname(__FILE__), '..', 'more', 'casted_array')
 require File.join(File.dirname(__FILE__), '..', 'more', 'typecast')
 
 module CouchRest
@@ -58,7 +59,7 @@ module CouchRest
             value
           end
           # allow casted_by calls to be passed up chain by wrapping in CastedArray
-          self[key] = klass != String ? CastedArray.new(arr) : arr
+          self[key] = klass != String ? ::CouchRest::CastedArray.new(arr) : arr
           self[key].casted_by = self if self[key].respond_to?(:casted_by)
         else
           self[key] = typecast_value(self[key], property.type, property.init_method)

@@ -210,7 +210,7 @@ describe CouchRest::CastedModel do
       @cat.toys.push(toy)
       @cat.save.should be_true
       @cat = Cat.get @cat.id
-      @cat.toys.class.should == CastedArray
+      @cat.toys.class.should == CouchRest::CastedArray
       @cat.toys.first.class.should == CatToy
       @cat.toys.first.should === toy
     end
