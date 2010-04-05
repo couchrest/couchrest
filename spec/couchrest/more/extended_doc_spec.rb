@@ -83,7 +83,7 @@ describe "ExtendedDocument" do
       self.conditional_two = true
     end
   end
-  
+ 
   class WithTemplateAndUniqueID < CouchRest::ExtendedDocument
     use_database TEST_SERVER.default_database
     unique_id do |model|
@@ -641,6 +641,7 @@ describe "ExtendedDocument" do
         @doc.run_after_validate.should be_true
       end
     end
+
     describe "save" do
       it "should run the after filter after saving" do
         @doc.run_after_save.should be_nil

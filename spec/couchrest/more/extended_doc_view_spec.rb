@@ -451,6 +451,12 @@ describe "ExtendedDocument views" do
       articles.paginate(:page => 4, :per_page => 3).size.should == 3
       articles.paginate(:page => 5, :per_page => 3).size.should == 1
     end
+    it "should pass database parameter to pager" do
+      proxy = mock(:proxy)
+      proxy.stub!(:paginate)
+      ::CouchRest::Mixins::Collection::CollectionProxy.should_receive(:new).with('database', anything(), anything(), anything(), anything()).and_return(proxy)
+      Article.paginate(:design_doc => 'Article', :view_name => 'by_date', :database => 'database')
+    end
   end
 
 end
