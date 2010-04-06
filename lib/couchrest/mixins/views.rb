@@ -83,8 +83,8 @@ module CouchRest
             opts[:guards].push "(doc['couchrest-type'] == '#{self.to_s}')"
           end
           keys.push opts
-          self.design_doc.view_by(*keys)
-          self.design_doc_fresh = false
+          design_doc.view_by(*keys)
+          req_design_doc_refresh
         end
 
         # returns stored defaults if the there is a view named this in the design doc
@@ -96,9 +96,7 @@ module CouchRest
         # Dispatches to any named view.
         def view(name, query={}, &block)
           db = query.delete(:database) || database
-          unless design_doc_fresh            
-            refresh_design_doc_on(db)
-          end
+          refresh_design_doc(db)
           query[:raw] = true if query[:reduce]        
           raw = query.delete(:raw)
           fetch_view_with_docs(db, name, query, raw, &block)
@@ -117,13 +115,6 @@ module CouchRest
           rescue
             nil
           end
-        end
-
-        # Deletes the current design doc for the current class.
-        # Running it to early could mean that live code has to regenerate
-        # potentially large indexes.
-        def cleanup_design_docs!(db = database)
-          save_design_doc_on(db)
         end
 
         private
@@ -156,7 +147,7 @@ module CouchRest
             # the design doc may not have been saved yet on this database
           rescue HttpAbstraction::ResourceNotFound => e
             if retryable
-              save_design_doc_on(db)
+              save_design_doc(db)
               retryable = false
               retry
             else

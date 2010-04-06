@@ -336,7 +336,7 @@ module CouchRest
     end
     
     def clear_extended_doc_fresh_cache
-      ::CouchRest::ExtendedDocument.subclasses.each{|klass| klass.design_doc_fresh = false if klass.respond_to?(:design_doc_fresh=) }
+      ::CouchRest::ExtendedDocument.subclasses.each{|klass| klass.req_design_doc_refresh if klass.respond_to?(:req_design_doc_refresh)}
     end
 
     def uri_for_attachment(doc, name)

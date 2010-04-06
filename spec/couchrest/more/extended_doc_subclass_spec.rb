@@ -76,9 +76,9 @@ describe "Subclassing an ExtendedDocument" do
   
   it "should have its own design_doc_fresh" do
     Animal.refresh_design_doc
-    Dog.design_doc_fresh.should_not == true
+    Dog.send(:design_doc_fresh, Dog.database).should_not == true
     Dog.refresh_design_doc
-    Dog.design_doc_fresh.should == true
+    Dog.send(:design_doc_fresh, Dog.database).should == true
   end
   
   it "should not add views to the parent's design_doc" do

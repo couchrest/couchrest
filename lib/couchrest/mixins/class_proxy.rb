@@ -107,16 +107,12 @@ module CouchRest
           @klass.design_doc
         end
         
-        def design_doc_fresh
-          @klass.design_doc_fresh
-        end
-        
         def refresh_design_doc
-          @klass.refresh_design_doc_on(@database)
+          @klass.refresh_design_doc(@database)
         end
         
         def save_design_doc
-          @klass.save_design_doc_on(@database)
+          @klass.save_design_doc(@database)
         end
       end
     end

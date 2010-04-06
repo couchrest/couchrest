@@ -327,7 +327,7 @@ describe "ExtendedDocument" do
   
   describe "finding all instances of a model" do
     before(:all) do
-      WithTemplateAndUniqueID.design_doc_fresh = false
+      WithTemplateAndUniqueID.req_design_doc_refresh
       WithTemplateAndUniqueID.all.map{|o| o.destroy(true)}
       WithTemplateAndUniqueID.database.bulk_delete
       WithTemplateAndUniqueID.new('important-field' => '1').save
@@ -349,7 +349,7 @@ describe "ExtendedDocument" do
   describe "counting all instances of a model" do
     before(:each) do
       @db = reset_test_db!
-      WithTemplateAndUniqueID.design_doc_fresh = false
+      WithTemplateAndUniqueID.req_design_doc_refresh
     end
     
     it ".count should return 0 if there are no docuemtns" do
@@ -368,7 +368,7 @@ describe "ExtendedDocument" do
   describe "finding the first instance of a model" do
     before(:each) do      
       @db = reset_test_db!
-      WithTemplateAndUniqueID.design_doc_fresh = false
+      WithTemplateAndUniqueID.req_design_doc_refresh
       WithTemplateAndUniqueID.new('important-field' => '1').save
       WithTemplateAndUniqueID.new('important-field' => '2').save
       WithTemplateAndUniqueID.new('important-field' => '3').save

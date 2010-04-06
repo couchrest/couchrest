@@ -126,7 +126,7 @@ describe "ExtendedDocument views" do
       lambda{Unattached.all}.should raise_error
     end
     it "should query all" do
-      Unattached.cleanup_design_docs!(@db)
+      # Unattached.cleanup_design_docs!(@db)
       rs = Unattached.all :database => @db
       rs.length.should == 4
     end
@@ -187,7 +187,7 @@ describe "ExtendedDocument views" do
       Unattached.view_by :questions
       Unattached.by_questions(:database => @db)
       original_revision = Unattached.model_design_doc(@db)['_rev']
-      Unattached.cleanup_design_docs!(@db)
+      Unattached.save_design_doc(@db)
       Unattached.model_design_doc(@db)['_rev'].should_not == original_revision
     end
   end
