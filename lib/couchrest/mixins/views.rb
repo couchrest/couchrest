@@ -102,21 +102,6 @@ module CouchRest
           fetch_view_with_docs(db, name, query, raw, &block)
         end
 
-        # DEPRECATED
-        # user model_design_doc to retrieve the current design doc
-        def all_design_doc_versions(db = database)
-          db.documents :startkey => "_design/#{self.to_s}", 
-            :endkey => "_design/#{self.to_s}-\u9999"
-        end
-        
-        def model_design_doc(db = database)
-          begin
-            @model_design_doc = db.get("_design/#{self.to_s}")
-          rescue
-            nil
-          end
-        end
-
         private
 
         def fetch_view_with_docs(db, name, opts, raw=false, &block)

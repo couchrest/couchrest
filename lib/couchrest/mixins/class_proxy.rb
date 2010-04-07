@@ -89,18 +89,7 @@ module CouchRest
           docs
         end
         
-        def all_design_doc_versions
-          @klass.all_design_doc_versions(@database)
-        end
-        
-        def model_design_doc
-          @klass.model_design_doc(@database)
-        end
-        
-        def cleanup_design_docs!
-          @klass.cleanup_design_docs!(@database)
-        end
-        
+       
         # Mixins::DesignDoc
         
         def design_doc
@@ -114,6 +103,17 @@ module CouchRest
         def save_design_doc
           @klass.save_design_doc(@database)
         end
+
+        # DEPRICATED
+        def all_design_doc_versions
+          @klass.all_design_doc_versions(@database)
+        end
+        
+        def stored_design_doc
+          @klass.stored_design_doc(@database)
+        end
+        alias :model_design_doc :stored_design_doc
+
       end
     end
   end

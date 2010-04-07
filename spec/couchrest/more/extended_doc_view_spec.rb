@@ -50,6 +50,11 @@ describe "ExtendedDocument views" do
       articles = Article.by_date :descending => false
       articles.collect{|a|a.title}.should == @titles
     end
+    it "should allow you to create a new view on the fly" do
+      lambda{Article.by_title}.should raise_error 
+      Article.view_by :title
+      lambda{Article.by_title}.should_not raise_error 
+    end
   end
   
   describe "another model with a simple view" do
@@ -187,7 +192,7 @@ describe "ExtendedDocument views" do
       Unattached.view_by :questions
       Unattached.by_questions(:database => @db)
       original_revision = Unattached.model_design_doc(@db)['_rev']
-      Unattached.save_design_doc(@db)
+      Unattached.save_design_doc!(@db)
       Unattached.model_design_doc(@db)['_rev'].should_not == original_revision
     end
   end
@@ -277,13 +282,18 @@ describe "ExtendedDocument views" do
         u.respond_to?(:database).should be_false
       end
     end
-    it "should clean up design docs left around on specific database" do
-      @us.by_title
-      original_id = @us.model_design_doc['_rev']
-      Unattached.view_by :professor
-      @us.by_professor
-      @us.model_design_doc['_rev'].should_not == original_id
-    end
+    # Sam Lown 2010-04-07
+    # Removed as unclear why this should happen as before my changes 
+    # this happend by accident, not explicitly.
+    # If requested, this feature should be added as a specific method.
+    #
+    #it "should clean up design docs left around on specific database" do
+    #  @us.by_title
+    #  original_id = @us.model_design_doc['_rev']
+    #  Unattached.view_by :professor
+    #  @us.by_professor
+    #  @us.model_design_doc['_rev'].should_not == original_id
+    #end
   end
   
   describe "a model with a compound key view" do

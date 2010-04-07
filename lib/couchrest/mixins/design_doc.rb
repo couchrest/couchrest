@@ -15,7 +15,7 @@ module CouchRest
         end
     
         # Use when something has been changed, like a view, so that on the next request
-        # the design docs will be updated.
+        # the design docs will be updated (if changed!)
         def req_design_doc_refresh
           @design_doc_fresh = { }
         end
@@ -43,17 +43,41 @@ module CouchRest
           }
         end
 
+        # DEPRECATED
+        # use stored_design_doc to retrieve the current design doc
+        def all_design_doc_versions(db = database)
+          db.documents :startkey => "_design/#{self.to_s}", 
+            :endkey => "_design/#{self.to_s}-\u9999"
+        end
+       
+        # Retreive the latest version of the design document directly
+        # from the database.
+        def stored_design_doc(db = database)
+          db.get(design_doc_id) rescue nil
+        end
+        alias :model_design_doc :stored_design_doc
+
         def refresh_design_doc(db = database)
+          raise "Database missing for design document refresh" if db.nil?
           unless design_doc_fresh(db)
-            reset_design_doc(db)
+            reset_design_doc
             save_design_doc(db)
+            design_doc_fresh(db, true)
           end
         end
 
         # Save the design doc onto a target database in a thread-safe way,
         # not modifying the model's design_doc
-        def save_design_doc(db = database)
-          update_design_doc(Design.new(design_doc), db)
+        #
+        # See also save_design_doc! to always save the design doc even if there
+        # are no changes.
+        def save_design_doc(db = database, force = false)
+          update_design_doc(Design.new(design_doc), db, force)
+        end
+
+        # Force the update of the model's design_doc even if it hasn't changed.
+        def save_design_doc!(db = database)
+          save_design_doc(db, true)
         end
 
         protected
@@ -67,34 +91,38 @@ module CouchRest
           end
         end
 
-        def reset_design_doc(db)
-          current = db.get(design_doc_id) rescue nil
-          design_doc['_id']  = design_doc_id
+        def reset_design_doc
+          current = stored_design_doc
+          design_doc['_id'] = design_doc_id
           if current.nil?
             design_doc.delete('_rev')
           else
             design_doc['_rev'] = current['_rev']
           end
-          design_doc_fresh(db, true)
         end
 
         # Writes out a design_doc to a given database, returning the
         # updated design doc
-        def update_design_doc(design_doc, db)
-          saved = db.get(design_doc['_id']) rescue nil
+        def update_design_doc(design_doc, db, force = false)
+          saved = stored_design_doc
           if saved
-            design_doc['views'].each do |name, view|
-              saved['views'][name] = view
+            # Perform Hash comparison on views, only part that interests us
+            if force || design_doc['views'] != saved['views']
+              design_doc['views'].each do |name, view|
+                saved['views'][name] = view
+              end
+              db.save_doc(saved)
+              saved
+            else
+              design_doc 
             end
-            db.save_doc(saved)
-            saved
           else
             design_doc.database = db
             design_doc.save
             design_doc
           end
         end
-        
+
       end # module ClassMethods
       
     end
