@@ -60,7 +60,7 @@ module CouchRest
         def refresh_design_doc(db = database)
           raise "Database missing for design document refresh" if db.nil?
           unless design_doc_fresh(db)
-            reset_design_doc
+            #reset_design_doc(db)
             save_design_doc(db)
             design_doc_fresh(db, true)
           end
@@ -91,8 +91,9 @@ module CouchRest
           end
         end
 
-        def reset_design_doc
-          current = stored_design_doc
+        # Depricated (not very useful)
+        def reset_design_doc(db = database)
+          current = stored_design_doc(db)
           design_doc['_id'] = design_doc_id
           if current.nil?
             design_doc.delete('_rev')
@@ -104,7 +105,7 @@ module CouchRest
         # Writes out a design_doc to a given database, returning the
         # updated design doc
         def update_design_doc(design_doc, db, force = false)
-          saved = stored_design_doc
+          saved = stored_design_doc(db)
           if saved
             # Perform Hash comparison on views, only part that interests us
             if force || design_doc['views'] != saved['views']

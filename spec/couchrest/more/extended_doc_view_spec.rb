@@ -55,6 +55,7 @@ describe "ExtendedDocument views" do
       Article.view_by :title
       lambda{Article.by_title}.should_not raise_error 
     end
+   
   end
   
   describe "another model with a simple view" do
