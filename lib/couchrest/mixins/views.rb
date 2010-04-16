@@ -87,7 +87,7 @@ module CouchRest
           req_design_doc_refresh
         end
 
-        # returns stored defaults if the there is a view named this in the design doc
+        # returns stored defaults if there is a view named this in the design doc
         def has_view?(view)
           view = view.to_s
           design_doc && design_doc['views'] && design_doc['views'][view]
@@ -142,7 +142,6 @@ module CouchRest
         end
         
       end # module ClassMethods
-      
       
     end
   end

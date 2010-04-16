@@ -1,3 +1,13 @@
+
+class CatToy < Hash
+  include ::CouchRest::CastedModel
+  include ::CouchRest::Validation
+
+  property :name
+
+  validates_presence_of :name
+end
+
 class Cat < CouchRest::ExtendedDocument
   include ::CouchRest::Validation
 
@@ -10,11 +20,3 @@ class Cat < CouchRest::ExtendedDocument
   property :number
 end
 
-class CatToy < Hash
-  include ::CouchRest::CastedModel
-  include ::CouchRest::Validation
-
-  property :name
-
-  validates_presence_of :name
-end

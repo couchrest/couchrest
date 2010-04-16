@@ -30,6 +30,7 @@ module CouchRest
 
         def default_design_doc
           {
+            "_id" => design_doc_id,
             "language" => "javascript",
             "views" => {
               'all' => {
@@ -60,7 +61,6 @@ module CouchRest
         def refresh_design_doc(db = database)
           raise "Database missing for design document refresh" if db.nil?
           unless design_doc_fresh(db)
-            #reset_design_doc(db)
             save_design_doc(db)
             design_doc_fresh(db, true)
           end
@@ -91,32 +91,22 @@ module CouchRest
           end
         end
 
-        # Depricated (not very useful)
-        def reset_design_doc(db = database)
-          current = stored_design_doc(db)
-          design_doc['_id'] = design_doc_id
-          if current.nil?
-            design_doc.delete('_rev')
-          else
-            design_doc['_rev'] = current['_rev']
-          end
-        end
-
         # Writes out a design_doc to a given database, returning the
         # updated design doc
         def update_design_doc(design_doc, db, force = false)
           saved = stored_design_doc(db)
           if saved
-            # Perform Hash comparison on views, only part that interests us
-            if force || design_doc['views'] != saved['views']
-              design_doc['views'].each do |name, view|
+            changes = force
+            design_doc['views'].each do |name, view|
+              if saved['views'][name] != view
+                changes = true
                 saved['views'][name] = view
               end
-              db.save_doc(saved)
-              saved
-            else
-              design_doc 
             end
+            if changes
+              db.save_doc(saved)
+            end
+            design_doc
           else
             design_doc.database = db
             design_doc.save
