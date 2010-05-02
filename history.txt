@@ -1,6 +1,7 @@
 == Next Version
 
 * Major enhancements
+	* Add create_target option to Database#replicate_to and #replicate_from. http://github.com/couchrest/couchrest/issues/#issue/26 (Alexander Uvarov) 
 
 * Minor enhancements
 

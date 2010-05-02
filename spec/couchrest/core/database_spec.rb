@@ -702,57 +702,70 @@ describe CouchRest::Database do
       @cr.databases.should_not include('couchrest-test')
     end
   end
-  
+
   describe "simply replicating a database" do
-    before do
+    before(:each) do
       @db.save_doc({'_id' => 'test_doc', 'some-value' => 'foo'})
-      @other_db = @cr.database REPLICATIONDB
-      @other_db.delete! rescue nil
-      @other_db = @cr.create_db REPLICATIONDB
+      @other_db = @cr.database(REPLICATIONDB)
     end
 
-    describe "via pulling" do
-      before do
-        @other_db.replicate_from @db
-      end
-      
+    shared_examples_for "simply replicated" do
       it "contains the document from the original database" do
         doc = @other_db.get('test_doc')
         doc['some-value'].should == 'foo'
       end
     end
-    
+
+    describe "via pulling" do
+      before(:each) do
+        @other_db.recreate!
+        @other_db.replicate_from @db
+      end
+
+      it_should_behave_like "simply replicated"
+    end
+
     describe "via pushing" do
-      before do
+      before(:each) do
+        @other_db.recreate!
         @db.replicate_to @other_db
       end
-      
-      it "copies the document to the other database" do
-        doc = @other_db.get('test_doc')
-        doc['some-value'].should == 'foo'
+
+      it_should_behave_like "simply replicated"
+    end
+
+    describe "implicitly creating target" do
+      describe "via pulling" do
+        before(:each) do
+          @other_db.replicate_from(@db, false, true)
+        end
+
+        it_should_behave_like "simply replicated"
+      end
+
+      describe "via pushing" do
+        before(:each) do
+          @db.replicate_to(@other_db, false, true)
+        end
+
+        it_should_behave_like "simply replicated"
       end
     end
   end
-    
+
   describe "continuously replicating a database" do
-    before do
+    before(:each) do
       @db.save_doc({'_id' => 'test_doc', 'some-value' => 'foo'})
-      @other_db = @cr.database REPLICATIONDB
-      @other_db.delete! rescue nil
-      @other_db = @cr.create_db REPLICATIONDB
+      @other_db = @cr.database(REPLICATIONDB)
     end
 
-    describe "via pulling" do
-      before do
-        @other_db.replicate_from @db, true
-      end
-      
+    shared_examples_for "continuously replicated" do
       it "contains the document from the original database" do
         sleep(1) # Allow some time to replicate
         doc = @other_db.get('test_doc')
         doc['some-value'].should == 'foo'
       end
-      
+
       it "contains documents saved after replication initiated" do
         @db.save_doc({'_id' => 'test_doc_after', 'some-value' => 'bar'})
         sleep(1) # Allow some time to replicate
@@ -760,23 +773,40 @@ describe CouchRest::Database do
         doc['some-value'].should == 'bar'
       end
     end
-    
+
+    describe "via pulling" do
+      before(:each) do
+        @other_db.recreate!
+        @other_db.replicate_from(@db, true)
+      end
+
+      it_should_behave_like "continuously replicated"
+    end
+
     describe "via pushing" do
-      before do
-        @db.replicate_to @other_db, true
+      before(:each) do
+        @other_db.recreate!
+        @db.replicate_to(@other_db, true)
       end
-      
-      it "copies the document to the other database" do
-        sleep(1) # Allow some time to replicate
-        doc = @other_db.get('test_doc')
-        doc['some-value'].should == 'foo'
+
+      it_should_behave_like "continuously replicated"
+    end
+
+    describe "implicitly creating target" do
+      before(:each) do
+        @other_db.replicate_from(@db, true, true)
       end
-      
-      it "copies documents saved after replication initiated" do
-        @db.save_doc({'_id' => 'test_doc_after', 'some-value' => 'bar'})
-        sleep(1) # Allow some time to replicate
-        doc = @other_db.get('test_doc_after')
-        doc['some-value'].should == 'bar'
+
+      after(:each) do
+        @other_db.delete!
+      end
+
+      describe "via pulling" do
+        it_should_behave_like "continuously replicated"
+      end
+
+      describe "via pushing" do
+        it_should_behave_like "continuously replicated"
       end
     end
   end

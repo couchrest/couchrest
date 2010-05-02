@@ -302,17 +302,17 @@ module CouchRest
     ensure
       create!
     end
-    
+
     # Replicates via "pulling" from another database to this database. Makes no attempt to deal with conflicts.
-    def replicate_from other_db, continuous=false
-      replicate other_db, continuous, :target => name
+    def replicate_from(other_db, continuous = false, create_target = false)
+      replicate(other_db, continuous, :target => name, :create_target => create_target)
     end
-    
+
     # Replicates via "pushing" to another database. Makes no attempt to deal with conflicts.
-    def replicate_to other_db, continuous=false
-      replicate other_db, continuous, :source => name
+    def replicate_to(other_db, continuous = false, create_target = false)
+      replicate(other_db, continuous, :source => name, :create_target => create_target)
     end
-    
+
     # DELETE the database itself. This is not undoable and could be rather
     # catastrophic. Use with care!
     def delete!
@@ -322,7 +322,7 @@ module CouchRest
 
     private
     
-    def replicate other_db, continuous, options
+    def replicate(other_db, continuous, options)
       raise ArgumentError, "must provide a CouchReset::Database" unless other_db.kind_of?(CouchRest::Database)
       raise ArgumentError, "must provide a target or source option" unless (options.key?(:target) || options.key?(:source))
       payload = options
