@@ -15,7 +15,7 @@ end
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gemspec|
-    gemspec.name = "couchrest"
+    gemspec.name = "samlown-couchrest"
     gemspec.summary = "Lean and RESTful interface to CouchDB."
     gemspec.description = "CouchRest provides a simple interface on top of CouchDB's RESTful HTTP API, as well as including some utility scripts for managing views and attachments."
     gemspec.email = "jchris@apache.org"
@@ -25,7 +25,7 @@ begin
     gemspec.files = %w( LICENSE README.md Rakefile THANKS.md history.txt couchrest.gemspec) + Dir["{examples,lib,spec,utils}/**/*"] - Dir["spec/tmp"]
     gemspec.has_rdoc = true
     gemspec.add_dependency("rest-client", ">= 0.5")
-    gemspec.add_dependency("mime-types", ">= 1.15")
+#    gemspec.add_dependency("couchrest_extended_document", ">= 1.0.0")
     gemspec.version = CouchRest::VERSION
     gemspec.date = "2008-11-22"
     gemspec.require_path = "lib"

@@ -25,31 +25,23 @@ $:.unshift File.dirname(__FILE__) unless
   $:.include?(File.expand_path(File.dirname(__FILE__)))
     
 require 'couchrest/monkeypatches'
+require 'couchrest/rest_api'
 
 # = CouchDB, close to the metal
 module CouchRest
-  VERSION    = '0.37.4' unless self.const_defined?("VERSION")
+  VERSION    = '1.0.0' unless self.const_defined?("VERSION")
   
-  autoload :Server,       'couchrest/core/server'
-  autoload :Database,     'couchrest/core/database'
-  autoload :Response,     'couchrest/core/response'
-  autoload :Document,     'couchrest/core/document'
-  autoload :Design,       'couchrest/core/design'
-  autoload :View,         'couchrest/core/view'
-  autoload :Model,        'couchrest/core/model'
+  autoload :Server,       'couchrest/server'
+  autoload :Database,     'couchrest/database'
+  autoload :Response,     'couchrest/response'
+  autoload :Document,     'couchrest/document'
+  autoload :Design,       'couchrest/design'
+  autoload :Model,        'couchrest/model'
   autoload :Pager,        'couchrest/helper/pager'
-  autoload :FileManager,  'couchrest/helper/file_manager'
   autoload :Streamer,     'couchrest/helper/streamer'
+  autoload :Attachments,  'couchrest/helper/attachments'
   autoload :Upgrade,      'couchrest/helper/upgrade'
-  
-  autoload :ExtendedDocument,     'couchrest/more/extended_document'
-  autoload :CastedModel,          'couchrest/more/casted_model'
-  
-  require File.join(File.dirname(__FILE__), 'couchrest', 'core', 'rest_api')
-  require File.join(File.dirname(__FILE__), 'couchrest', 'core', 'http_abstraction')
-  require File.join(File.dirname(__FILE__), 'couchrest', 'mixins')
-  require File.join(File.dirname(__FILE__), 'couchrest', 'support', 'rails') if defined?(Rails)
-
+ 
   # we extend CouchRest with the RestAPI module which gives us acess to
   # the get, post, put, delete and copy
   CouchRest.extend(::RestAPI)
@@ -59,35 +51,6 @@ module CouchRest
   # some helpers for tasks like instantiating a new Database or Server instance.
   class << self
 
-    # extracted from Extlib
-    #
-    # Constantize tries to find a declared constant with the name specified
-    # in the string. It raises a NameError when the name is not in CamelCase
-    # or is not initialized.
-    #
-    # @example
-    # "Module".constantize #=> Module
-    # "Class".constantize #=> Class
-    def constantize(camel_cased_word)
-      unless /\A(?:::)?([A-Z]\w*(?:::[A-Z]\w*)*)\z/ =~ camel_cased_word
-        raise NameError, "#{camel_cased_word.inspect} is not a valid constant name!"
-      end
-
-      Object.module_eval("::#{$1}", __FILE__, __LINE__)
-    end
-    
-    # extracted from Extlib
-    #    
-    # Capitalizes the first word and turns underscores into spaces and strips _id.
-    # Like titleize, this is meant for creating pretty output.
-    #
-    # @example
-    #   "employee_salary" #=> "Employee salary"
-    #   "author_id" #=> "Author"
-    def humanize(lower_case_and_underscored_word)
-      lower_case_and_underscored_word.to_s.gsub(/_id$/, "").gsub(/_/, " ").capitalize
-    end
-    
     # todo, make this parse the url and instantiate a Server or Database instance
     # depending on the specificity.
     def new(*opts)
@@ -130,9 +93,9 @@ module CouchRest
 
     # set proxy to use
     def proxy url
-      HttpAbstraction.proxy = url
+      RestClient.proxy = url
     end
-
+    
     # ensure that a database exists
     # creates it if it isn't already there
     # returns it after it's been created
@@ -160,3 +123,18 @@ module CouchRest
     end
   end # class << self
 end
+
+# For the sake of backwards compatability, generate a dummy ExtendedDocument class
+# which should be replaced by real library: couchrest_extended_document.
+#
+# Added 2010-05-10 by Sam Lown. Please remove at some point in the future.
+#
+class CouchRest::ExtendedDocument < CouchRest::Document
+
+  def self.inherited(subclass)
+    raise "ExtendedDocument is no longer included in CouchRest base driver, see couchrest_extended_document gem"
+  end
+
+end
+
+

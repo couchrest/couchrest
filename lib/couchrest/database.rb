@@ -65,7 +65,7 @@ module CouchRest
       keys = params.delete(:keys)
       funcs = funcs.merge({:keys => keys}) if keys
       url = CouchRest.paramify_url "#{@root}/_temp_view", params
-      JSON.parse(HttpAbstraction.post(url, funcs.to_json, {"Content-Type" => 'application/json'}))
+      JSON.parse(RestClient.post(url, funcs.to_json, {"Content-Type" => 'application/json'}))
     end
     
     # backwards compatibility is a plus
@@ -108,14 +108,14 @@ module CouchRest
     # GET an attachment directly from CouchDB
     def fetch_attachment(doc, name)
       uri = url_for_attachment(doc, name)
-      HttpAbstraction.get uri
+      RestClient.get uri
     end
     
     # PUT an attachment directly to CouchDB
     def put_attachment(doc, name, file, options = {})
       docid = escape_docid(doc['_id'])
       uri = url_for_attachment(doc, name)
-      JSON.parse(HttpAbstraction.put(uri, file, options))
+      JSON.parse(RestClient.put(uri, file, options))
     end
     
     # DELETE an attachment directly from CouchDB
@@ -123,13 +123,13 @@ module CouchRest
       uri = url_for_attachment(doc, name)
       # this needs a rev
       begin
-        JSON.parse(HttpAbstraction.delete(uri))
+        JSON.parse(RestClient.delete(uri))
       rescue Exception => error
         if force
           # get over a 409
           doc = get(doc['_id'])
           uri = url_for_attachment(doc, name)
-          JSON.parse(HttpAbstraction.delete(uri))
+          JSON.parse(RestClient.delete(uri))
         else
           error
         end
@@ -174,7 +174,7 @@ module CouchRest
           uri = "#{@root}/#{slug}"
           uri << "?batch=ok" if batch
           CouchRest.put uri, doc
-        rescue HttpAbstraction::ResourceNotFound
+        rescue RestClient::ResourceNotFound
           p "resource not found when saving even tho an id was passed"
           slug = doc['_id'] = @server.next_uuid
           CouchRest.put "#{@root}/#{slug}", doc
@@ -316,7 +316,6 @@ module CouchRest
     # DELETE the database itself. This is not undoable and could be rather
     # catastrophic. Use with care!
     def delete!
-      clear_extended_doc_fresh_cache
       CouchRest.delete @root
     end
 
@@ -333,10 +332,6 @@ module CouchRest
       end
       payload[:continuous] = continuous
       CouchRest.post "#{@host}/_replicate", payload
-    end
-    
-    def clear_extended_doc_fresh_cache
-      ::CouchRest::ExtendedDocument.subclasses.each{|klass| klass.req_design_doc_refresh if klass.respond_to?(:req_design_doc_refresh)}
     end
 
     def uri_for_attachment(doc, name)
