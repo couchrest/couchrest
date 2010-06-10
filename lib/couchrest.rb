@@ -16,13 +16,14 @@ require 'rubygems'
 begin
   require 'json'
 rescue LoadError
-  raise "You need install and require your own json compatible library since couchrest rest couldn't load the json/json_pure gem" unless Kernel.const_defined?("JSON")
+  raise "No compatible json library found, install either json or json_pure gem" unless Kernel.const_defined?("JSON")
 end
 require 'rest_client'
 
-$:.unshift File.dirname(__FILE__) unless
-  $:.include?(File.dirname(__FILE__)) ||
-  $:.include?(File.expand_path(File.dirname(__FILE__)))
+# Not sure why this is required, so removed until a reason is found!
+#$:.unshift File.dirname(__FILE__) unless
+#  $:.include?(File.dirname(__FILE__)) ||
+#  $:.include?(File.expand_path(File.dirname(__FILE__)))
     
 require 'couchrest/monkeypatches'
 require 'couchrest/rest_api'

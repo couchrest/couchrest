@@ -20,7 +20,7 @@ CouchRest rests on top of a HTTP abstraction layer using by default Heroku’s e
 
 ## Extended Document
 
-As of May 2010 support for the popular CouchRest::ExtendedDocument mixin has been moved to its own gem: couchrest_extended_document.
+As of May 2010 support for the popular CouchRest::ExtendedDocument mixin has been moved to its own gem: [couchrest_extended_document](http://github.com/couchrest/couchrest_extended_document).
 
 Most people will probably want to use this library (or one of the alternatives) to make it slightly easier to access your documents.
 
@@ -44,9 +44,3 @@ Follow us on Twitter: [http://twitter.com/couchrest](http://twitter.com/couchres
 
 Also, check [http://twitter.com/#search?q=%23couchrest](http://twitter.com/#search?q=%23couchrest)
 
-
-## Ruby on Rails
-
-CouchRest is compatible with rails and can even be used a Rails plugin.
-However, you might be interested in the CouchRest companion rails project:
-[http://github.com/hpoydar/couchrest-rails](http://github.com/hpoydar/couchrest-rails)      
