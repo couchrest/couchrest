@@ -4,7 +4,7 @@
 
 * Minor enhancements
 
-== 1.0.0 
+== 1.0.0.beta 
 
 * Major enhancements
   * Moved ExtendedDocument and friends into own library, couchrest_extended_document. (Sam Lown)
