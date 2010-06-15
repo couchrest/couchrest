@@ -67,7 +67,7 @@ JAVASCRIPT
     def has_view?(view)
       view = view.to_s
       self['views'][view] &&
-        (self['views'][view]["couchrest-defaults"]||{})
+        (self['views'][view]["couchrest-defaults"] || {})
     end
 
     def fetch_view view_name, opts, &block

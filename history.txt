@@ -5,6 +5,14 @@
 
 * Minor enhancements
 
+== 1.0.0.beta 
+
+* Major enhancements
+  * Moved ExtendedDocument and friends into own library, couchrest_extended_document. (Sam Lown)
+  * Removed HttpAbstraction component for direct interface with RestClient. (Sam Lown)
+  * Changed version to more conventional format starting from 1.0.0 to avoid ambiguity issues with order. (Sam Lown)
+
+
 == 0.37
 
 * Minor enhancements

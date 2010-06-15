@@ -3,7 +3,7 @@ module RestAPI
   def put(uri, doc = nil)
     payload = doc.to_json if doc
     begin
-      JSON.parse(HttpAbstraction.put(uri, payload))
+      JSON.parse(RestClient.put(uri, payload))
     rescue Exception => e
       if $DEBUG
         raise "Error while sending a PUT request #{uri}\npayload: #{payload.inspect}\n#{e}"
@@ -15,7 +15,7 @@ module RestAPI
 
   def get(uri)
     begin
-      JSON.parse(HttpAbstraction.get(uri), :max_nesting => false)
+      JSON.parse(RestClient.get(uri), :max_nesting => false)
     rescue => e
       if $DEBUG
         raise "Error while sending a GET request #{uri}\n: #{e}"
@@ -28,7 +28,7 @@ module RestAPI
   def post(uri, doc = nil)
     payload = doc.to_json if doc
     begin
-      JSON.parse(HttpAbstraction.post(uri, payload))
+      JSON.parse(RestClient.post(uri, payload))
     rescue Exception => e
       if $DEBUG
         raise "Error while sending a POST request #{uri}\npayload: #{payload.inspect}\n#{e}"
@@ -39,11 +39,14 @@ module RestAPI
   end
 
   def delete(uri)
-    JSON.parse(HttpAbstraction.delete(uri))
+    JSON.parse(RestClient.delete(uri))
   end
 
   def copy(uri, destination) 
-    JSON.parse(HttpAbstraction.copy(uri, {'Destination' => destination}))
+    JSON.parse(RestClient::Request.execute( :method => :copy,
+                                            :url => uri,
+                                            :headers => {'Destination' => destination}
+                                          ).to_s)
   end 
 
 end

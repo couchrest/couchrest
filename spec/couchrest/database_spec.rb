@@ -1,4 +1,4 @@
-require File.expand_path("../../../spec_helper", __FILE__)
+require File.expand_path("../../spec_helper", __FILE__)
 
 describe CouchRest::Database do
   before(:each) do
@@ -391,7 +391,7 @@ describe CouchRest::Database do
     
     it "should force a delete even if we get a 409" do
       @doc['new_attribute'] = 'something new'
-      @db.put_attachment(@doc, 'test', File.open(File.join(File.dirname(__FILE__), '..', '..', 'fixtures', 'attachments', 'test.html')).read)
+      @db.put_attachment(@doc, 'test', File.open(File.join(FIXTURE_PATH, 'attachments', 'test.html')).read)
       # at this point the revision number changed, if we try to save doc one more time
       # we would get a 409.
       lambda{ @db.save_doc(@doc) }.should raise_error
