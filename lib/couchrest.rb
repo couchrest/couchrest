@@ -21,9 +21,9 @@ end
 require 'rest_client'
 
 # Not sure why this is required, so removed until a reason is found!
-#$:.unshift File.dirname(__FILE__) unless
-#  $:.include?(File.dirname(__FILE__)) ||
-#  $:.include?(File.expand_path(File.dirname(__FILE__)))
+$:.unshift File.dirname(__FILE__) unless
+ $:.include?(File.dirname(__FILE__)) ||
+ $:.include?(File.expand_path(File.dirname(__FILE__)))
     
 require 'couchrest/monkeypatches'
 require 'couchrest/rest_api'
