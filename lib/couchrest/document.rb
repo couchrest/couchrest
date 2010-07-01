@@ -3,6 +3,7 @@ require 'delegate'
 module CouchRest  
   class Document < Response
     include CouchRest::Attachments
+    extend CouchRest::InheritableAttributes
     
     couchrest_inheritable_accessor :database
     attr_accessor :database

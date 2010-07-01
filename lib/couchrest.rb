@@ -45,6 +45,7 @@ module CouchRest
   autoload :Streamer,     'couchrest/helper/streamer'
   autoload :Attachments,  'couchrest/helper/attachments'
   autoload :Upgrade,      'couchrest/helper/upgrade'
+  autoload :InheritableAttributes, 'couchrest/helper/inheritable_attributes'
  
   # we extend CouchRest with the RestAPI module which gives us acess to
   # the get, post, put, delete and copy

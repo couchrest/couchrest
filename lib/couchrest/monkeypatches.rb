@@ -1,4 +1,3 @@
-require File.join(File.dirname(__FILE__), 'support', 'class')
 require 'timeout'
 
 # This file must be loaded after the JSON gem and any other library that beats up the Time class.
