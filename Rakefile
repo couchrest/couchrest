@@ -25,9 +25,10 @@ begin
     gemspec.files = %w( LICENSE README.md Rakefile THANKS.md history.txt couchrest.gemspec) + Dir["{examples,lib,spec,utils}/**/*"] - Dir["spec/tmp"]
     gemspec.has_rdoc = true
     gemspec.add_dependency("rest-client", ">= 1.5.1")
+    gemspec.add_dependency("json", "<= 1.4.2")
 #    gemspec.add_dependency("couchrest_extended_document", ">= 1.0.0")
     gemspec.version = CouchRest::VERSION
-    gemspec.date = "2008-11-22"
+    gemspec.date = "2010-07-01"
     gemspec.require_path = "lib"
   end
 rescue LoadError

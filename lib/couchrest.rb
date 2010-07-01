@@ -13,17 +13,10 @@
 #    limitations under the License.
 
 require 'rubygems'
-begin
-  require 'json'
-rescue LoadError
-  raise "No compatible json library found, install either json or json_pure gem" unless Kernel.const_defined?("JSON")
-end
-begin
-  require 'rest_client'
-rescue LoadError
-  raise "You neet to install rest_client to use couchrest"
-end
-
+gem 'json', "<= 1.4.2"
+require 'json'
+gem 'rest-client', ">= 1.5.1"
+require 'rest_client'
 
 # Not sure why this is required, so removed until a reason is found!
 $:.unshift File.dirname(__FILE__) unless
