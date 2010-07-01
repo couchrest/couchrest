@@ -36,7 +36,7 @@ class Class
   #   (error out or do the same as other methods above) instead of silently
   #   moving on). In particular, this makes the return value of this function
   #   less useful.
-  def extlib_inheritable_reader(*ivars)
+  def couchrest_inheritable_reader(*ivars)
     instance_reader = ivars.pop[:reader] if ivars.last.is_a?(Hash)
 
     ivars.each do |ivar|
@@ -56,7 +56,7 @@ class Class
         RUBY
       end
     end
-  end unless Class.respond_to?(:extlib_inheritable_reader)
+  end unless Class.respond_to?(:couchrest_inheritable_reader)
 
   # Defines class-level inheritable attribute writer. Attributes are available to subclasses,
   # each subclass has a copy of parent's attribute.
@@ -70,7 +70,7 @@ class Class
   #
   # @todo We need a style for class_eval <<-HEREDOC. I'd like to make it
   #   class_eval(<<-RUBY, __FILE__, __LINE__), but we should codify it somewhere.
-  def extlib_inheritable_writer(*ivars)
+  def couchrest_inheritable_writer(*ivars)
     instance_writer = ivars.pop[:writer] if ivars.last.is_a?(Hash)
     ivars.each do |ivar|
       self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -86,7 +86,7 @@ class Class
 
       self.send("#{ivar}=", yield) if block_given?
     end
-  end unless Class.respond_to?(:extlib_inheritable_writer)
+  end unless Class.respond_to?(:couchrest_inheritable_writer)
 
   # Defines class-level inheritable attribute accessor. Attributes are available to subclasses,
   # each subclass has a copy of parent's attribute.
@@ -97,8 +97,8 @@ class Class
   # @return <Array[#to_s]> An Array of attributes turned into inheritable accessors.
   #
   # @api public
-  def extlib_inheritable_accessor(*syms, &block)
-    extlib_inheritable_reader(*syms)
-    extlib_inheritable_writer(*syms, &block)
-  end unless Class.respond_to?(:extlib_inheritable_accessor)
+  def couchrest_inheritable_accessor(*syms, &block)
+    couchrest_inheritable_reader(*syms)
+    couchrest_inheritable_writer(*syms, &block)
+  end unless Class.respond_to?(:couchrest_inheritable_accessor)
 end

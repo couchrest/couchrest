@@ -4,7 +4,7 @@ module CouchRest
   class Document < Response
     include CouchRest::Attachments
     
-    extlib_inheritable_accessor :database
+    couchrest_inheritable_accessor :database
     attr_accessor :database
     
     # override the CouchRest::Model-wide default_database
