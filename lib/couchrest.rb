@@ -18,7 +18,12 @@ begin
 rescue LoadError
   raise "No compatible json library found, install either json or json_pure gem" unless Kernel.const_defined?("JSON")
 end
-require 'rest_client'
+begin
+  require 'rest_client'
+rescue LoadError
+  raise "You neet to install rest_client to use couchrest"
+end
+
 
 # Not sure why this is required, so removed until a reason is found!
 $:.unshift File.dirname(__FILE__) unless
@@ -137,5 +142,3 @@ class CouchRest::ExtendedDocument < CouchRest::Document
   end
 
 end
-
-
