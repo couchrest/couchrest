@@ -137,7 +137,7 @@ describe CouchRest do
 
   describe "ensuring the db exists" do
     it "should be super easy" do
-      db = CouchRest.database! "http://127.0.0.1:5984/couchrest-test-2"
+      db = CouchRest.database! "#{COUCHHOST}/couchrest-test-2"
       db.name.should == 'couchrest-test-2'
       db.info["db_name"].should == 'couchrest-test-2'
     end

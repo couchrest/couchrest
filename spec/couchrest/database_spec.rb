@@ -180,7 +180,7 @@ describe CouchRest::Database do
       
       docs = [{'key' => 'value'}, {'_id' => 'totally-uniq'}]
       id_docs = [{'key' => 'value', '_id' => 'asdf6sgadkfhgsdfusdf'}, {'_id' => 'totally-uniq'}]
-      CouchRest.should_receive(:post).with("http://127.0.0.1:5984/couchrest-test/_bulk_docs", {:docs => id_docs})
+      CouchRest.should_receive(:post).with("#{COUCHHOST}/couchrest-test/_bulk_docs", {:docs => id_docs})
       
       @db.bulk_save(docs)
     end

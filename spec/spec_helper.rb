@@ -8,10 +8,10 @@ unless defined?(FIXTURE_PATH)
   FIXTURE_PATH = File.join(File.dirname(__FILE__), '/fixtures')
   SCRATCH_PATH = File.join(File.dirname(__FILE__), '/tmp')
 
-  COUCHHOST = "http://127.0.0.1:5984"
+  COUCHHOST = ENV['COUCHHOST'] || "http://127.0.0.1:5984"
   TESTDB    = 'couchrest-test'
   REPLICATIONDB = 'couchrest-test-replication'
-  TEST_SERVER    = CouchRest.new
+  TEST_SERVER    = CouchRest.new COUCHHOST
   TEST_SERVER.default_database = TESTDB
   DB = TEST_SERVER.database(TESTDB)
 end
