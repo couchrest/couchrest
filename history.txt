@@ -2,6 +2,8 @@
 
 * Major enhancements
 	* Add create_target option to Database#replicate_to and #replicate_from. http://github.com/couchrest/couchrest/issues/#issue/26 (Alexander Uvarov) 
+  * Removing unused core extensions and moving extlib_inhertiable_* methods to use couchrest_inheritable_* 
+    to avoid conflicts with Rails. (Geoff Buesing)
 
 * Minor enhancements
 

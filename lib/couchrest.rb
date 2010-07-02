@@ -30,6 +30,7 @@ $:.unshift File.dirname(__FILE__) unless
     
 require 'couchrest/monkeypatches'
 require 'couchrest/rest_api'
+require 'couchrest/support/inheritable_attributes'
 
 # = CouchDB, close to the metal
 module CouchRest
@@ -45,7 +46,6 @@ module CouchRest
   autoload :Streamer,     'couchrest/helper/streamer'
   autoload :Attachments,  'couchrest/helper/attachments'
   autoload :Upgrade,      'couchrest/helper/upgrade'
-  autoload :InheritableAttributes, 'couchrest/helper/inheritable_attributes'
  
   # we extend CouchRest with the RestAPI module which gives us acess to
   # the get, post, put, delete and copy
