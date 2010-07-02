@@ -28,7 +28,7 @@ require 'couchrest/rest_api'
 
 # = CouchDB, close to the metal
 module CouchRest
-  VERSION    = '1.0.0.beta'
+  VERSION    = '1.0.0.beta2'
   
   autoload :Server,       'couchrest/server'
   autoload :Database,     'couchrest/database'
