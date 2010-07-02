@@ -13,10 +13,15 @@
 #    limitations under the License.
 
 require 'rubygems'
-gem 'json', "<= 1.4.2"
-require 'json'
 gem 'rest-client', ">= 1.5.1"
-require 'rest_client'
+begin
+  unless Kernel.const_defined?("JSON")
+    gem 'json', '1.2.4'
+    require 'json'
+  end
+rescue LoadError
+  raise "No compatible json library found, install json gem"
+end
 
 # Not sure why this is required, so removed until a reason is found!
 $:.unshift File.dirname(__FILE__) unless
