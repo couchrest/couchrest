@@ -22,6 +22,7 @@ begin
 rescue LoadError
   raise "No compatible json library found, install json gem"
 end
+require 'rest_client'
 
 # Not sure why this is required, so removed until a reason is found!
 $:.unshift File.dirname(__FILE__) unless
