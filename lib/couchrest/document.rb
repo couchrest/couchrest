@@ -18,6 +18,10 @@ module CouchRest
     def id
       self['_id']
     end
+
+    def id=(id)
+      self['_id'] = id
+    end
     
     def rev
       self['_rev']

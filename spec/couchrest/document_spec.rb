@@ -62,6 +62,10 @@ describe CouchRest::Document do
       @doc.rev.should be_nil
       @doc.id.should be_nil
     end
+    it "should be possible to set id" do
+      @doc.id = 1
+      @doc.id.should eql(1)
+    end
     
     it "should freak out when saving without a database" do
       lambda{@doc.save}.should raise_error(ArgumentError)
