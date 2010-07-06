@@ -14,13 +14,9 @@
 
 require 'rubygems'
 gem 'rest-client', ">= 1.5.1"
-begin
-  unless Kernel.const_defined?("JSON")
-    gem 'json', '1.2.4'
-    require 'json'
-  end
-rescue LoadError
-  raise "No compatible json library found, install json gem"
+unless Kernel.const_defined?("JSON")
+  gem 'json', '1.2.4'
+  require 'json'
 end
 require 'rest_client'
 
