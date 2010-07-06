@@ -6,6 +6,7 @@
     to avoid conflicts with Rails. (Geoff Buesing)
 
 * Minor enhancements
+  * Added Document#id= support (issue detected by Rory Franklin with RSpec model stubs)
 
 == 1.0.0.beta 
 
