@@ -27,8 +27,8 @@ describe CouchRest do
   end
   
   it "should restart" do
-    #### Removed by Sam after problems with CouchDB 1.0
-    #@cr.restart!
+    @cr.restart!
+    sleep 5 # sleep while we wait for CouchDB > 1.0 to come back up!
   end
 
   it "should provide one-time access to uuids" do
