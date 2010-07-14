@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{couchrest}
-  s.version = "0.37"
+  s.version = "0.38"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["J. Chris Anderson", "Matt Aimonetti", "Marcos Tapajos", "Will Leinweber"]

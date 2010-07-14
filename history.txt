@@ -1,9 +1,16 @@
 == Next Version
 
 * Major enhancements
+
+* Minor enhancements
+
+== 0.38
+
+* Major enhancements
 	* Add create_target option to Database#replicate_to and #replicate_from. http://github.com/couchrest/couchrest/issues/#issue/26 (Alexander Uvarov) 
 
 * Minor enhancements
+  * Support for CouchDB 1.0
 
 == 0.37
 
