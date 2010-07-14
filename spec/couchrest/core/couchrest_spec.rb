@@ -27,8 +27,14 @@ describe CouchRest do
   end
   
   it "should restart" do
-    # Don't bother actually restarting as it causes problems in CouchDB 1.0
-    @cr.respond_to?('restart!').should be_true  # @cr.restart! ## 
+    @cr.restart!
+    begin
+      @cr.info
+    rescue
+      # Give the couchdb time to restart
+      sleep 0.2
+      retry
+    end
   end
 
   it "should provide one-time access to uuids" do
