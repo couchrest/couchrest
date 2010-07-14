@@ -31,7 +31,7 @@ require 'couchrest/support/inheritable_attributes'
 
 # = CouchDB, close to the metal
 module CouchRest
-  VERSION    = '1.0.0.beta2'
+  VERSION    = '1.0.0.beta3'
   
   autoload :Server,       'couchrest/server'
   autoload :Database,     'couchrest/database'

@@ -7,6 +7,7 @@
 
 * Minor enhancements
   * Added Document#id= support (issue detected by Rory Franklin with RSpec model stubs)
+  * Fixing issues with CouchDB 1.0 and RestClient
 
 == 1.0.0.beta 
 
