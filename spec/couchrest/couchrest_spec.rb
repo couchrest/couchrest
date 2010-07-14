@@ -28,7 +28,13 @@ describe CouchRest do
   
   it "should restart" do
     @cr.restart!
-    sleep 5 # sleep while we wait for CouchDB > 1.0 to come back up!
+    begin
+      @cr.info
+    rescue
+      # Give the couchdb time to restart
+      sleep 0.2
+      retry
+    end
   end
 
   it "should provide one-time access to uuids" do
