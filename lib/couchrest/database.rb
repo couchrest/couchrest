@@ -65,7 +65,7 @@ module CouchRest
       keys = params.delete(:keys)
       funcs = funcs.merge({:keys => keys}) if keys
       url = CouchRest.paramify_url "#{@root}/_temp_view", params
-      JSON.parse(RestClient.post(url, funcs.to_json, {"Content-Type" => 'application/json'}))
+      JSON.parse(RestClient.post(url, funcs.to_json, CouchRest.default_headers))
     end
     
     # backwards compatibility is a plus
@@ -108,14 +108,14 @@ module CouchRest
     # GET an attachment directly from CouchDB
     def fetch_attachment(doc, name)
       uri = url_for_attachment(doc, name)
-      RestClient.get uri
+      RestClient.get uri, CouchRest.default_headers
     end
     
     # PUT an attachment directly to CouchDB
     def put_attachment(doc, name, file, options = {})
       docid = escape_docid(doc['_id'])
       uri = url_for_attachment(doc, name)
-      JSON.parse(RestClient.put(uri, file, options))
+      JSON.parse(RestClient.put(uri, file, CouchRest.default_headers.merge(options)))
     end
     
     # DELETE an attachment directly from CouchDB
@@ -123,13 +123,13 @@ module CouchRest
       uri = url_for_attachment(doc, name)
       # this needs a rev
       begin
-        JSON.parse(RestClient.delete(uri))
+        CouchRest.delete(uri)
       rescue Exception => error
         if force
           # get over a 409
           doc = get(doc['_id'])
           uri = url_for_attachment(doc, name)
-          JSON.parse(RestClient.delete(uri))
+          CouchRest.delete(uri)
         else
           error
         end
