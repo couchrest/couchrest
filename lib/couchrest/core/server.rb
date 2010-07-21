@@ -73,6 +73,8 @@ module CouchRest
     # Restart the CouchDB instance
     def restart!
       CouchRest.post "#{@uri}/_restart"
+    rescue RestClient::ServerBrokeConnection
+      # Shouldn't really happen, but does in CouchDB 1.0.0
     end
 
     # Retrive an unused UUID from CouchDB. Server instances manage caching a list of unused UUIDs.
