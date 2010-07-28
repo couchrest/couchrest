@@ -26,8 +26,9 @@ begin
     gemspec.has_rdoc = true
     gemspec.add_dependency("rest-client", ">= 0.5")
     gemspec.add_dependency("mime-types", ">= 1.15")
+    gemspec.add_dependency("json", "1.2.4")
     gemspec.version = CouchRest::VERSION
-    gemspec.date = "2008-11-22"
+    gemspec.date = Time.now.strftime("%Y-%m-%d")
     gemspec.require_path = "lib"
   end
 rescue LoadError
