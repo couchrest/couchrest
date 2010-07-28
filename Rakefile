@@ -20,7 +20,7 @@ begin
     gemspec.description = "CouchRest provides a simple interface on top of CouchDB's RESTful HTTP API, as well as including some utility scripts for managing views and attachments."
     gemspec.email = "jchris@apache.org"
     gemspec.homepage = "http://github.com/couchrest/couchrest"
-    gemspec.authors = ["J. Chris Anderson", "Matt Aimonetti", "Marcos Tapajos", "Will Leinweber"]
+    gemspec.authors = ["J. Chris Anderson", "Matt Aimonetti", "Marcos Tapajos", "Will Leinweber", "Sam Lown"]
     gemspec.extra_rdoc_files = %w( README.md LICENSE THANKS.md )
     gemspec.files = %w( LICENSE README.md Rakefile THANKS.md history.txt couchrest.gemspec) + Dir["{examples,lib,spec,utils}/**/*"] - Dir["spec/tmp"]
     gemspec.has_rdoc = true
