@@ -1,4 +1,4 @@
-require File.expand_path("../../../spec_helper", __FILE__)
+require File.expand_path("../../spec_helper", __FILE__)
 
 describe CouchRest::Design do
   
@@ -134,5 +134,25 @@ describe CouchRest::Design do
       res["rows"].first["key"].should == ["a",2]
     end
   end
-  
+
+  describe "a view with nil and 0 values" do
+    before(:all) do
+      @db = reset_test_db!
+      @des = CouchRest::Design.new
+      @des.name = "test"
+      @des.view_by :code
+      @des.database = @db
+      @des.save
+      @db.bulk_save([{"code" => "a", "age" => 2},
+        {"code" => nil, "age" => 4},{"code" => 0, "age" => 9}])
+    end
+    it "should work" do
+      res = @des.view :by_code
+      res["rows"][0]["key"].should == 0
+      res["rows"][1]["key"].should == "a"
+      res["rows"][2].should be_nil
+    end
+  end
+
+
 end

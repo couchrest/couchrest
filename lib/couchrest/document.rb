@@ -2,9 +2,10 @@ require 'delegate'
 
 module CouchRest  
   class Document < Response
-    include CouchRest::Mixins::Attachments
+    include CouchRest::Attachments
+    extend CouchRest::InheritableAttributes
     
-    extlib_inheritable_accessor :database
+    couchrest_inheritable_accessor :database
     attr_accessor :database
     
     # override the CouchRest::Model-wide default_database
@@ -16,6 +17,10 @@ module CouchRest
     
     def id
       self['_id']
+    end
+
+    def id=(id)
+      self['_id'] = id
     end
     
     def rev

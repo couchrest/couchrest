@@ -1,4 +1,4 @@
-require File.expand_path("../../../spec_helper", __FILE__)
+require File.expand_path("../../spec_helper", __FILE__)
 
 describe CouchRest do
 
@@ -144,7 +144,7 @@ describe CouchRest do
 
   describe "ensuring the db exists" do
     it "should be super easy" do
-      db = CouchRest.database! "http://127.0.0.1:5984/couchrest-test-2"
+      db = CouchRest.database! "#{COUCHHOST}/couchrest-test-2"
       db.name.should == 'couchrest-test-2'
       db.info["db_name"].should == 'couchrest-test-2'
     end
@@ -181,11 +181,22 @@ describe CouchRest do
   describe "using a proxy for RestClient connections" do
     it "should set proxy url for RestClient" do
       CouchRest.proxy 'http://localhost:8888/'
-      proxy_uri = URI.parse(HttpAbstraction.proxy)
+      proxy_uri = URI.parse(RestClient.proxy)
       proxy_uri.host.should eql( 'localhost' )
       proxy_uri.port.should eql( 8888 )
       CouchRest.proxy nil
     end
   end
 
+  describe "Including old ExtendedDocument library" do
+
+    it "should raise an exception" do
+      lambda do
+        class TestDoc < CouchRest::ExtendedDocument
+          attr_reader :fail
+        end
+      end.should raise_error(RuntimeError)
+    end
+
+  end
 end

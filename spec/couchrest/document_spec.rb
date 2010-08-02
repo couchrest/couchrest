@@ -1,4 +1,4 @@
-require File.expand_path("../../../spec_helper", __FILE__)
+require File.expand_path("../../spec_helper", __FILE__)
 
 class Video < CouchRest::Document; end
 
@@ -61,6 +61,10 @@ describe CouchRest::Document do
     it "should not have rev and id" do
       @doc.rev.should be_nil
       @doc.id.should be_nil
+    end
+    it "should be possible to set id" do
+      @doc.id = 1
+      @doc.id.should eql(1)
     end
     
     it "should freak out when saving without a database" do

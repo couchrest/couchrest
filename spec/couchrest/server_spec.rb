@@ -1,10 +1,10 @@
-require File.expand_path("../../../spec_helper", __FILE__)
+require File.expand_path("../../spec_helper", __FILE__)
 
 describe CouchRest::Server do
   
   describe "available databases" do
     before(:each) do
-      @couch = CouchRest::Server.new
+      @couch = CouchRest::Server.new COUCHHOST
     end
 
     after(:each) do

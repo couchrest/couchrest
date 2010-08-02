@@ -18,7 +18,7 @@ module CouchRest
         doc_keys = keys.collect{|k|"doc['#{k}']"} # this is where :require => 'doc.x == true' would show up
         key_emit = doc_keys.length == 1 ? "#{doc_keys.first}" : "[#{doc_keys.join(', ')}]"
         guards = opts.delete(:guards) || []
-        guards.concat doc_keys
+        guards += doc_keys.map{|k| "(#{k} != null)"}
         map_function = <<-JAVASCRIPT
 function(doc) {
   if (#{guards.join(' && ')}) {
@@ -67,7 +67,7 @@ JAVASCRIPT
     def has_view?(view)
       view = view.to_s
       self['views'][view] &&
-        (self['views'][view]["couchrest-defaults"]||{})
+        (self['views'][view]["couchrest-defaults"] || {})
     end
 
     def fetch_view view_name, opts, &block

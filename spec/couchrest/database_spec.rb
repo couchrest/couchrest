@@ -1,4 +1,4 @@
-require File.expand_path("../../../spec_helper", __FILE__)
+require File.expand_path("../../spec_helper", __FILE__)
 
 describe CouchRest::Database do
   before(:each) do
@@ -180,7 +180,7 @@ describe CouchRest::Database do
       
       docs = [{'key' => 'value'}, {'_id' => 'totally-uniq'}]
       id_docs = [{'key' => 'value', '_id' => 'asdf6sgadkfhgsdfusdf'}, {'_id' => 'totally-uniq'}]
-      CouchRest.should_receive(:post).with("http://127.0.0.1:5984/couchrest-test/_bulk_docs", {:docs => id_docs})
+      CouchRest.should_receive(:post).with("#{COUCHHOST}/couchrest-test/_bulk_docs", {:docs => id_docs})
       
       @db.bulk_save(docs)
     end
@@ -391,7 +391,7 @@ describe CouchRest::Database do
     
     it "should force a delete even if we get a 409" do
       @doc['new_attribute'] = 'something new'
-      @db.put_attachment(@doc, 'test', File.open(File.join(File.dirname(__FILE__), '..', '..', 'fixtures', 'attachments', 'test.html')).read)
+      @db.put_attachment(@doc, 'test', File.open(File.join(FIXTURE_PATH, 'attachments', 'test.html')).read)
       # at this point the revision number changed, if we try to save doc one more time
       # we would get a 409.
       lambda{ @db.save_doc(@doc) }.should raise_error

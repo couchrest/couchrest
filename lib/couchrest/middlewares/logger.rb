@@ -53,8 +53,8 @@ module CouchRest
   end
 end
 
-# inject our logger into CouchRest HTTP abstraction layer
-module HttpAbstraction
+# inject our logger into key RestClient methods
+module RestClient 
  
   def self.get(uri, headers=nil)
     start_query = Time.now
