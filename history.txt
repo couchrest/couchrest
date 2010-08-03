@@ -3,8 +3,9 @@
 * Major enhancements
 
 * Minor enhancements
+	* rest-client version mismatch between couchrest.rb & gemspec
 
-== 1.0.0.beta 
+== 1.0.0
 
 * Major enhancements
   * Moved ExtendedDocument and friends into own library, couchrest_extended_document. (Sam Lown)
