@@ -15,7 +15,7 @@
 require 'rubygems'
 gem 'rest-client', ">= 1.5.1"
 unless Kernel.const_defined?("JSON")
-  gem 'json', '1.2.4'
+  gem 'json', '>= 1.4.6'
   require 'json'
 end
 require 'rest_client'
