@@ -188,7 +188,6 @@ describe CouchRest do
     end
   end
 
-
   describe "Including old ExtendedDocument library" do
 
     it "should raise an exception" do
@@ -200,5 +199,4 @@ describe CouchRest do
     end
 
   end
-
 end

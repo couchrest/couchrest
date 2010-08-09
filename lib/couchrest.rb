@@ -31,7 +31,7 @@ require 'couchrest/support/inheritable_attributes'
 
 # = CouchDB, close to the metal
 module CouchRest
-  VERSION    = '1.0.0.beta3'
+  VERSION    = '1.0.0'
   
   autoload :Server,       'couchrest/server'
   autoload :Database,     'couchrest/database'
@@ -125,7 +125,6 @@ module CouchRest
     end
   end # class << self
 end
-
 # For the sake of backwards compatability, generate a dummy ExtendedDocument class
 # which should be replaced by real library: couchrest_extended_document.
 #

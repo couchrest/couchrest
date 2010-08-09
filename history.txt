@@ -1,21 +1,28 @@
 == Next Version
 
 * Major enhancements
-	* Add create_target option to Database#replicate_to and #replicate_from. http://github.com/couchrest/couchrest/issues/#issue/26 (Alexander Uvarov) 
-  * Removing unused core extensions and moving extlib_inhertiable_* methods to use couchrest_inheritable_* 
-    to avoid conflicts with Rails. (Geoff Buesing)
 
 * Minor enhancements
-  * Added Document#id= support (issue detected by Rory Franklin with RSpec model stubs)
-  * Fixing issues with CouchDB 1.0 and RestClient
+	* rest-client version mismatch between couchrest.rb & gemspec
 
-== 1.0.0.beta 
+== 1.0.0
 
 * Major enhancements
   * Moved ExtendedDocument and friends into own library, couchrest_extended_document. (Sam Lown)
   * Removed HttpAbstraction component for direct interface with RestClient. (Sam Lown)
   * Changed version to more conventional format starting from 1.0.0 to avoid ambiguity issues with order. (Sam Lown)
 
+== 0.38
+
+* Major enhancements
+	* Add create_target option to Database#replicate_to and #replicate_from. http://github.com/couchrest/couchrest/issues/#issue/26 (Alexander Uvarov) 
+  * Removing unused core extensions and moving extlib_inhertiable_* methods to use couchrest_inheritable_* 
+    to avoid conflicts with Rails. (Geoff Buesing)
+
+* Minor enhancements
+  * Support for CouchDB 1.0
+  * Added Document#id= support (issue detected by Rory Franklin with RSpec model stubs)
+  * Fixing issues with CouchDB 1.0 and RestClient
 
 == 0.37
 
