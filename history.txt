@@ -3,6 +3,10 @@
 * Major enhancements
 
 * Minor enhancements
+
+== 1.0.1
+
+* Minor enhancements
 	* rest-client version mismatch between couchrest.rb & gemspec
   * json 1.4.X series re-enabled as tests now pass with v.1.4.6
 
