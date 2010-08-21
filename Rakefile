@@ -26,9 +26,9 @@ begin
     gemspec.extra_rdoc_files = %w( README.md LICENSE THANKS.md )
     gemspec.files = %w( LICENSE README.md Rakefile THANKS.md history.txt couchrest.gemspec) + Dir["{examples,lib,spec,utils}/**/*"] - Dir["spec/tmp"]
     gemspec.has_rdoc = true
-    gemspec.add_dependency("rest-client", ">= 1.5.1")
-    gemspec.add_dependency("mime-types", ">= 1.15")
-    gemspec.add_dependency("json", ">= 1.4.6")
+    gemspec.add_dependency("rest-client", "~> 1.5.1")
+    gemspec.add_dependency("mime-types", "~> 1.15")
+    gemspec.add_dependency("json", "~> 1.4.6")
     gemspec.version = CouchRest::VERSION
     gemspec.date = Time.now.strftime("%Y-%m-%d")
     gemspec.require_path = "lib"
