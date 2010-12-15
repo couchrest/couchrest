@@ -94,7 +94,9 @@ module CouchRest
     def get(id, params = {})
       slug = escape_docid(id)
       url = CouchRest.paramify_url("#{@root}/#{slug}", params)
-      result = CouchRest.get(url)
+      result = begin; CouchRest.get(url)
+               rescue RestClient::ResourceNotFound; nil
+               end
       return result unless result.is_a?(Hash)
       doc = if /^_design/ =~ result["_id"]
         Design.new(result)
