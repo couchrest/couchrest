@@ -35,13 +35,17 @@ module CouchRest
     end
     
     # Query the <tt>_all_docs</tt> view. Accepts all the same arguments as view.
-    def documents(params = {})
+    def documents(params = {}, &block)
       keys = params.delete(:keys)
       url = CouchRest.paramify_url "#{@root}/_all_docs", params
       if keys
         CouchRest.post(url, {:keys => keys})
       else
-        CouchRest.get url
+        if block_given?
+          @streamer.view("_all_docs", params, &block)
+        else
+          CouchRest.get url
+        end
       end
     end
 
