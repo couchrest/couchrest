@@ -139,6 +139,20 @@ module CouchRest
         end
       end
     end
+    
+    # Monitor the changes stream for this database. Query can have parameters
+    # like :include_docs => true, :since => <tt>seq</tt>, etc. Each change
+    # is streamed to the provided block.
+    def changes_stream query
+      query = query.dup.merge :feed => 'continuous', :heartbeat => 1000, :timeout => 0
+      url = CouchRest.paramify_url "#{@root}/_changes", query
+      IO.popen "curl --silent --no-buffer --tcp-nodelay '#{url}'" do |ios|
+        while line = ios.gets
+          next if line == "\n"
+          yield JSON.parse(line)
+        end
+      end
+    end
 
     # Save a document to CouchDB. This will use the <tt>_id</tt> field from
     # the document as the id for PUT, or request a new UUID from CouchDB, if
