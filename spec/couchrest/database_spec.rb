@@ -565,6 +565,11 @@ describe CouchRest::Database do
       end
       @db.get(@id)['upvotes'].should == 11
     end
+    it "should work if I do not explicitly return the hash" do
+      @db.update_doc @id do |doc|
+        doc['upvotes'] += 1
+      end
+    end
     it "should fail if update_limit is reached" do
       lambda do
         @db.update_doc @id do |doc|
