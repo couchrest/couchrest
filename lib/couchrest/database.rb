@@ -266,9 +266,9 @@ module CouchRest
 
       until resp['ok'] or update_limit <= 0
         doc = self.get(doc_id, params)  # grab the doc
-        new_doc = yield doc # give it to the caller to be updated
+        yield doc# give it to the caller to be updated
         begin
-          resp = self.save_doc new_doc # try to PUT the updated doc into the db
+          resp = self.save_doc doc # try to PUT the updated doc into the db
         rescue RestClient::RequestFailed => e
           if e.http_code == 409 # Update collision
             update_limit -= 1
@@ -280,7 +280,7 @@ module CouchRest
       end
 
       raise last_fail unless resp['ok']
-      new_doc
+      doc
     end
     
     # Compact the database, removing old document revisions and optimizing space use.
