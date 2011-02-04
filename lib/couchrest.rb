@@ -13,7 +13,7 @@
 #    limitations under the License.
 
 require 'rest_client'
-require 'json'
+require 'multi_json'
 
 # Not sure why this is required, so removed until a reason is found!
 $:.unshift File.dirname(__FILE__) unless
@@ -111,7 +111,7 @@ module CouchRest
     def paramify_url url, params = {}
       if params && !params.empty?
         query = params.collect do |k,v|
-          v = v.to_json if %w{key startkey endkey}.include?(k.to_s)
+          v = MultiJson.encode(v) if %w{key startkey endkey}.include?(k.to_s)
           "#{k}=#{CGI.escape(v.to_s)}"
         end.join("&")
         url = "#{url}?#{query}"

@@ -313,7 +313,7 @@ module CouchRest
     def put_attachment(doc, name, file, options = {})
       docid = escape_docid(doc['_id'])
       uri = url_for_attachment(doc, name)
-      JSON.parse(RestClient.put(uri, file, CouchRest.default_headers.merge(options)))
+      MultiJson.decode(RestClient.put(uri, file, CouchRest.default_headers.merge(options)))
     end
 
     # DELETE an attachment directly from CouchDB
