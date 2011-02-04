@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 require File.join(File.dirname(__FILE__),'lib','couchrest','version')
-
 Gem::Specification.new do |s|
   s.name = %q{couchrest}
   s.version = CouchRest::VERSION
@@ -29,6 +28,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency(%q<rest-client>, ["~> 1.6.1"])
   s.add_dependency(%q<mime-types>, ["~> 1.15"])
+  s.add_dependency(%q<multi_json>, ["~> 0.0.5"])
   s.add_development_dependency(%q<json>, ["~> 1.5.1"])
   s.add_development_dependency(%q<rspec>, "~> 2.6.0")
 end
