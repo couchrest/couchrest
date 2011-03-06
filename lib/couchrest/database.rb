@@ -304,13 +304,13 @@ module CouchRest
     end
 
     # Replicates via "pulling" from another database to this database. Makes no attempt to deal with conflicts.
-    def replicate_from(other_db, continuous = false, create_target = false)
-      replicate(other_db, continuous, :target => name, :create_target => create_target)
+    def replicate_from(other_db, continuous = false, create_target = false, doc_ids = nil)
+      replicate(other_db, continuous, :target => name, :create_target => create_target, :doc_ids => doc_ids)
     end
 
     # Replicates via "pushing" to another database. Makes no attempt to deal with conflicts.
-    def replicate_to(other_db, continuous = false, create_target = false)
-      replicate(other_db, continuous, :source => name, :create_target => create_target)
+    def replicate_to(other_db, continuous = false, create_target = false, doc_ids = nil)
+      replicate(other_db, continuous, :source => name, :create_target => create_target, :doc_ids => doc_ids)
     end
 
     # DELETE the database itself. This is not undoable and could be rather
@@ -331,6 +331,7 @@ module CouchRest
         payload[:target] = other_db.root
       end
       payload[:continuous] = continuous
+      payload[:doc_ids] = options[:doc_ids] if options[:doc_ids]
       CouchRest.post "#{@host}/_replicate", payload
     end
 

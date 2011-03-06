@@ -733,6 +733,20 @@ describe CouchRest::Database do
 
       it_should_behave_like "simply replicated"
     end
+    
+    describe "with a specific doc" do
+      before(:each) do
+        @other_db.recreate!
+        @db.save_doc({'_id' => 'unreplicated_doc', 'some-value' => 'foo'})
+        @db.replicate_to @other_db, false, false, ['test_doc']
+      end
+      
+      # should contain only replicated doc and not unreplicated doc
+      it_should_behave_like "simply replicated"
+      it "does not contain unreplicated doc" do 
+        lambda { @other_db.get('unreplicated_doc') }.should raise_error(RestClient::ResourceNotFound)
+      end
+    end
 
     describe "implicitly creating target" do
       describe "via pulling" do
