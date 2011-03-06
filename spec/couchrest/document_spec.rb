@@ -72,6 +72,31 @@ describe CouchRest::Document do
     end
     
   end
+  
+  describe  "user doc" do
+    before(:all) do
+      @users_db = @couch.database("_users")
+      @username = 'theuser' + Time.now.tv_sec.to_s
+      @doc = CouchRest::UserDocument.new(@username, 'password')
+      @resp = @users_db.save_doc(@doc) 
+    end
+    it "should have a user id" do
+      @doc.id.should =~ /org\.couchdb\.user:theuser/
+    end
+    it "should have a name" do
+      @doc['name'].should_not be_nil
+    end
+    it "should have a password_sha" do
+      @doc['password_sha'].should_not be_nil
+    end
+    it "should have a salt" do
+      @doc['salt'].should_not be_nil
+    end
+    it "should save successfully" do
+      saveduser = @users_db.get(@doc.id)
+      saveduser['name'].should == @username
+    end
+  end
 
   # move to database spec
   describe  "saving using a database" do

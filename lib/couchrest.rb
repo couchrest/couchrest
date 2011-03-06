@@ -37,6 +37,7 @@ module CouchRest
   autoload :Database,     'couchrest/database'
   autoload :Response,     'couchrest/response'
   autoload :Document,     'couchrest/document'
+  autoload :UserDocument, 'couchrest/user_document'
   autoload :Design,       'couchrest/design'
   autoload :Model,        'couchrest/model'
   autoload :Pager,        'couchrest/helper/pager'
