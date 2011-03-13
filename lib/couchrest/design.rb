@@ -9,13 +9,10 @@ module CouchRest
       if opts[:map]
         view = {}
         view['map'] = opts.delete(:map)
-        if opts[:reduce]
-          view['reduce'] = opts.delete(:reduce)
-          opts[:reduce] = false
-        end
+        view['reduce'] = opts.delete(:reduce) if opts[:reduce]
         self['views'][method_name] = view
       else
-        doc_keys = keys.collect{|k|"doc['#{k}']"} # this is where :require => 'doc.x == true' would show up
+        doc_keys = keys.collect{|k| "doc['#{k}']"}
         key_emit = doc_keys.length == 1 ? "#{doc_keys.first}" : "[#{doc_keys.join(', ')}]"
         guards = opts.delete(:guards) || []
         guards += doc_keys.map{|k| "(#{k} != null)"}
@@ -41,11 +38,15 @@ JAVASCRIPT
     end
 
     # Dispatches to any named view in a specific database
-    def view_on db, view_name, query={}, &block
+    def view_on db, view_name, query = {}, &block
       view_name = view_name.to_s
       view_slug = "#{name}/#{view_name}"
-      defaults = (self['views'][view_name] && self['views'][view_name]["couchrest-defaults"]) || {}
-      db.view(view_slug, defaults.merge(query), &block)
+      # Set the default query options
+      query = view_defaults(view_name).merge(query)
+      # Ensure reduce is set if dealing with a reduceable view
+      # This is a requirement of CouchDB.
+      query['reduce'] ||= false if can_reduce_view?(view_name)
+      db.view(view_slug, query, &block)
     end
 
     def name
@@ -61,19 +62,27 @@ JAVASCRIPT
       super
     end
 
-    private
-
-    # returns stored defaults if the there is a view named this in the design doc
-    def has_view?(view)
-      view = view.to_s
-      self['views'][view] &&
-        (self['views'][view]["couchrest-defaults"] || {})
+    # Return the hash of default values to include in all queries sent
+    # to a view from couchrest.
+    def view_defaults(name)
+      (self['views'][name.to_s] && self['views'][name.to_s]["couchrest-defaults"]) || {}
     end
+
+    # Returns true or false if the view is available.
+    def has_view?(name)
+      !self['views'][name.to_s].nil?
+    end
+
+    # Check if the view has a reduce method defined.
+    def can_reduce_view?(name)
+      has_view?(name) && !self['views'][name.to_s]['reduce'].to_s.empty?
+    end
+
+    private
 
     def fetch_view view_name, opts, &block
       database.view(view_name, opts, &block)
     end
 
   end
-  
 end

@@ -1,8 +1,10 @@
-== Next Version
-
-* Major enhancements
+== 1.0.2
 
 * Minor enhancements
+  * Bundler
+  * Dependency versions upgrade
+  * Removed reduce option from view's defaults. Now detected according to presence of reduce function.
+  * Design#has_view? and Design#can_reduce_view? now available publically
 
 == 1.0.1
 

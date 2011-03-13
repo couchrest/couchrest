@@ -154,5 +154,29 @@ describe CouchRest::Design do
     end
   end
 
+  describe "a view with a reduce function" do
+    before(:all) do
+      @db = reset_test_db!
+      @des = CouchRest::Design.new
+      @des.name = "test"
+      @des.view_by :code, :map => "function(d){ if(d['code']) { emit(d['code'], 1); } }", :reduce => "function(k,v,r){ return sum(v); }"
+      @des.database = @db
+      @des.save
+      @db.bulk_save([{"code" => "a", "age" => 2},
+        {"code" => 'b', "age" => 4},{"code" => 'c', "age" => 9}])
+    end
+    it "should not set a default parameter" do
+      @des['views']['by_code']['couchrest-defaults'].should be_nil
+    end
+    it "should include reduce parameter in query" do
+      res = @des.view :by_code
+      res["rows"][0]["key"].should == 'a'
+    end
+    it "should allow reduce to be performed" do
+      res = @des.view :by_code, :reduce => true
+      res["rows"][0]["value"].should eql(3)
+    end
+  end
+
 
 end

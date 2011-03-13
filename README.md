@@ -18,17 +18,30 @@ CouchRest is designed to make a simple base for application and framework-specif
 
 CouchRest rests on top of a HTTP abstraction layer using by default Heroku’s excellent REST Client Ruby HTTP wrapper.
 
+## Modelling
+
+For more complete modelling support based on Rails 3's ActiveModel, please checkout CouchRest's sister project: [CouchRest Model](https://github.com/couchrest/couchrest_model).
+
 ## Extended Document
 
 As of May 2010 support for the popular CouchRest::ExtendedDocument mixin has been moved to its own gem: [couchrest_extended_document](http://github.com/couchrest/couchrest_extended_document).
 
-Most people will probably want to use this library (or one of the alternatives) to make it slightly easier to access your documents.
+If you're starting a new project however, we recommend you use the more actively maintained [CouchRest Model](https://github.com/couchrest/couchrest_model) project, supported by the same team of developers.
 
 ## Running the Specs
 
 The most complete documentation is the spec/ directory. To validate your
-CouchRest install, from the project root directory run `rake`, or `autotest`
-(requires RSpec and optionally ZenTest for autotest support).
+CouchRest install, from the project root directory use bundler to install 
+the dependencies and then run the tests:
+
+    $ bundle install
+    $ bundle exec spec spec
+
+To date, the couchrest specs have been show to run on:
+
+ * Ruby 1.8.7
+ * Ruby 1.9.2
+ * JRuby 1.5.6
 
 ## Docs
 
