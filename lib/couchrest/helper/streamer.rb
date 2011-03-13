@@ -18,7 +18,7 @@ module CouchRest
       url = CouchRest.paramify_url urlst, params
       # puts "stream #{url}"
       first = nil
-      IO.popen("curl --silent \"#{url}\"") do |view|
+      IO.popen("curl --silent '#{url}'") do |view|
         first = view.gets # discard header
         while line = view.gets 
           row = parse_line(line)
