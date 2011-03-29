@@ -99,7 +99,8 @@ module CouchRest
         url += '/' + id
       end
       url = CouchRest.paramify_url url, params
-      CouchRest.post(url, params)
+      m = id ? 'put' : 'post'
+      CouchRest.send(m, url, params)
     end
     
     # GET a document from CouchDB, by id. Returns a Ruby Hash.
