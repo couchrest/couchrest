@@ -148,6 +148,24 @@ describe CouchRest::Database do
     end
   end
 
+  describe "Update a document through an update function" do
+    before(:each) do
+      @db.save_doc('_id' => '_design/update_test',
+                   'updates' => {'make' => <<-JS
+                      function(doc, req){
+                        var new_doc = {'_id': req.query.juicy, tacos: 'tasty'};
+                        return [new_doc, '{"ok": true}'];
+                      }
+                    JS
+      })
+    end
+    it "should create a doc when calling the make update" do
+      id = 'abcuhc398093'
+      @db.update('update_test/make', nil, :juicy => id)['ok'].should be_true
+      @db.get(id)['tacos'].should == 'tasty'
+    end
+  end
+
   describe "GET (document by id) when the doc exists" do
     before(:each) do
       @r = @db.save_doc({'lemons' => 'from texas', 'and' => 'spain'})

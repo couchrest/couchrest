@@ -89,6 +89,18 @@ module CouchRest
         end
       end
     end
+
+    def update(name, id, params = {})
+      name = name.split('/')
+      dname = name.shift
+      uname = name.join('/')
+      url = "#{@root}/_design/#{dname}/_update/#{uname}"
+      if(id)
+        url += '/' + id
+      end
+      url = CouchRest.paramify_url url, params
+      CouchRest.post(url, params)
+    end
     
     # GET a document from CouchDB, by id. Returns a Ruby Hash.
     def get(id, params = {})
