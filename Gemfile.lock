@@ -9,6 +9,7 @@ PATH
 GEM
   remote: http://rubygems.org/
   specs:
+    json (1.5.1)
     json (1.5.1-java)
     mime-types (1.16)
     rest-client (1.6.1)
@@ -21,4 +22,7 @@ PLATFORMS
 
 DEPENDENCIES
   couchrest!
+  json (~> 1.5.1)
+  mime-types (~> 1.15)
+  rest-client (~> 1.6.1)
   rspec (~> 1.3.0)

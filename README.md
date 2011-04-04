@@ -10,6 +10,12 @@ CouchRest is designed to make a simple base for application and framework-specif
 
 **Note: CouchRest only support CouchDB 0.9.0 or newer. Some features requires CouchDB 0.10.0 or newer.**
 
+## Important Upgrade Notice
+
+### 2011-04-04: Time#to_json no longer overwritten!
+
+Now sticking to JSON standard format. Ensure you views using Time will be ordered correctly after upgrade!
+
 ## Easy Install
 
     $ sudo gem install couchrest

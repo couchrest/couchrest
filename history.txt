@@ -1,3 +1,11 @@
+== 1.0.3
+
+* Major changes
+  * Time#to_json monkey patch removed! Standard methods now used instead.
+
+WARNING: If you depend on ordering by Time, this change may cause issues! Either update 
+your documents to use the new format, or use the Date.parse method in your views.
+
 == 1.0.2
 
 * Minor enhancements
