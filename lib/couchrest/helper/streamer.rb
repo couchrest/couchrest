@@ -1,24 +1,29 @@
 module CouchRest
   class Streamer
-    attr_accessor :db
-    def initialize db
-      @db = db
+
+    attr_accessor :default_curl_opts
+
+    def initialize
+      self.default_curl_opts = "--silent --no-buffer --tcp-nodelay"
     end
-    
-    # Stream a view, yielding one row at a time. Shells out to <tt>curl</tt> to keep RAM usage low when you have millions of rows.
-    def view name, params = nil, &block
-      urlst = if /^_/.match(name) then
-        "#{@db.root}/#{name}"
-      else
-        name = name.split('/')
-        dname = name.shift
-        vname = name.join('/')
-        "#{@db.root}/_design/#{dname}/_view/#{vname}"
-      end
-      url = CouchRest.paramify_url urlst, params
-      # puts "stream #{url}"
+
+    def view(*args)
+      raise "CouchRest::Streamer#view is depricated. Please use Database#view with block."
+    end
+
+    def get(url, &block)
+      open_pipe("curl #{default_curl_opts} \"#{url}\"", &block)
+    end
+
+    def post(url, params = {}, &block)
+      open_pipe("curl #{default_curl_opts} -d \"#{CGI.encode(params.to_json)}\" \"#{url}\"", &block)
+    end
+
+    protected
+
+    def open_pipe(cmd, &block)
       first = nil
-      IO.popen("curl --silent '#{url}'") do |view|
+      IO.popen(cmd) do |view|
         first = view.gets # discard header
         while line = view.gets 
           row = parse_line(line)
@@ -27,9 +32,7 @@ module CouchRest
       end
       parse_first(first)
     end
-    
-    private
-    
+
     def parse_line line
       return nil unless line
       if /(\{.*\}),?/.match(line.chomp)

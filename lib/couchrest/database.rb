@@ -19,7 +19,7 @@ module CouchRest
       @host = server.uri
       @uri  = "/#{name.gsub('/','%2F')}"
       @root = host + uri
-      @streamer = Streamer.new(self)
+      @streamer = Streamer.new
       @bulk_save_cache = []
       @bulk_save_cache_limit = 500  # must be smaller than the uuid count
     end
@@ -34,16 +34,6 @@ module CouchRest
       CouchRest.get @root
     end
     
-    # Query the <tt>_all_docs</tt> view. Accepts all the same arguments as view.
-    def documents(params = {})
-      keys = params.delete(:keys)
-      url = CouchRest.paramify_url "#{@root}/_all_docs", params
-      if keys
-        CouchRest.post(url, {:keys => keys})
-      else
-        CouchRest.get url
-      end
-    end
 
     # Query a CouchDB-Lucene search view
     def search(name, params={})
@@ -75,21 +65,40 @@ module CouchRest
     # paramaters as described in http://wiki.apache.org/couchdb/HttpViewApi
     def view(name, params = {}, &block)
       keys = params.delete(:keys)
-      name = name.split('/') # I think this will always be length == 2, but maybe not...
-      dname = name.shift
-      vname = name.join('/')
-      url = CouchRest.paramify_url "#{@root}/_design/#{dname}/_view/#{vname}", params
-      if keys
-        CouchRest.post(url, {:keys => keys})
+      # Try recognising the name, otherwise assume already prepared
+      view_path = name =~ /^([^_].+?)\/(.*)$/ ? "_design/#{$1}/_view/#{$2}" : name
+      url = CouchRest.paramify_url "#{@root}/#{view_path}"
+      if block_given?
+        if keys
+          @streamer.post(url, {:keys => keys}, &block)
+        else
+          @streamer.get(url, &block)
+        end
       else
-        if block_given?
-          @streamer.view("_design/#{dname}/_view/#{vname}", params, &block)
+        if keys
+          CouchRest.post(url, {:keys => keys})
         else
           CouchRest.get url
         end
       end
     end
-    
+
+    # Query the <tt>_all_docs</tt> view. Accepts all the same arguments as view.
+    def documents(params = {}, &block)
+      view("_all_docs", params, &block)
+    end
+    alias documents all_docs
+
+    # Query CouchDB's special <tt>_changes</tt> feed for the latest.
+    # All standard CouchDB options can be provided.
+    #
+    # Warning: sending :feed => 'continuous' will cause your code to block
+    # indefinetly while waiting for changes. You might want to look-up an
+    # alternative to this.
+    def changes(params = {}, &block)
+      view("_changes", params, &block)
+    end
+
     # GET a document from CouchDB, by id. Returns a Ruby Hash.
     def get(id, params = {})
       slug = escape_docid(id)

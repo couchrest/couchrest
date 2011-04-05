@@ -6,7 +6,7 @@ describe CouchRest::Streamer do
     @db = @cr.database(TESTDB)
     @db.delete! rescue nil
     @db = @cr.create_db(TESTDB) rescue nil
-    @streamer = CouchRest::Streamer.new(@db)
+    @streamer = CouchRest::Streamer.new()
     @docs = (1..1000).collect{|i| {:integer => i, :string => i.to_s}}
     @db.bulk_save(@docs)
     @db.save_doc({
