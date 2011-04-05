@@ -48,46 +48,43 @@ module CouchRest
     end
     alias :bulk_load :get_bulk
   
-    # POST a temporary view function to CouchDB for querying. This is not
-    # recommended, as you don't get any performance benefit from CouchDB's
-    # materialized views. Can be quite slow on large databases.
-    def slow_view(funcs, params = {})
-      keys = params.delete(:keys)
-      funcs = funcs.merge({:keys => keys}) if keys
-      url = CouchRest.paramify_url "#{@root}/_temp_view", params
-      JSON.parse(RestClient.post(url, funcs.to_json, CouchRest.default_headers))
-    end
-    
-    # backwards compatibility is a plus
-    alias :temp_view :slow_view
   
     # Query a CouchDB view as defined by a <tt>_design</tt> document. Accepts
     # paramaters as described in http://wiki.apache.org/couchdb/HttpViewApi
-    def view(name, params = {}, &block)
-      keys = params.delete(:keys)
+    def view(name, params = {}, payload = {}, &block)
+      payload[:keys] = params.delete(:keys) if params[:keys]
       # Try recognising the name, otherwise assume already prepared
       view_path = name =~ /^([^_].+?)\/(.*)$/ ? "_design/#{$1}/_view/#{$2}" : name
-      url = CouchRest.paramify_url "#{@root}/#{view_path}"
+      url = CouchRest.paramify_url "#{@root}/#{view_path}", params
       if block_given?
-        if keys
-          @streamer.post(url, {:keys => keys}, &block)
+        if !payload.empty?
+          @streamer.post(url, payload, &block)
         else
           @streamer.get(url, &block)
         end
       else
-        if keys
-          CouchRest.post(url, {:keys => keys})
+        if !payload.empty?
+          CouchRest.post(url, payload)
         else
           CouchRest.get url
         end
       end
     end
 
-    # Query the <tt>_all_docs</tt> view. Accepts all the same arguments as view.
-    def documents(params = {}, &block)
-      view("_all_docs", params, &block)
+    # POST a temporary view function to CouchDB for querying. This is not
+    # recommended, as you don't get any performance benefit from CouchDB's
+    # materialized views. Can be quite slow on large databases.
+    def temp_view(payload, params = {}, &block)
+      view('_temp_view', params, payload, &block)
     end
-    alias documents all_docs
+    alias :slow_view :temp_view
+
+
+    # Query the <tt>_all_docs</tt> view. Accepts all the same arguments as view.
+    def all_docs(params = {}, payload = {}, &block)
+      view("_all_docs", params, payload, &block)
+    end
+    alias :documents :all_docs
 
     # Query CouchDB's special <tt>_changes</tt> feed for the latest.
     # All standard CouchDB options can be provided.
@@ -95,8 +92,8 @@ module CouchRest
     # Warning: sending :feed => 'continuous' will cause your code to block
     # indefinetly while waiting for changes. You might want to look-up an
     # alternative to this.
-    def changes(params = {}, &block)
-      view("_changes", params, &block)
+    def changes(params = {}, payload = {}, &block)
+      view("_changes", params, payload, &block)
     end
 
     # GET a document from CouchDB, by id. Returns a Ruby Hash.

@@ -645,6 +645,7 @@ describe CouchRest::Database do
     ds['total_rows'].should == 5
   end
   
+  # This is redundant with the latest view code, but left in place for prosterity.
   describe "documents / _all_docs" do
     before(:each) do
       9.times do |i|
