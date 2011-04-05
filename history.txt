@@ -3,6 +3,9 @@
 * Major changes
   * Time#to_json monkey patch removed! Standard methods now used instead.
 
+* Minor alterations
+  * Named doc replication (thanks @ahamid)
+
 WARNING: If you depend on ordering by Time, this change may cause issues! Either update 
 your documents to use the new format, or use the Date.parse method in your views.
 
