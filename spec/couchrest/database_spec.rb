@@ -561,14 +561,8 @@ describe CouchRest::Database do
     it "should work under normal conditions" do
       @db.update_doc @id do |doc|
         doc['upvotes'] += 1
-        doc
       end
       @db.get(@id)['upvotes'].should == 11
-    end
-    it "should work if I do not explicitly return the hash" do
-      @db.update_doc @id do |doc|
-        doc['upvotes'] += 1
-      end
     end
     it "should fail if update_limit is reached" do
       lambda do
@@ -577,10 +571,9 @@ describe CouchRest::Database do
           conflicting_doc = @db.get @id
           conflicting_doc['upvotes'] += 1
           @db.save_doc conflicting_doc
-        
+
           # then try saving it through the update
           doc['upvotes'] += 1
-          doc
         end
       end.should raise_error(RestClient::RequestFailed)
     end

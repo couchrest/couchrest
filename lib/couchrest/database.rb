@@ -257,23 +257,23 @@ module CouchRest
     end
     
     # Updates the given doc by yielding the current state of the doc
-    # and trying to update update_limit times. Returns the new doc
-    # if the doc was successfully updated without hitting the limit
-    def update_doc(doc_id, params = {}, update_limit=10)
+    # and trying to update update_limit times. Returns the doc
+    # if successfully updated without hitting the limit.
+    # If the limit is reached, the last execption will be raised.
+    def update_doc(doc_id, params = {}, update_limit = 10)
       resp = {'ok' => false}
-      new_doc = nil
       last_fail = nil
 
       until resp['ok'] or update_limit <= 0
-        doc = self.get(doc_id, params)  # grab the doc
-        yield doc# give it to the caller to be updated
+        doc = self.get(doc_id, params)
+        yield doc
         begin
-          resp = self.save_doc doc # try to PUT the updated doc into the db
+          resp = self.save_doc doc
         rescue RestClient::RequestFailed => e
           if e.http_code == 409 # Update collision
             update_limit -= 1
             last_fail = e
-          else # some other error
+          else
             raise e
           end
         end

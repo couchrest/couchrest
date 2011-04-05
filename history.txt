@@ -5,6 +5,7 @@
 
 * Minor alterations
   * Named doc replication (thanks @ahamid)
+  * Database#update_doc no longer requires document to be returned from block (thanks @ferrous26)
 
 WARNING: If you depend on ordering by Time, this change may cause issues! Either update 
 your documents to use the new format, or use the Date.parse method in your views.
