@@ -20,14 +20,14 @@ end
 
 desc "Run all specs"
 Spec::Rake::SpecTask.new('spec') do |t|
-	t.spec_opts = ["--color"]
-	t.spec_files = FileList['spec/**/*_spec.rb']
+  t.spec_opts = ["--color"]
+  t.spec_files = FileList['spec/**/*_spec.rb']
 end
 
 desc "Print specdocs"
 Spec::Rake::SpecTask.new(:doc) do |t|
-	t.spec_opts = ["--format", "specdoc"]
-	t.spec_files = FileList['spec/*_spec.rb']
+  t.spec_opts = ["--format", "specdoc"]
+  t.spec_files = FileList['spec/*_spec.rb']
 end
 
 desc "Generate the rdoc"
@@ -40,12 +40,3 @@ end
 
 desc "Run the rspec"
 task :default => :spec
-
-module Rake
-  def self.remove_task(task_name)
-    Rake.application.instance_variable_get('@tasks').delete(task_name.to_s)
-  end
-end
-
-Rake.remove_task("github:release")
-Rake.remove_task("release")

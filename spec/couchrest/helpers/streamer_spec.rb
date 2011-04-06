@@ -18,35 +18,42 @@ describe CouchRest::Streamer do
       }
     })
   end
-  
-  it "should yield each row in a view" do
+
+  it "should raise error on #view as depricated" do
+    lambda { @streamer.view }.should raise_error(/depricated/)
+  end
+
+  it "should GET each row in a view" do
     count = 0
-    sum = 0
-    @streamer.view("_all_docs") do |row|
+    @streamer.get("#{@db.root}/_all_docs") do |row|
       count += 1
     end
     count.should == 1001
   end
 
-  it "should accept several params" do
+  it "should GET each row in a view with params" do
     count = 0
-    @streamer.view("_design/first/_view/test", :include_docs => true, :limit => 5) do |row|
+    @streamer.get("#{@db.root}/_all_docs?include_docs=true&limit=5") do |row|
       count += 1
     end
     count.should == 5
   end
 
-  it "should accept both view formats" do
+  it "should POST for each row in a view" do
+    # First grab a pair of IDs
+    ids = []
+    @streamer.get("#{@db.root}/_design/first/_view/test?limit=2") do |row|
+      ids << row['id']
+    end
     count = 0
-    @streamer.view("_design/first/_view/test") do |row|
+    @streamer.post("#{@db.root}/_all_docs?include_docs=true", :keys => ids) do |row|
       count += 1
     end
-    count.should == 2000
-    count = 0
-    @streamer.view("first/test") do |row|
-      count += 1
-    end
-    count.should == 2000
+    count.should == 2
+  end
+
+  it "should escape quotes" do
+    @streamer.send(:escape_quotes, "keys: [\"sams's test\"]").should eql("keys: [\\\"sams's test\\\"]")
   end
 
 end

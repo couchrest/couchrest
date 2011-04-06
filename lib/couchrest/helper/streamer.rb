@@ -4,7 +4,7 @@ module CouchRest
     attr_accessor :default_curl_opts
 
     def initialize
-      self.default_curl_opts = "--silent --no-buffer --tcp-nodelay"
+      self.default_curl_opts = "--silent --no-buffer --tcp-nodelay -H \"Content-Type: application/json\""
     end
 
     def view(*args)
@@ -16,16 +16,20 @@ module CouchRest
     end
 
     def post(url, params = {}, &block)
-      open_pipe("curl #{default_curl_opts} -d \"#{CGI.encode(params.to_json)}\" \"#{url}\"", &block)
+      open_pipe("curl #{default_curl_opts} -d \"#{escape_quotes(params.to_json)}\" \"#{url}\"", &block)
     end
 
     protected
 
+    def escape_quotes(data)
+      data.gsub(/"/, '\"')
+    end
+
     def open_pipe(cmd, &block)
       first = nil
-      IO.popen(cmd) do |view|
-        first = view.gets # discard header
-        while line = view.gets 
+      IO.popen(cmd) do |f|
+        first = f.gets # discard header
+        while line = f.gets 
           row = parse_line(line)
           block.call row unless row.nil? # last line "}]" discarded
         end
@@ -49,6 +53,6 @@ module CouchRest
     rescue
       nil
     end
-    
+
   end
 end

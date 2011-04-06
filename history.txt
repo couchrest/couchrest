@@ -1,14 +1,19 @@
-== 1.0.3
+== 1.1.0.rc
 
 * Major changes
-  * Time#to_json monkey patch removed! Standard methods now used instead.
+  * Time#to_json monkey patch removed! Standard JSON methods now used instead.
 
 * Minor alterations
   * Named doc replication (thanks @ahamid)
   * Database#update_doc no longer requires document to be returned from block (thanks @ferrous26)
+  * Streamer now available for all queries that return multiple documents (thanks @pcapr for pointer)
+  * Streamer#view method removed, use Database.view with block
+  * Database#changes method added (with streamer option)
 
-WARNING: If you depend on ordering by Time, this change may cause issues! Either update 
-your documents to use the new format, or use the Date.parse method in your views.
+WARNING: If you depend on ordering by Time, this release may cause issues on old databases! 
+Either update your documents to use the new format (JSON standard), or use Javascript's Date.parse 
+method in your views. Also, use Time#utc to ensure universal ordering regardless of time
+zone. (CouchRest Model does this automatically.)
 
 == 1.0.2
 

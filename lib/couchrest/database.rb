@@ -5,10 +5,10 @@ module CouchRest
   class Database
     attr_reader :server, :host, :name, :root, :uri
     attr_accessor :bulk_save_cache_limit
-     
+
     # Create a CouchRest::Database adapter for the supplied CouchRest::Server
     # and database name.
-    #  
+    #
     # ==== Parameters
     # server<CouchRest::Server>:: database host
     # name<String>:: database name
@@ -23,78 +23,57 @@ module CouchRest
       @bulk_save_cache = []
       @bulk_save_cache_limit = 500  # must be smaller than the uuid count
     end
-    
+
+    # == Database information and manipulation methods
+
     # returns the database's uri
     def to_s
       @root
     end
-    
+
     # GET the database info from CouchDB
     def info
       CouchRest.get @root
     end
-    
 
-    # Query a CouchDB-Lucene search view
-    def search(name, params={})
-      # -> http://localhost:5984/yourdb/_fti/YourDesign/by_name?include_docs=true&q=plop*'
-      url = CouchRest.paramify_url "#{root}/_fti/#{name}", params
-      CouchRest.get url
+    # Compact the database, removing old document revisions and optimizing space use.
+    def compact!
+      CouchRest.post "#{@root}/_compact"
     end
 
-    # load a set of documents by passing an array of ids
-    def get_bulk(ids)
-      documents(:keys => ids, :include_docs => true)
-    end
-    alias :bulk_load :get_bulk
-  
-  
-    # Query a CouchDB view as defined by a <tt>_design</tt> document. Accepts
-    # paramaters as described in http://wiki.apache.org/couchdb/HttpViewApi
-    def view(name, params = {}, payload = {}, &block)
-      payload[:keys] = params.delete(:keys) if params[:keys]
-      # Try recognising the name, otherwise assume already prepared
-      view_path = name =~ /^([^_].+?)\/(.*)$/ ? "_design/#{$1}/_view/#{$2}" : name
-      url = CouchRest.paramify_url "#{@root}/#{view_path}", params
-      if block_given?
-        if !payload.empty?
-          @streamer.post(url, payload, &block)
-        else
-          @streamer.get(url, &block)
-        end
-      else
-        if !payload.empty?
-          CouchRest.post(url, payload)
-        else
-          CouchRest.get url
-        end
-      end
+    # Create the database
+    def create!
+      bool = server.create_db(@name) rescue false
+      bool && true
     end
 
-    # POST a temporary view function to CouchDB for querying. This is not
-    # recommended, as you don't get any performance benefit from CouchDB's
-    # materialized views. Can be quite slow on large databases.
-    def temp_view(payload, params = {}, &block)
-      view('_temp_view', params, payload, &block)
+    # Delete and re create the database
+    def recreate!
+      delete!
+      create!
+    rescue RestClient::ResourceNotFound
+    ensure
+      create!
     end
-    alias :slow_view :temp_view
+
+    # Replicates via "pulling" from another database to this database. Makes no attempt to deal with conflicts.
+    def replicate_from(other_db, continuous = false, create_target = false, doc_ids = nil)
+      replicate(other_db, continuous, :target => name, :create_target => create_target, :doc_ids => doc_ids)
+    end
+
+    # Replicates via "pushing" to another database. Makes no attempt to deal with conflicts.
+    def replicate_to(other_db, continuous = false, create_target = false, doc_ids = nil)
+      replicate(other_db, continuous, :source => name, :create_target => create_target, :doc_ids => doc_ids)
+    end
+
+    # DELETE the database itself. This is not undoable and could be rather
+    # catastrophic. Use with care!
+    def delete!
+      CouchRest.delete @root
+    end
 
 
-    # Query the <tt>_all_docs</tt> view. Accepts all the same arguments as view.
-    def all_docs(params = {}, payload = {}, &block)
-      view("_all_docs", params, payload, &block)
-    end
-    alias :documents :all_docs
-
-    # Query CouchDB's special <tt>_changes</tt> feed for the latest.
-    # All standard CouchDB options can be provided.
-    #
-    # Warning: sending :feed => 'continuous' will cause your code to block
-    # indefinetly while waiting for changes. You might want to look-up an
-    # alternative to this.
-    def changes(params = {}, payload = {}, &block)
-      view("_changes", params, payload, &block)
-    end
+    # == Retrieving and saving single documents
 
     # GET a document from CouchDB, by id. Returns a Ruby Hash.
     def get(id, params = {})
@@ -109,37 +88,6 @@ module CouchRest
       end
       doc.database = self
       doc
-    end
-    
-    # GET an attachment directly from CouchDB
-    def fetch_attachment(doc, name)
-      uri = url_for_attachment(doc, name)
-      RestClient.get uri, CouchRest.default_headers
-    end
-    
-    # PUT an attachment directly to CouchDB
-    def put_attachment(doc, name, file, options = {})
-      docid = escape_docid(doc['_id'])
-      uri = url_for_attachment(doc, name)
-      JSON.parse(RestClient.put(uri, file, CouchRest.default_headers.merge(options)))
-    end
-    
-    # DELETE an attachment directly from CouchDB
-    def delete_attachment(doc, name, force=false)
-      uri = url_for_attachment(doc, name)
-      # this needs a rev
-      begin
-        CouchRest.delete(uri)
-      rescue Exception => error
-        if force
-          # get over a 409
-          doc = get(doc['_id'])
-          uri = url_for_attachment(doc, name)
-          CouchRest.delete(uri)
-        else
-          error
-        end
-      end
     end
 
     # Save a document to CouchDB. This will use the <tt>_id</tt> field from
@@ -200,7 +148,7 @@ module CouchRest
       end
       result
     end
-    
+
     # Save a document to CouchDB in bulk mode. See #save_doc's +bulk+ argument.
     def bulk_save_doc(doc)
       save_doc(doc, true)
@@ -210,7 +158,7 @@ module CouchRest
     def batch_save_doc(doc)
       save_doc(doc, false, true)
     end
-    
+
     # POST an array of documents to CouchDB. If any of the documents are
     # missing ids, supply one from the uuid cache.
     #
@@ -231,7 +179,7 @@ module CouchRest
       CouchRest.post "#{@root}/_bulk_docs", {:docs => docs}
     end
     alias :bulk_delete :bulk_save
-    
+
     # DELETE the document from CouchDB that has the given <tt>_id</tt> and
     # <tt>_rev</tt>.
     #
@@ -247,7 +195,7 @@ module CouchRest
       slug = escape_docid(doc['_id'])        
       CouchRest.delete "#{@root}/#{slug}?rev=#{doc['_rev']}"
     end
-    
+
     # COPY an existing document to a new id. If the destination id currently exists, a rev must be provided.
     # <tt>dest</tt> can take one of two forms if overwriting: "id_to_overwrite?rev=revision" or the actual doc
     # hash with a '_rev' key
@@ -261,7 +209,7 @@ module CouchRest
       end
       CouchRest.copy "#{@root}/#{slug}", destination
     end
-    
+
     # Updates the given doc by yielding the current state of the doc
     # and trying to update update_limit times. Returns the doc
     # if successfully updated without hitting the limit.
@@ -288,45 +236,108 @@ module CouchRest
       raise last_fail unless resp['ok']
       doc
     end
-    
-    # Compact the database, removing old document revisions and optimizing space use.
-    def compact!
-      CouchRest.post "#{@root}/_compact"
-    end
-    
-    # Create the database
-    def create!
-      bool = server.create_db(@name) rescue false
-      bool && true
-    end
-    
-    # Delete and re create the database
-    def recreate!
-      delete!
-      create!
-    rescue RestClient::ResourceNotFound
-    ensure
-      create!
+
+
+    # == View and multi-document based queries
+
+    # Query a CouchDB view as defined by a <tt>_design</tt> document. Accepts
+    # paramaters as described in http://wiki.apache.org/couchdb/HttpViewApi
+    def view(name, params = {}, payload = {}, &block)
+      payload[:keys] = params.delete(:keys) if params[:keys]
+      # Try recognising the name, otherwise assume already prepared
+      view_path = name =~ /^([^_].+?)\/(.*)$/ ? "_design/#{$1}/_view/#{$2}" : name
+      url = CouchRest.paramify_url "#{@root}/#{view_path}", params
+      if block_given?
+        if !payload.empty?
+          @streamer.post url, payload, &block
+        else
+          @streamer.get url, &block
+        end
+      else
+        if !payload.empty?
+          CouchRest.post url, payload
+        else
+          CouchRest.get url
+        end
+      end
     end
 
-    # Replicates via "pulling" from another database to this database. Makes no attempt to deal with conflicts.
-    def replicate_from(other_db, continuous = false, create_target = false, doc_ids = nil)
-      replicate(other_db, continuous, :target => name, :create_target => create_target, :doc_ids => doc_ids)
+    # POST a temporary view function to CouchDB for querying. This is not
+    # recommended, as you don't get any performance benefit from CouchDB's
+    # materialized views. Can be quite slow on large databases.
+    def temp_view(payload, params = {}, &block)
+      view('_temp_view', params, payload, &block)
+    end
+    alias :slow_view :temp_view
+
+
+    # Query the <tt>_all_docs</tt> view. Accepts all the same arguments as view.
+    def all_docs(params = {}, payload = {}, &block)
+      view("_all_docs", params, payload, &block)
+    end
+    alias :documents :all_docs
+
+    # Query CouchDB's special <tt>_changes</tt> feed for the latest.
+    # All standard CouchDB options can be provided.
+    #
+    # Warning: sending :feed => 'continuous' will cause your code to block
+    # indefinetly while waiting for changes. You might want to look-up an
+    # alternative to this.
+    def changes(params = {}, payload = {}, &block)
+      view("_changes", params, payload, &block)
     end
 
-    # Replicates via "pushing" to another database. Makes no attempt to deal with conflicts.
-    def replicate_to(other_db, continuous = false, create_target = false, doc_ids = nil)
-      replicate(other_db, continuous, :source => name, :create_target => create_target, :doc_ids => doc_ids)
+    # Query a CouchDB-Lucene search view
+    def fti(name, params={})
+      # -> http://localhost:5984/yourdb/_fti/YourDesign/by_name?include_docs=true&q=plop*'
+      view("_fti/#{name}", params)
+    end
+    alias :search :fti
+
+    # load a set of documents by passing an array of ids
+    def get_bulk(ids)
+      all_docs(:keys => ids, :include_docs => true)
+    end
+    alias :bulk_load :get_bulk
+
+
+    # == Handling attachments
+
+    # GET an attachment directly from CouchDB
+    def fetch_attachment(doc, name)
+      uri = url_for_attachment(doc, name)
+      RestClient.get uri, CouchRest.default_headers
     end
 
-    # DELETE the database itself. This is not undoable and could be rather
-    # catastrophic. Use with care!
-    def delete!
-      CouchRest.delete @root
+    # PUT an attachment directly to CouchDB
+    def put_attachment(doc, name, file, options = {})
+      docid = escape_docid(doc['_id'])
+      uri = url_for_attachment(doc, name)
+      JSON.parse(RestClient.put(uri, file, CouchRest.default_headers.merge(options)))
     end
+
+    # DELETE an attachment directly from CouchDB
+    def delete_attachment(doc, name, force=false)
+      uri = url_for_attachment(doc, name)
+      # this needs a rev
+      begin
+        CouchRest.delete(uri)
+      rescue Exception => error
+        if force
+          # get over a 409
+          doc = get(doc['_id'])
+          uri = url_for_attachment(doc, name)
+          CouchRest.delete(uri)
+        else
+          error
+        end
+      end
+    end
+
+
 
     private
-    
+
     def replicate(other_db, continuous, options)
       raise ArgumentError, "must provide a CouchReset::Database" unless other_db.kind_of?(CouchRest::Database)
       raise ArgumentError, "must provide a target or source option" unless (options.key?(:target) || options.key?(:source))
@@ -359,8 +370,8 @@ module CouchRest
     def url_for_attachment(doc, name)
       @root + uri_for_attachment(doc, name)
     end
-    
-    def escape_docid id      
+
+    def escape_docid id
       /^_design\/(.*)/ =~ id ? "_design/#{CGI.escape($1)}" : CGI.escape(id) 
     end
 
