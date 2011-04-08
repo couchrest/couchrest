@@ -197,6 +197,9 @@ describe CouchRest::Design do
       res = @des.view :by_code, :reduce => true
       res["rows"][0]["value"].should eql(3)
     end
+    it "does not allow string keys to be passed to view as options" do
+      lambda{ @des.view :by_code, 'reduce' => true }.should raise_error(ArgumentError, /set as symbols/)
+    end
   end
 
 

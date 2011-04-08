@@ -40,6 +40,7 @@ JAVASCRIPT
 
     # Dispatches to any named view in a specific database
     def view_on db, view_name, query = {}, &block
+      raise ArgumentError, "View query options must be set as symbols!" if query.keys.find{|k| k.is_a?(String)}
       view_name = view_name.to_s
       view_slug = "#{name}/#{view_name}"
       # Set the default query options

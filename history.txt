@@ -1,4 +1,4 @@
-== 1.1.0.pre - 2011-04-08
+== 1.1.0.pre2 - 2011-04-08
 
 * Major changes
   * Time#to_json monkey patch removed! Standard JSON methods now used instead.
@@ -10,6 +10,7 @@
   * Streamer#view method removed, use Database.view with block
   * Database#changes method added (with streamer option)
   * Added :allow_nil option when creating views
+  * Bug fix: only symbols can be passed as view options (helps fix auto :reduce option)
 
 WARNING: If you depend on ordering by Time, this release may cause issues on old databases! 
 Either update your documents to use the new format (JSON standard), or use Javascript's Date.parse 
