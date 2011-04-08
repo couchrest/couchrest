@@ -154,6 +154,26 @@ describe CouchRest::Design do
     end
   end
 
+  describe "a view with nil and 0 values and :allow_nil" do
+    before(:all) do
+      @db = reset_test_db!
+      @des = CouchRest::Design.new
+      @des.name = "test"
+      @des.view_by :code, :allow_nil => true
+      @des.database = @db
+      @des.save
+      @db.bulk_save([{"code" => "a", "age" => 2},
+        {"code" => nil, "age" => 4},{"code" => 0, "age" => 9}])
+    end
+    it "should work" do
+      res = @des.view :by_code
+      res["rows"][0]["key"].should == nil
+      res["rows"][1]["key"].should == 0
+      res["rows"][2]["key"].should == "a"
+    end
+  end
+
+
   describe "a view with a reduce function" do
     before(:all) do
       @db = reset_test_db!

@@ -15,7 +15,8 @@ module CouchRest
         doc_keys = keys.collect{|k| "doc['#{k}']"}
         key_emit = doc_keys.length == 1 ? "#{doc_keys.first}" : "[#{doc_keys.join(', ')}]"
         guards = opts.delete(:guards) || []
-        guards += doc_keys.map{|k| "(#{k} != null)"}
+        guards += doc_keys.map{|k| "(#{k} != null)"} unless opts.delete(:allow_nil)
+        guards << 'true' if guards.empty?
         map_function = <<-JAVASCRIPT
 function(doc) {
   if (#{guards.join(' && ')}) {

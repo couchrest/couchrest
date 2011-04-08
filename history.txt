@@ -9,6 +9,7 @@
   * Streamer now available for all queries that return multiple documents (thanks @pcapr for pointer)
   * Streamer#view method removed, use Database.view with block
   * Database#changes method added (with streamer option)
+  * Added :allow_nil option when creating views
 
 WARNING: If you depend on ordering by Time, this release may cause issues on old databases! 
 Either update your documents to use the new format (JSON standard), or use Javascript's Date.parse 
