@@ -189,6 +189,7 @@ describe CouchRest::Design do
       @des['views']['by_code']['couchrest-defaults'].should be_nil
     end
     it "should include reduce parameter in query" do
+      # this would fail without it
       res = @des.view :by_code
       res["rows"][0]["key"].should == 'a'
     end

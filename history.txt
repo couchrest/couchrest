@@ -1,4 +1,4 @@
-== 1.1.0.rc
+== 1.1.0.pre - 2011-04-08
 
 * Major changes
   * Time#to_json monkey patch removed! Standard JSON methods now used instead.

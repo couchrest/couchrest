@@ -46,7 +46,7 @@ JAVASCRIPT
       query = view_defaults(view_name).merge(query)
       # Ensure reduce is set if dealing with a reduceable view
       # This is a requirement of CouchDB.
-      query['reduce'] ||= false if can_reduce_view?(view_name)
+      query[:reduce] ||= false if can_reduce_view?(view_name)
       db.view(view_slug, query, &block)
     end
 
