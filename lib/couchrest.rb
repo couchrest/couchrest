@@ -23,11 +23,10 @@ $:.unshift File.dirname(__FILE__) unless
 require 'couchrest/monkeypatches'
 require 'couchrest/rest_api'
 require 'couchrest/support/inheritable_attributes'
+require 'couchrest/version'
 
 # = CouchDB, close to the metal
 module CouchRest
-  VERSION    = '1.0.1'
-  
   autoload :Server,       'couchrest/server'
   autoload :Database,     'couchrest/database'
   autoload :Response,     'couchrest/response'
