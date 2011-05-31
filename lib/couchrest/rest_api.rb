@@ -7,10 +7,10 @@ module RestAPI
     }
   end
 
-  def put(uri, doc = nil)
+  def put(uri, doc = nil, options = {})
     payload = doc.to_json if doc
     begin
-      JSON.parse(RestClient.put(uri, payload, default_headers))
+      JSON.parse(RestClient::Request.execute({:method => :put, :url => uri, :payload => payload, :headers => default_headers}.merge(options)))
     rescue Exception => e
       if $DEBUG
         raise "Error while sending a PUT request #{uri}\npayload: #{payload.inspect}\n#{e}"
@@ -20,9 +20,9 @@ module RestAPI
     end
   end
 
-  def get(uri)
+  def get(uri, options = {})
     begin
-      JSON.parse(RestClient.get(uri, default_headers), :max_nesting => false)
+      JSON.parse(RestClient::Request.execute({:method => :get, :url => uri, :headers => default_headers}.merge(options)), :max_nesting => false)
     rescue => e
       if $DEBUG
         raise "Error while sending a GET request #{uri}\n: #{e}"
@@ -32,10 +32,10 @@ module RestAPI
     end
   end
 
-  def post(uri, doc = nil)
+  def post(uri, doc = nil, options = {})
     payload = doc.to_json if doc
     begin
-      JSON.parse(RestClient.post(uri, payload, default_headers))
+      JSON.parse(RestClient::Request.execute({:method => :post, :url => uri, :payload => payload, :headers => default_headers}.merge(options)))
     rescue Exception => e
       if $DEBUG
         raise "Error while sending a POST request #{uri}\npayload: #{payload.inspect}\n#{e}"
@@ -45,14 +45,14 @@ module RestAPI
     end
   end
 
-  def delete(uri)
-    JSON.parse(RestClient.delete(uri, default_headers))
+  def delete(uri, options = {})
+    JSON.parse(RestClient::Request.execute({:method => :delete, :url => uri, :headers => default_headers}.merge(options)))
   end
 
-  def copy(uri, destination) 
-    JSON.parse(RestClient::Request.execute( :method => :copy,
+  def copy(uri, destination, options = {})
+    JSON.parse(RestClient::Request.execute({:method => :copy,
                                             :url => uri,
-                                            :headers => default_headers.merge('Destination' => destination)
+                                            :headers => default_headers.merge('Destination' => destination)}.merge(options)
                                           ).to_s)
   end 
 
