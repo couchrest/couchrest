@@ -2,6 +2,7 @@
 
 * Major changes
   * Time#to_json monkey patch removed! Standard JSON methods now used instead.
+	* Support multiple JSON gems with multi_json
 
 * Minor alterations
   * Named doc replication (thanks @ahamid)
