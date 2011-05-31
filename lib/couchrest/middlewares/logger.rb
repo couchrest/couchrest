@@ -68,7 +68,7 @@ module RestClient
   
   def self.post(uri, payload, headers=nil)
     start_query = Time.now
-    log = {:method => :post, :uri => uri, :payload =>  (payload ? (JSON.load(payload) rescue 'parsing error') : nil), :headers => headers}
+    log = {:method => :post, :uri => uri, :payload =>  (payload ? (MultiJson.decode(payload) rescue 'parsing error') : nil), :headers => headers}
     response = super(uri, payload, headers=nil)
     end_query = Time.now
     log[:duration] = (end_query - start_query)
@@ -78,7 +78,7 @@ module RestClient
    
   def self.put(uri, payload, headers=nil)
     start_query = Time.now
-    log = {:method => :put, :uri => uri, :payload => (payload ? (JSON.load(payload) rescue 'parsing error') : nil), :headers => headers}
+    log = {:method => :put, :uri => uri, :payload => (payload ? (MultiJson.decode(payload) rescue 'parsing error') : nil), :headers => headers}
     response = super(uri, payload, headers=nil)
     end_query = Time.now
     log[:duration] = (end_query - start_query)

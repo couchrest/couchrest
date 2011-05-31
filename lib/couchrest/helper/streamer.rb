@@ -16,7 +16,7 @@ module CouchRest
     end
 
     def post(url, params = {}, &block)
-      open_pipe("curl #{default_curl_opts} -d \"#{escape_quotes(params.to_json)}\" \"#{url}\"", &block)
+      open_pipe("curl #{default_curl_opts} -d \"#{escape_quotes(MultiJson.encode(params))}\" \"#{url}\"", &block)
     end
 
     protected
@@ -40,7 +40,7 @@ module CouchRest
     def parse_line line
       return nil unless line
       if /(\{.*\}),?/.match(line.chomp)
-        JSON.parse($1)
+        MultiJson.decode($1)
       end
     end
 
@@ -49,7 +49,7 @@ module CouchRest
       parts = first.split(',')
       parts.pop
       line = parts.join(',')
-      JSON.parse("#{line}}")
+      MultiJson.decode("#{line}}")
     rescue
       nil
     end
