@@ -7,6 +7,11 @@ describe CouchRest::Pager do
     @db.delete! rescue nil
     @db = @cr.create_db(TESTDB) rescue nil
     @pager = CouchRest::Pager.new(@db)
+    @docs = []
+    100.times do |i|
+      @docs << ({:number => (i % 10)})
+    end
+    @db.bulk_save(@docs)
   end
   
   after(:all) do
@@ -21,13 +26,6 @@ describe CouchRest::Pager do
   end
   
   describe "paging all docs" do
-    before(:all) do
-      @docs = []
-      100.times do |i|
-        @docs << ({:number => (i % 10)})
-      end
-      @db.bulk_save(@docs)
-    end
     it "should yield total_docs / limit times" do
       n = 0
       @pager.all_docs(10) do |doc|
@@ -55,11 +53,6 @@ describe CouchRest::Pager do
   
   describe "Pager with a view and docs" do
     before(:all) do
-      @docs = []
-      100.times do |i|
-        @docs << ({:number => (i % 10)})
-      end
-      @db.bulk_save(@docs)
       @db.save_doc({
         '_id' => '_design/magic',
         'views' => {
