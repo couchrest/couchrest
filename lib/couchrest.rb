@@ -19,17 +19,18 @@ require 'multi_json'
 $:.unshift File.dirname(__FILE__) unless
  $:.include?(File.dirname(__FILE__)) ||
  $:.include?(File.expand_path(File.dirname(__FILE__)))
-    
+
 require 'couchrest/monkeypatches'
 require 'couchrest/rest_api'
 require 'couchrest/support/inheritable_attributes'
 require 'couchrest/version'
 
+require 'delegate'
+
 # = CouchDB, close to the metal
 module CouchRest
   autoload :Server,       'couchrest/server'
   autoload :Database,     'couchrest/database'
-  autoload :Response,     'couchrest/response'
   autoload :Document,     'couchrest/document'
   autoload :Design,       'couchrest/design'
   autoload :Model,        'couchrest/model'
@@ -37,11 +38,11 @@ module CouchRest
   autoload :Streamer,     'couchrest/helper/streamer'
   autoload :Attachments,  'couchrest/helper/attachments'
   autoload :Upgrade,      'couchrest/helper/upgrade'
- 
+
   # we extend CouchRest with the RestAPI module which gives us acess to
   # the get, post, put, delete and copy
-  CouchRest.extend(::RestAPI)
-  
+  CouchRest.extend(::CouchRest::RestAPI)
+
   # The CouchRest module methods handle the basic JSON serialization 
   # and deserialization, as well as query parameters. The module also includes
   # some helpers for tasks like instantiating a new Database or Server instance.
@@ -52,7 +53,7 @@ module CouchRest
     def new(*opts)
       Server.new(*opts)
     end
-    
+
     def parse url
       case url
       when /^(https?:\/\/)(.*)\/(.*)\/(.*)/

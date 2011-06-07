@@ -1,16 +1,16 @@
-module CouchRest  
+module CouchRest
   class Design < Document
     def view_by *keys
       opts = keys.pop if keys.last.is_a?(Hash)
       opts ||= {}
-      self['views'] ||= {}
+      self[:views] ||= {}
       method_name = "by_#{keys.join('_and_')}"
       
       if opts[:map]
         view = {}
         view['map'] = opts.delete(:map)
         view['reduce'] = opts.delete(:reduce) if opts[:reduce]
-        self['views'][method_name] = view
+        self[:views][method_name] = view
       else
         doc_keys = keys.collect{|k| "doc['#{k}']"}
         key_emit = doc_keys.length == 1 ? "#{doc_keys.first}" : "[#{doc_keys.join(', ')}]"
@@ -24,11 +24,11 @@ function(doc) {
   }
 }
 JAVASCRIPT
-        self['views'][method_name] = {
+        self[:views][method_name] = {
           'map' => map_function
         }
       end
-      self['views'][method_name]['couchrest-defaults'] = opts unless opts.empty?
+      self[:views][method_name]['couchrest-defaults'] = opts unless opts.empty?
       method_name
     end
     
@@ -56,7 +56,7 @@ JAVASCRIPT
     end
 
     def name= newname
-      self['_id'] = "_design/#{newname}"
+      self[:_id] = "_design/#{newname}"
     end
 
     def save
@@ -67,17 +67,17 @@ JAVASCRIPT
     # Return the hash of default values to include in all queries sent
     # to a view from couchrest.
     def view_defaults(name)
-      (self['views'][name.to_s] && self['views'][name.to_s]["couchrest-defaults"]) || {}
+      (self[:views][name.to_s] && self[:views][name.to_s]["couchrest-defaults"]) || {}
     end
 
     # Returns true or false if the view is available.
     def has_view?(name)
-      !self['views'][name.to_s].nil?
+      !self[:views][name.to_s].nil?
     end
 
     # Check if the view has a reduce method defined.
     def can_reduce_view?(name)
-      has_view?(name) && !self['views'][name.to_s]['reduce'].to_s.empty?
+      has_view?(name) && !self[:views][name.to_s]['reduce'].to_s.empty?
     end
 
     private

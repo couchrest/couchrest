@@ -1,8 +1,14 @@
+== 1.1.0.pre3 - 2011-06-06
+
+* Major changes
+  * CouchRest::Response removed
+  * CouchRest::Document now delegates to Hash (instead of inherits)
+  * Support multiple JSON gems with multi_json
+
 == 1.1.0.pre2 - 2011-04-08
 
 * Major changes
   * Time#to_json monkey patch removed! Standard JSON methods now used instead.
-	* Support multiple JSON gems with multi_json
 
 * Minor alterations
   * Named doc replication (thanks @ahamid)

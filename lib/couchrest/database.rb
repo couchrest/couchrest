@@ -75,7 +75,7 @@ module CouchRest
 
     # == Retrieving and saving single documents
 
-    # GET a document from CouchDB, by id. Returns a Ruby Hash.
+    # GET a document from CouchDB, by id. Returns a Document or Design.
     def get(id, params = {})
       slug = escape_docid(id)
       url = CouchRest.paramify_url("#{@root}/#{slug}", params)
@@ -118,13 +118,13 @@ module CouchRest
       if bulk
         @bulk_save_cache << doc
         bulk_save if @bulk_save_cache.length >= @bulk_save_cache_limit
-        return {"ok" => true} # Compatibility with Document#save
+        return {'ok' => true} # Compatibility with Document#save
       elsif !bulk && @bulk_save_cache.length > 0
         bulk_save
       end
       result = if doc['_id']
         slug = escape_docid(doc['_id'])
-        begin     
+        begin
           uri = "#{@root}/#{slug}"
           uri << "?batch=ok" if batch
           CouchRest.put uri, doc
@@ -186,11 +186,11 @@ module CouchRest
     # If <tt>bulk</tt> is true (false by default) the deletion is recorded for bulk-saving (bulk-deletion :) later.
     # Bulk saving happens automatically when #bulk_save_cache limit is exceded, or on the next non bulk save.
     def delete_doc(doc, bulk = false)
-      raise ArgumentError, "_id and _rev required for deleting" unless doc['_id'] && doc['_rev']      
+      raise ArgumentError, "_id and _rev required for deleting" unless doc['_id'] && doc['_rev']
       if bulk
-        @bulk_save_cache << { '_id' => doc['_id'], '_rev' => doc['_rev'], '_deleted' => true }
+        @bulk_save_cache << { '_id' => doc['_id'], '_rev' => doc['_rev'], :_deleted => true }
         return bulk_save if @bulk_save_cache.length >= @bulk_save_cache_limit
-        return { "ok" => true } # Mimic the non-deferred version
+        return {'ok' => true} # Mimic the non-deferred version
       end
       slug = escape_docid(doc['_id'])        
       CouchRest.delete "#{@root}/#{slug}?rev=#{doc['_rev']}"
@@ -201,7 +201,7 @@ module CouchRest
     # hash with a '_rev' key
     def copy_doc(doc, dest)
       raise ArgumentError, "_id is required for copying" unless doc['_id']
-      slug = escape_docid(doc['_id'])        
+      slug = escape_docid(doc['_id'])
       destination = if dest.respond_to?(:has_key?) && dest['_id'] && dest['_rev']
         "#{dest['_id']}?rev=#{dest['_rev']}"
       else
@@ -243,7 +243,7 @@ module CouchRest
     # Query a CouchDB view as defined by a <tt>_design</tt> document. Accepts
     # paramaters as described in http://wiki.apache.org/couchdb/HttpViewApi
     def view(name, params = {}, payload = {}, &block)
-      payload[:keys] = params.delete(:keys) if params[:keys]
+      payload['keys'] = params.delete(:keys) if params[:keys]
       # Try recognising the name, otherwise assume already prepared
       view_path = name =~ /^([^_].+?)\/(.*)$/ ? "_design/#{$1}/_view/#{$2}" : name
       url = CouchRest.paramify_url "#{@root}/#{view_path}", params
@@ -306,14 +306,14 @@ module CouchRest
     # GET an attachment directly from CouchDB
     def fetch_attachment(doc, name)
       uri = url_for_attachment(doc, name)
-      RestClient.get uri, CouchRest.default_headers
+      CouchRest.get uri, :raw => true
     end
 
     # PUT an attachment directly to CouchDB
     def put_attachment(doc, name, file, options = {})
       docid = escape_docid(doc['_id'])
       uri = url_for_attachment(doc, name)
-      MultiJson.decode(RestClient.put(uri, file, CouchRest.default_headers.merge(options)))
+      CouchRest.put(uri, file, options.merge(:raw => true))
     end
 
     # DELETE an attachment directly from CouchDB
@@ -343,12 +343,12 @@ module CouchRest
       raise ArgumentError, "must provide a target or source option" unless (options.key?(:target) || options.key?(:source))
       payload = options
       if options.has_key?(:target)
-        payload[:source] = other_db.root
+        payload['source'] = other_db.root
       else
-        payload[:target] = other_db.root
+        payload['target'] = other_db.root
       end
-      payload[:continuous] = continuous
-      payload[:doc_ids] = options[:doc_ids] if options[:doc_ids]
+      payload['continuous'] = continuous
+      payload['doc_ids'] = options[:doc_ids] if options[:doc_ids]
       CouchRest.post "#{@host}/_replicate", payload
     end
 
