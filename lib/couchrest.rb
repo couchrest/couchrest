@@ -25,7 +25,7 @@ require 'couchrest/rest_api'
 require 'couchrest/support/inheritable_attributes'
 require 'couchrest/version'
 
-require 'delegate'
+require 'forwardable'
 
 # = CouchDB, close to the metal
 module CouchRest

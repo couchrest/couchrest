@@ -2,7 +2,7 @@
 
 * Major changes
   * CouchRest::Response removed
-  * CouchRest::Document now delegates to Hash (instead of inherits)
+  * CouchRest::Document now forwards key Hash methods (instead of inheritance)
   * Support multiple JSON gems with multi_json
 
 == 1.1.0.pre2 - 2011-04-08

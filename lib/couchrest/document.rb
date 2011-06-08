@@ -16,22 +16,33 @@
 #
 
 module CouchRest
-  class Document < DelegateClass(Hash)
+  class Document
+    extend Forwardable
     include CouchRest::Attachments
     extend CouchRest::InheritableAttributes
 
     couchrest_inheritable_accessor :database
     attr_accessor :database
 
+    # Initialize a new CouchRest Document and prepare 
+    # a hidden attributes hash.
+    #
+    # When inherting a Document, it is essential that the 
+    # super method is called before you own changes to ensure
+    # that the attributes hash has been initialized before
+    # you attempt to use it.
     def initialize(attrs = nil)
       @_attributes = {}
       attrs.each{|k,v| self[k] = v} unless attrs.nil?
-      super(@_attributes)
     end
+
+    # Hash equivilent methods to access the attributes
+
+    def_delegators :@_attributes, :to_a, :==, :eql?, :keys, :values, :each,
+      :reject, :reject!, :empty?, :clear, :merge, :merge!,
+      :as_json, :to_json
+
     def []=(key, value)
-      @_attributes[key.to_s] = value
-    end
-    def store(key, value)
       @_attributes[key.to_s] = value
     end
     def [](key)
@@ -39,6 +50,22 @@ module CouchRest
     end
     def has_key?(key)
       @_attributes.has_key?(key.to_s)
+    end
+    def delete(key)
+      @_attributes.delete(key.to_s)
+    end
+    def dup
+      new = super
+      @_attributes = @_attributes.dup
+      new
+    end
+    def clone
+      new = super
+      @_attributes = @_attributes.dup
+      new
+    end
+    def to_hash
+      @_attributes
     end
 
     def id

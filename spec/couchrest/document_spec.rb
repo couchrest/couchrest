@@ -17,9 +17,24 @@ describe CouchRest::Document do
     end
 
     it "should be possible to initialize a new Document with attributes" do
-      @rsp = CouchRest::Document.new('foo' => 'bar', :test => 'foo')
-      @rsp['foo'].should eql('bar')
-      @rsp['test'].should eql('foo')
+      @doc = CouchRest::Document.new('foo' => 'bar', :test => 'foo')
+      @doc['foo'].should eql('bar')
+      @doc['test'].should eql('foo')
+    end
+
+    it "should accept new with _id" do
+      @doc = CouchRest::Document.new('_id' => 'sample', 'foo' => 'bar')
+      @doc['_id'].should eql('sample')
+      @doc['foo'].should eql('bar')
+    end
+  end
+
+  describe "hash methods" do
+    it "should respond to forwarded hash methods" do
+      @doc = CouchRest::Document.new(:foo => 'bar')
+      [:to_a, :==, :eql?, :keys, :values, :each, :reject, :reject!, :empty?, :clear, :merge, :merge!, :as_json, :to_json].each do |call|
+        @doc.should respond_to(call)
+      end
     end
   end
 
@@ -57,6 +72,27 @@ describe CouchRest::Document do
       @doc.has_key?('bardom').should be_false
     end
   end
+
+  describe "#dup" do
+    it "should also clone the attributes" do
+      @doc = CouchRest::Document.new('foo' => 'bar')
+      @doc2 = @doc.dup
+      @doc2.delete('foo')
+      @doc2['foo'].should be_nil
+      @doc['foo'].should eql('bar')
+    end
+  end
+
+  describe "#clone" do
+    it "should also clone the attributes" do
+      @doc = CouchRest::Document.new('foo' => 'bar')
+      @doc2 = @doc.clone
+      @doc2.delete('foo')
+      @doc2['foo'].should be_nil
+      @doc['foo'].should eql('bar')
+    end
+  end
+
 
   describe "#inspect" do
     it "should provide a string of keys and values of the Response" do
