@@ -32,7 +32,8 @@ describe CouchRest::Document do
   describe "hash methods" do
     it "should respond to forwarded hash methods" do
       @doc = CouchRest::Document.new(:foo => 'bar')
-      [:to_a, :==, :eql?, :keys, :values, :each, :reject, :reject!, :empty?, :clear, :merge, :merge!, :as_json, :to_json].each do |call|
+      [:to_a, :==, :eql?, :keys, :values, :each, :reject, :reject!, :empty?,
+        :clear, :merge, :merge!, :encode_json, :as_json, :to_json].each do |call|
         @doc.should respond_to(call)
       end
     end

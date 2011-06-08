@@ -40,7 +40,7 @@ module CouchRest
 
     def_delegators :@_attributes, :to_a, :==, :eql?, :keys, :values, :each,
       :reject, :reject!, :empty?, :clear, :merge, :merge!,
-      :as_json, :to_json
+      :encode_json, :as_json, :to_json
 
     def []=(key, value)
       @_attributes[key.to_s] = value
