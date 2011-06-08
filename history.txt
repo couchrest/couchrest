@@ -2,8 +2,8 @@
 
 * Major changes
   * CouchRest::Response removed
-  * CouchRest::Document now forwards key Hash methods (instead of inheritance)
-  * Support multiple JSON gems with multi_json
+  * CouchRest::Document now forwards key Hash methods (instead of inheritance) (thanks @karmi for prompting the discussion: https://github.com/crx/tire/commit/abf491d0035843a0a7395c8c32b9b7c2120071f9)
+  * Support multiple JSON gems with multi_json (thanks chrisdurtschi)
 
 == 1.1.0.pre2 - 2011-04-08
 
