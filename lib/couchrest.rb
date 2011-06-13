@@ -1,11 +1,11 @@
 # Copyright 2008 J. Chris Anderson
-# 
+#
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
 #    You may obtain a copy of the License at
-# 
+#
 #        http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 #    Unless required by applicable law or agreed to in writing, software
 #    distributed under the License is distributed on an "AS IS" BASIS,
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,6 +29,7 @@ require 'forwardable'
 
 # = CouchDB, close to the metal
 module CouchRest
+  autoload :Attributes,   'couchrest/attributes'
   autoload :Server,       'couchrest/server'
   autoload :Database,     'couchrest/database'
   autoload :Document,     'couchrest/document'
@@ -80,7 +81,7 @@ module CouchRest
       end
 
       db = nil if db && db.empty?
-      
+
       {
         :host => (scheme || "http://") + (host || "127.0.0.1:5984"),
         :database => db,
@@ -92,7 +93,7 @@ module CouchRest
     def proxy url
       RestClient.proxy = url
     end
-    
+
     # ensure that a database exists
     # creates it if it isn't already there
     # returns it after it's been created
@@ -101,13 +102,13 @@ module CouchRest
       cr = CouchRest.new(parsed[:host])
       cr.database!(parsed[:database])
     end
-  
+
     def database url
       parsed = parse url
       cr = CouchRest.new(parsed[:host])
       cr.database(parsed[:database])
     end
-    
+
     def paramify_url url, params = {}
       if params && !params.empty?
         query = params.collect do |k,v|

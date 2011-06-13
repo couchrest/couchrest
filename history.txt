@@ -1,3 +1,8 @@
+== 1.1.0.pre4 - 2011-06-13
+
+* Minor changes
+  * CouchRest::Attributes module created to make attribute related methods independent.
+
 == 1.1.0.pre3 - 2011-06-06
 
 * Major changes
