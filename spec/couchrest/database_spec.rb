@@ -303,7 +303,7 @@ describe CouchRest::Database do
       @db.fetch_attachment(@db.get('mydocwithattachment'), 'test.html').should == @attach
     end
   end
-  
+
   describe "PUT attachment from file" do
     before(:each) do
       filename = FIXTURE_PATH + '/attachments/couchdb.png'
@@ -316,12 +316,11 @@ describe CouchRest::Database do
       r = @db.put_attachment({'_id' => 'attach-this'}, 'couchdb.png', image = @file.read, {:content_type => 'image/png'})
       r['ok'].should == true
       doc = @db.get("attach-this")
-      attachment = @db.fetch_attachment(doc,"couchdb.png")
-      if attachment.respond_to?(:net_http_res)  
-        attachment.net_http_res.body.should == image
-      else
-        attachment.should == image
-      end
+      attachment = @db.fetch_attachment(doc, "couchdb.png")
+      (attachment == image).should be_true
+      #if attachment.respond_to?(:net_http_res)  
+      #  attachment.net_http_res.body.should == image
+      #end
     end
   end
 

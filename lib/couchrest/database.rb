@@ -245,7 +245,7 @@ module CouchRest
     def view(name, params = {}, payload = {}, &block)
       payload['keys'] = params.delete(:keys) if params[:keys]
       # Try recognising the name, otherwise assume already prepared
-      view_path = name =~ /^([^_].+?)\/(.*)$/ ? "_design/#{$1}/_view/#{$2}" : name
+      view_path = name_to_view_path(name)
       url = CouchRest.paramify_url "#{@root}/#{view_path}", params
       if block_given?
         if !payload.empty?
@@ -385,6 +385,12 @@ module CouchRest
 
     def base64(data)
       Base64.encode64(data).gsub(/\s/,'')
+    end
+
+    # Convert a simplified view name into a complete view path. If
+    # the name already starts with a "_" no alterations will be made.
+    def name_to_view_path(name)
+      name =~ /^([^_].+?)\/(.*)$/ ? "_design/#{$1}/_view/#{$2}" : name
     end
   end
 end

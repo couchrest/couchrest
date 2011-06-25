@@ -1,3 +1,3 @@
 module CouchRest
-  VERSION = '1.1.0.pre3'
+  VERSION = '1.1.0'
 end

@@ -1,6 +1,7 @@
-== 1.1.0.pre4 - 2011-06-13
+== 1.1.0 - 2011-06-25
 
 * Minor changes
+  * Refactored basic CouchRest API (get, post, etc.) to pass-through RestClient and MultiJSON options, including headers.
   * CouchRest::Attributes module created to make attribute related methods independent.
 
 == 1.1.0.pre3 - 2011-06-06
