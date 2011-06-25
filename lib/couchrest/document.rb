@@ -91,14 +91,6 @@ module CouchRest
       @database || self.class.database
     end
 
-    # Provide details of the current keys in the reponse. Based on ActiveRecord::Base.
-    def inspect
-      attributes_as_nice_string = self.keys.collect { |key|
-        "#{key}: #{self[key].inspect}"
-      }.compact.join(", ")
-      "#<#{self.class} #{attributes_as_nice_string}>"
-    end
-
     class << self
       # override the CouchRest::Model-wide default_database
       # This is not a thread safe operation, do not change the model

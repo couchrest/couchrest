@@ -33,7 +33,7 @@ describe CouchRest::Document do
     it "should respond to forwarded hash methods" do
       @doc = CouchRest::Document.new(:foo => 'bar')
       [:to_a, :==, :eql?, :keys, :values, :each, :reject, :reject!, :empty?,
-        :clear, :merge, :merge!, :encode_json, :as_json, :to_json].each do |call|
+        :clear, :merge, :merge!, :encode_json, :as_json, :to_json, :frozen?].each do |call|
         @doc.should respond_to(call)
       end
     end
@@ -91,6 +91,17 @@ describe CouchRest::Document do
       @doc2.delete('foo')
       @doc2['foo'].should be_nil
       @doc['foo'].should eql('bar')
+    end
+  end
+
+  describe "#freeze" do
+    it "should freeze the attributes, but not actual model" do
+      klass = Class.new(CouchRest::Document)
+      klass.class_eval { attr_accessor :test_attr }
+      @doc = klass.new('foo' => 'bar')
+      @doc.freeze
+      lambda { @doc['foo'] = 'bar2' }.should raise_error(/frozen/)
+      lambda { @doc.test_attr = "bar3" }.should_not raise_error
     end
   end
 

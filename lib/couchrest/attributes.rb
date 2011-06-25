@@ -27,7 +27,7 @@ module CouchRest
     # Hash equivilent methods to access the attributes
     def_delegators :@_attributes, :to_a, :==, :eql?, :keys, :values, :each,
       :reject, :reject!, :empty?, :clear, :merge, :merge!,
-      :encode_json, :as_json, :to_json
+      :encode_json, :as_json, :to_json, :frozen?
 
     def []=(key, value)
       @_attributes[key.to_s] = value
@@ -53,6 +53,21 @@ module CouchRest
     end
     def to_hash
       @_attributes
+    end
+
+    # Freeze the object's attributes instead of the actual document.
+    # This prevents further modifications to stored data, but does allow access
+    # to local variables useful for callbacks or cached data.
+    def freeze
+      @_attributes.freeze; self
+    end
+
+    # Provide details of the current keys in the reponse. Based on ActiveRecord::Base.
+    def inspect
+      attributes_as_nice_string = self.keys.collect { |key|
+        "#{key}: #{self[key].inspect}"
+      }.compact.join(", ")
+      "#<#{self.class} #{attributes_as_nice_string}>"
     end
 
   end
