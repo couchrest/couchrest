@@ -27,7 +27,21 @@ describe CouchRest::Document do
       @doc['_id'].should eql('sample')
       @doc['foo'].should eql('bar')
     end
+
+    context "replacing initalize" do
+      it "should not raise error" do
+        klass = Class.new(CouchRest::Document)
+        klass.class_eval do
+          def initialize; end # don't do anything, just overwrite
+        end
+        expect {
+          @doc = klass.new
+          @doc['test'] = 'sample'
+        }.to_not raise_error
+      end
+    end
   end
+
 
   describe "hash methods" do
     it "should respond to forwarded hash methods" do
