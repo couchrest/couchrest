@@ -1,4 +1,4 @@
-== 1.1.1 - 2011-06-26
+== 1.1.1 - 2011-07-04
 
 * Urgent change
   * Ensuring attributes hash initalized on use to avoid issues when initializer is overwritten.
