@@ -152,7 +152,15 @@ describe CouchRest::RestAPI do
         f.close
       end
 
-
+      it "should use as_couch_json method if available" do
+        h = {'foo' => 'bar'}
+        doc = CouchRest::Document.new(h)
+        doc.should_receive(:as_couch_json).and_return(h)
+        request.should_receive(:execute).and_return(simple_response)
+        parser.should_receive(:encode).with(h)
+        parser.should_receive(:decode).with(simple_response, parser_opts)
+        CouchRest.post('foo', doc)
+      end
     end
 
 

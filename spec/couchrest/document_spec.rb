@@ -119,6 +119,21 @@ describe CouchRest::Document do
     end
   end
 
+  describe "#as_couch_json" do
+    it "should provide a hash of data from normal document" do
+      @doc = CouchRest::Document.new('foo' => 'bar')
+      h = @doc.as_couch_json
+      h.should be_a(Hash)
+      h['foo'].should eql('bar')
+    end
+
+    it "should handle nested documents" do
+      @doc = CouchRest::Document.new('foo' => 'bar', 'doc' => CouchRest::Document.new('foo2' => 'bar2'))
+      h = @doc.as_couch_json
+      h['doc'].should be_a(Hash)
+      h['doc']['foo2'].should eql('bar2')
+    end
+  end
 
   describe "#inspect" do
     it "should provide a string of keys and values of the Response" do

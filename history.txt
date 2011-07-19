@@ -1,3 +1,8 @@
+== 1.1.2 - 2011-07-18
+
+* Minor changes
+  * Added `as_couch_json` method. If available, will be called before sending document to JSON encoder.
+
 == 1.1.1 - 2011-07-04
 
 * Urgent change

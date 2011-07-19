@@ -96,10 +96,10 @@ module CouchRest
       end
     end
 
-    # Prepare a two hashes, one for the request to the REST backend and a second
+    # Prepare two hashes, one for the request to the REST backend and a second
     # for the JSON parser.
     #
-    # Returns and array of request options and parser options.
+    # Returns an array of request and parser options.
     #
     def prepare_and_split_options(url, method, options)
       request = {
@@ -132,7 +132,11 @@ module CouchRest
     # * :raw TrueClass, if true the payload will not be altered.
     #
     def payload_from_doc(doc, opts = {})
-      (opts.delete(:raw) || doc.nil? || doc.is_a?(IO) || doc.is_a?(Tempfile)) ? doc : MultiJson.encode(doc)
+      if (opts.delete(:raw) || doc.nil? || doc.is_a?(IO) || doc.is_a?(Tempfile))
+        doc
+      else
+        MultiJson.encode(doc.respond_to?(:as_couch_json) ? doc.as_couch_json : doc)
+      end
     end
 
     # Parse the response provided.

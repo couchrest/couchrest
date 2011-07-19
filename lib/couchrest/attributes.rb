@@ -54,6 +54,13 @@ module CouchRest
       _attributes
     end
 
+    # Provide JSON data hash that can be stored in the database.
+    # Will go through each attribute value and request the `as_couch_json` method
+    # on each if available, or return the value as-is.
+    def as_couch_json
+      _attributes.inject({}) {|h, (k,v)| h[k] = v.respond_to?(:as_couch_json) ? v.as_couch_json : v; h}
+    end
+
     # Freeze the object's attributes instead of the actual document.
     # This prevents further modifications to stored data, but does allow access
     # to local variables useful for callbacks or cached data.
