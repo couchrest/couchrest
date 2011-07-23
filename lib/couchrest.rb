@@ -23,7 +23,6 @@ $:.unshift File.dirname(__FILE__) unless
 require 'couchrest/monkeypatches'
 require 'couchrest/rest_api'
 require 'couchrest/support/inheritable_attributes'
-require 'couchrest/version'
 
 require 'forwardable'
 

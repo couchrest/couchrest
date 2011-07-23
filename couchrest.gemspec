@@ -1,12 +1,12 @@
 # -*- encoding: utf-8 -*-
-require File.join(File.dirname(__FILE__),'lib','couchrest','version')
+
 Gem::Specification.new do |s|
   s.name = %q{couchrest}
-  s.version = CouchRest::VERSION
+  s.version = `cat VERSION`.strip
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["J. Chris Anderson", "Matt Aimonetti", "Marcos Tapajos", "Will Leinweber", "Sam Lown"]
-  s.date = %q{2011-04-06}
+  s.date = File.utime('VERSION')
   s.description = %q{CouchRest provides a simple interface on top of CouchDB's RESTful HTTP API, as well as including some utility scripts for managing views and attachments.}
   s.email = %q{jchris@apache.org}
 
