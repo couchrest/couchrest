@@ -26,7 +26,7 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.7}
   s.summary = %q{Lean and RESTful interface to CouchDB.}
 
-  s.add_dependency(%q<rake>, ["~> 0.8.7"])
+
   s.add_dependency(%q<rest-client>, ["~> 1.6.1"])
   s.add_dependency(%q<mime-types>, ["~> 1.15"])
   s.add_dependency(%q<multi_json>, ["~> 1.0.0"])
