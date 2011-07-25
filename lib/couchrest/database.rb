@@ -349,6 +349,7 @@ module CouchRest
       end
       payload['continuous'] = continuous
       payload['doc_ids'] = options[:doc_ids] if options[:doc_ids]
+      payload.delete :doc_ids unless payload[:doc_ids]
       CouchRest.post "#{@host}/_replicate", payload
     end
 
