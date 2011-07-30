@@ -195,7 +195,8 @@ describe CouchRest::Database do
       @db.save_doc('_id' => '_design/update_test',
                    'updates' => {'make' => <<-JS
                       function(doc, req){
-                        var new_doc = {'_id': req.query.juicy, tacos: 'tasty'};
+                        var parmesian = JSON.parse(req.body);
+                        var new_doc = {'_id': parmesian.juicy, tacos: 'tasty', data: parmesian.data};
                         return [new_doc, '{"ok": true}'];
                       }
                     JS
@@ -205,6 +206,10 @@ describe CouchRest::Database do
       id = 'abcuhc398093'
       @db.update('update_test/make', nil, :juicy => id)['ok'].should be_true
       @db.get(id)['tacos'].should == 'tasty'
+    end
+    it "should allow creating a big doc" do
+      @db.update('update_test/make', nil, :juicy => "abc123", :data => (1..10000).to_a)
+      @db.get('abc123')['data'].length.should == 10000
     end
   end
 
