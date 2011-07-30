@@ -25,7 +25,7 @@ describe CouchRest do
       @cr.info.class.should == Hash   
     end
   end
-  
+
   it "should restart" do
     @cr.restart!
     begin

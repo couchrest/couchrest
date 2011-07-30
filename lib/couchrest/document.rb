@@ -1,38 +1,45 @@
-require 'delegate'
 
-module CouchRest  
-  class Document < Response
+#
+# CouchRest::Document
+#
+# Provides basic functions for controlling documents returned from
+# the CouchDB database and provides methods to act as a wrapper around
+# a Hash of @_attributes.
+#
+# The idea is to provide the basic functionality of a Hash, just
+# enought to support the needs of CouchRest, but not inherit all
+# of the functionality found in a basic Hash.
+#
+# A Response is similar to Rails' HashWithIndifferentAccess as all
+# requests will convert the keys into Symbols and be stored in the
+# master hash as such.
+#
+
+module CouchRest
+  class Document
+    include CouchRest::Attributes
     include CouchRest::Attachments
     extend CouchRest::InheritableAttributes
-    
+
     couchrest_inheritable_accessor :database
     attr_accessor :database
-    
-    # override the CouchRest::Model-wide default_database
-    # This is not a thread safe operation, do not change the model
-    # database at runtime.
-    def self.use_database(db)
-      self.database = db
-    end
-    
+
     def id
       self['_id']
     end
-
     def id=(id)
       self['_id'] = id
     end
-    
     def rev
       self['_rev']
     end
-    
+
     # returns true if the document has never been saved
     def new?
       !rev
     end
     alias :new_document? :new?
-    
+
     # Saves the document to the db using create or update. Also runs the :save
     # callbacks. Sets the <tt>_id</tt> and <tt>_rev</tt> fields based on
     # CouchDB's response.
@@ -57,7 +64,7 @@ module CouchRest
       end
       result['ok']
     end
-    
+
     # copies the document to a new id. If the destination id currently exists, a rev must be provided.
     # <tt>dest</tt> can take one of two forms if overwriting: "id_to_overwrite?rev=revision" or the actual doc
     # hash with a '_rev' key
@@ -66,7 +73,7 @@ module CouchRest
       result = database.copy_doc(self, dest)
       result['ok']
     end
-    
+
     # Returns the CouchDB uri for the document
     def uri(append_rev = false)
       return nil if new?
@@ -78,12 +85,21 @@ module CouchRest
       end
       couch_uri
     end
-    
+
     # Returns the document's database
     def database
       @database || self.class.database
     end
-    
+
+    class << self
+      # override the CouchRest::Model-wide default_database
+      # This is not a thread safe operation, do not change the model
+      # database at runtime.
+      def use_database(db)
+        self.database = db
+      end
+    end
+
   end
-  
+
 end

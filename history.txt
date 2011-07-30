@@ -1,3 +1,45 @@
+== 1.1.2 - 2011-07-18
+
+* Minor changes
+  * Added `as_couch_json` method. If available, will be called before sending document to JSON encoder.
+
+== 1.1.1 - 2011-07-04
+
+* Urgent change
+  * Ensuring attributes hash initalized on use to avoid issues when initializer is overwritten.
+
+== 1.1.0 - 2011-06-25
+
+* Minor changes
+  * Refactored basic CouchRest API (get, post, etc.) to pass-through RestClient and MultiJSON options, including headers.
+  * CouchRest::Attributes module created to make attribute related methods independent.
+
+== 1.1.0.pre3 - 2011-06-06
+
+* Major changes
+  * CouchRest::Response removed
+  * CouchRest::Document now forwards key Hash methods (instead of inheritance) (thanks @karmi for prompting the discussion: https://github.com/crx/tire/commit/abf491d0035843a0a7395c8c32b9b7c2120071f9)
+  * Support multiple JSON gems with multi_json (thanks chrisdurtschi)
+
+== 1.1.0.pre2 - 2011-04-08
+
+* Major changes
+  * Time#to_json monkey patch removed! Standard JSON methods now used instead.
+
+* Minor alterations
+  * Named doc replication (thanks @ahamid)
+  * Database#update_doc no longer requires document to be returned from block (thanks @ferrous26)
+  * Streamer now available for all queries that return multiple documents (thanks @pcapr for pointer)
+  * Streamer#view method removed, use Database.view with block
+  * Database#changes method added (with streamer option)
+  * Added :allow_nil option when creating views
+  * Bug fix: only symbols can be passed as view options (helps fix auto :reduce option)
+
+WARNING: If you depend on ordering by Time, this release may cause issues on old databases! 
+Either update your documents to use the new format (JSON standard), or use Javascript's Date.parse 
+method in your views. Also, use Time#utc to ensure universal ordering regardless of time
+zone. (CouchRest Model does this automatically.)
+
 == 1.0.2
 
 * Minor enhancements

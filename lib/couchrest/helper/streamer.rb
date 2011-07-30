@@ -1,39 +1,46 @@
 module CouchRest
   class Streamer
-    attr_accessor :db
-    def initialize db
-      @db = db
+
+    attr_accessor :default_curl_opts
+
+    def initialize
+      self.default_curl_opts = "--silent --no-buffer --tcp-nodelay -H \"Content-Type: application/json\""
     end
-    
-    # Stream a view, yielding one row at a time. Shells out to <tt>curl</tt> to keep RAM usage low when you have millions of rows.
-    def view name, params = nil, &block
-      urlst = if /^_/.match(name) then
-        "#{@db.root}/#{name}"
-      else
-        name = name.split('/')
-        dname = name.shift
-        vname = name.join('/')
-        "#{@db.root}/_design/#{dname}/_view/#{vname}"
-      end
-      url = CouchRest.paramify_url urlst, params
-      # puts "stream #{url}"
+
+    def view(*args)
+      raise "CouchRest::Streamer#view is depricated. Please use Database#view with block."
+    end
+
+    def get(url, &block)
+      open_pipe("curl #{default_curl_opts} \"#{url}\"", &block)
+    end
+
+    def post(url, params = {}, &block)
+      open_pipe("curl #{default_curl_opts} -d \"#{escape_quotes(MultiJson.encode(params))}\" \"#{url}\"", &block)
+    end
+
+    protected
+
+    def escape_quotes(data)
+      data.gsub(/"/, '\"')
+    end
+
+    def open_pipe(cmd, &block)
       first = nil
-      IO.popen("curl --silent '#{url}'") do |view|
-        first = view.gets # discard header
-        while line = view.gets 
+      IO.popen(cmd) do |f|
+        first = f.gets # discard header
+        while line = f.gets 
           row = parse_line(line)
           block.call row unless row.nil? # last line "}]" discarded
         end
       end
       parse_first(first)
     end
-    
-    private
-    
+
     def parse_line line
       return nil unless line
       if /(\{.*\}),?/.match(line.chomp)
-        JSON.parse($1)
+        MultiJson.decode($1)
       end
     end
 
@@ -42,10 +49,10 @@ module CouchRest
       parts = first.split(',')
       parts.pop
       line = parts.join(',')
-      JSON.parse("#{line}}")
+      MultiJson.decode("#{line}}")
     rescue
       nil
     end
-    
+
   end
 end
