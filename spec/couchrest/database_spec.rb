@@ -196,7 +196,13 @@ describe CouchRest::Database do
                    'updates' => {'make' => <<-JS
                       function(doc, req){
                         var parmesian = JSON.parse(req.body);
-                        var new_doc = {'_id': (doc ? doc._id : parmesian.juicy), tacos: 'tasty', data: parmesian.data};
+                        if(doc){
+                          var new_doc = doc;
+                          new_doc.tacos = 'tasty';
+                          new_doc.data = parmesian.data;
+                        } else {
+                          var new_doc = {'_id': parmesian.juicy, tacos: 'tasty', data: parmesian.data};
+                        }
                         return [new_doc, '{"ok": true}'];
                       }
                     JS
@@ -204,16 +210,16 @@ describe CouchRest::Database do
     end
     it "should create a doc when calling the make update" do
       id = 'abcuhc398093'
-      @db.update('update_test/make', nil, :juicy => id)['ok'].should be_true
+      @db.update('update_test/make', :body => {:juicy => id})['ok'].should be_true
       @db.get(id)['tacos'].should == 'tasty'
     end
     it "should allow creating a big doc" do
-      @db.update('update_test/make', nil, :juicy => "abc123", :data => (1..10000).to_a)
+      @db.update('update_test/make', :body => {:juicy => "abc123", :data => (1..10000).to_a})
       @db.get('abc123')['data'].length.should == 10000
     end
     it "should allow updating a big doc" do
-      @db.update('update_test/make', nil, :juicy => "abc123")
-      @db.update('update_test/make', 'abc123', :data => (1..10000).to_a)
+      @db.update('update_test/make', :body => {:juicy => "abc123"})
+      @db.update('update_test/make', :id => 'abc123', :body => {:data => (1..10000).to_a})
       @db.get('abc123')['data'].length.should == 10000
     end
   end
