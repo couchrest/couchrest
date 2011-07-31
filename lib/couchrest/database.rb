@@ -82,7 +82,7 @@ module CouchRest
       m = id ? 'put' : 'post'
       CouchRest.send(m, url, body)
     end
-    
+
     # DELETE the database itself. This is not undoable and could be rather
     # catastrophic. Use with care!
     def delete!
