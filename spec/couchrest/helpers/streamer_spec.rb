@@ -25,18 +25,21 @@ describe CouchRest::Streamer do
 
   it "should GET each row in a view" do
     count = 0
-    @streamer.get("#{@db.root}/_all_docs") do |row|
+    header = @streamer.get("#{@db.root}/_all_docs") do |row|
       count += 1
     end
     count.should == 1001
+    header.should == {"total_rows" => 1001, "offset" => 0}
   end
 
   it "should GET each row in a view with params" do
     count = 0
-    @streamer.get("#{@db.root}/_all_docs?include_docs=true&limit=5") do |row|
+    header = @streamer.get("#{@db.root}/_all_docs?include_docs=true&limit=5") do |row|
       count += 1
     end
     count.should == 5
+    header.should == {"total_rows" => 1001, "offset" => 0}
+  end
   end
 
   it "should POST for each row in a view" do
