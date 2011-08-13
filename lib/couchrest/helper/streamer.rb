@@ -27,14 +27,19 @@ module CouchRest
 
     def open_pipe(cmd, &block)
       first = nil
+      prev = nil
       IO.popen(cmd) do |f|
         first = f.gets # discard header
         while line = f.gets 
           row = parse_line(line)
           block.call row unless row.nil? # last line "}]" discarded
+          prev = line
         end
       end
-      parse_first(first)
+
+      raise RestClient::ServerBrokeConnection if $? && $?.exitstatus != 0
+
+      parse_first(first, prev)
     end
 
     def parse_line line
@@ -44,14 +49,11 @@ module CouchRest
       end
     end
 
-    def parse_first first
+    def parse_first first, last
       return nil unless first
-      parts = first.split(',')
-      parts.pop
-      line = parts.join(',')
-      MultiJson.decode("#{line}}")
-    rescue
-      nil
+      header = MultiJson.decode(last ? first + last : first)
+      header.delete("rows")
+      header
     end
 
   end

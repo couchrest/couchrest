@@ -40,6 +40,78 @@ describe CouchRest::Streamer do
     count.should == 5
     header.should == {"total_rows" => 1001, "offset" => 0}
   end
+
+  it "should GET no rows in a view with limit=0" do
+    count = 0
+    header = @streamer.get("#{@db.root}/_all_docs?include_docs=true&limit=0") do |row|
+      count += 1
+    end
+    count.should == 0
+    header.should == {"total_rows" => 1001, "offset" => 0}
+  end
+
+  it "should raise an exception receives malformed data" do
+    IO.stub(:popen) do |cmd, block|
+      class F
+        def initialize
+          @lines = [
+            '{"total_rows": 123, "offset": "0", "rows": [',
+            '{"foo": 1},',
+            '{"foo": 2},',
+          ]
+        end
+
+        def gets
+          @lines.shift
+        end
+      end
+
+      f = F.new
+      block.call f
+
+      IO.unstub(:popen)
+      IO.popen 'true' do; end
+    end
+
+    count = 0
+    expect do
+      @streamer.get("#{@db.root}/_all_docs?include_docs=true&limit=0") do |row|
+        count += 1
+      end
+    end.should raise_error(MultiJson::DecodeError)
+  end
+
+  it "should raise an exception if the couch connection fails" do
+    IO.stub(:popen) do |cmd, block|
+      class F
+        def initialize
+          @lines = [
+            '{"total_rows": 123, "offset": "0", "rows": [',
+            '{"foo": 1},',
+            '{"foo": 2},',
+          ]
+        end
+
+        def gets
+          @lines.shift
+        end
+      end
+
+      block.call F.new
+
+      IO.unstub(:popen)
+      IO.popen 'false' do; end
+    end
+
+    count = 0
+
+    expect do
+      @streamer.get("#{@db.root}/_all_docs?include_docs=true&limit=0") do |row|
+        count += 1
+      end
+    end.should raise_error(RestClient::ServerBrokeConnection)
+
+    count.should == 2
   end
 
   it "should POST for each row in a view" do
