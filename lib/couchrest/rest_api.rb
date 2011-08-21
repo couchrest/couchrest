@@ -5,7 +5,7 @@ module CouchRest
   # The basic low-level interface for all REST requests to the database. Everything must pass
   # through here before it is sent to the server.
   #
-  # Five types of REST requests are supported: get, put, post, delete, and copy.
+  # Six types of REST requests are supported: get, put, post, delete, copy and head.
   #
   # Requests that do not have a payload, get, delete and copy, accept the URI and options parameters,
   # where as put and post both expect a document as the second parameter.
@@ -69,6 +69,11 @@ module CouchRest
       execute(uri, :copy, opts)
     end
 
+    # Send a HEAD request.
+    def head(uri, options = {})
+      execute(uri, :head, options)
+    end
+
     # The default RestClient headers used in each request.
     def default_headers
       {
@@ -108,7 +113,8 @@ module CouchRest
         :headers => default_headers.merge(options[:headers] || {})
       }
       parser = {
-        :raw => false
+        :raw => false,
+        :head => (method == :head)
       }
       # Split the options
       (options || {}).each do |k,v|
@@ -141,7 +147,7 @@ module CouchRest
 
     # Parse the response provided.
     def parse_response(result, opts = {})
-      opts.delete(:raw) ? result : MultiJson.decode(result, opts.update(:max_nesting => false))
+      (opts.delete(:raw) || opts.delete(:head)) ? result : MultiJson.decode(result, opts.update(:max_nesting => false))
     end
 
     # An array of all the options that should be passed through to restclient.
