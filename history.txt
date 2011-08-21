@@ -1,3 +1,9 @@
+== 1.1.3
+
+* Major changes
+	* Add support for HTTP HEAD requests(Tim Anglade)
+	* Make CouchRest#database! check if a db exists before creating it(Tim Anglade)
+	
 == 1.1.2 - 2011-07-18
 
 * Minor changes
