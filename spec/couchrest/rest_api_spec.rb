@@ -17,6 +17,7 @@ describe CouchRest::RestAPI do
       should respond_to :post
       should respond_to :copy
       should respond_to :delete
+      should respond_to :head
     end
 
     it "should provide default headers" do
@@ -206,6 +207,13 @@ describe CouchRest::RestAPI do
 
     end
 
+    describe :head do
+      it "should send basic request" do
+        req = {:url => 'foo', :method => :head, :headers => CouchRest.default_headers}
+        request.should_receive(:execute).with(req).and_return(simple_response)
+        CouchRest.head('foo')
+      end
+    end
 
   end
 

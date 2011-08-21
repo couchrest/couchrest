@@ -55,8 +55,10 @@ module CouchRest
   
     # Creates the database if it doesn't exist
     def database!(name)
-      create_db(name) rescue nil
+      CouchRest.head "#{@uri}/#{name}" # Check if the URL is valid
       database(name)
+    rescue RestClient::ResourceNotFound # Thrown if the HTTP HEAD fails
+      create_db(name)
     end
   
     # GET the welcome message
