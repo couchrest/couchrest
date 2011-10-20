@@ -16,9 +16,9 @@ word_count = {
   }'
 }
 
-db.delete db.get("_design/word_count") rescue nil
+db.delete_doc db.get("_design/word_count") rescue nil
 
-db.save({
+db.save_doc({
   "_id" => "_design/word_count",
   :views => {
     :words => word_count
