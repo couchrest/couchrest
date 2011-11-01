@@ -243,6 +243,7 @@ module CouchRest
     # Query a CouchDB view as defined by a <tt>_design</tt> document. Accepts
     # paramaters as described in http://wiki.apache.org/couchdb/HttpViewApi
     def view(name, params = {}, payload = {}, &block)
+      params = params.dup
       payload['keys'] = params.delete(:keys) if params[:keys]
       # Try recognising the name, otherwise assume already prepared
       view_path = name_to_view_path(name)
