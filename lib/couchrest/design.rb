@@ -5,6 +5,7 @@ module CouchRest
       opts = keys.pop if keys.last.is_a?(Hash)
       opts ||= {}
       self['views'] ||= {}
+      self['language'] ||= :javascript
       method_name = "by_#{keys.join('_and_')}"
 
       if opts[:map]
@@ -13,20 +14,14 @@ module CouchRest
         view['reduce'] = opts.delete(:reduce) if opts[:reduce]
         self['views'][method_name] = view
       else
-        doc_keys = keys.collect{|k| "doc['#{k}']"}
+        key_data = create_key_data keys
+        doc_keys = key_data[:keys]
         key_emit = doc_keys.length == 1 ? "#{doc_keys.first}" : "[#{doc_keys.join(', ')}]"
         guards = opts.delete(:guards) || []
-        guards += doc_keys.map{|k| "(#{k} != null)"} unless opts.delete(:allow_nil)
+        guards += null_check(doc_keys) unless opts.delete(:allow_nil)
         guards << 'true' if guards.empty?
-        map_function = <<-JAVASCRIPT
-function(doc) {
-  if (#{guards.join(' && ')}) {
-    emit(#{key_emit}, null);
-  }
-}
-JAVASCRIPT
         self['views'][method_name] = {
-          'map' => map_function
+          'map' => map_function(guards, key_data[:declarations], key_emit)
         }
       end
       self['views'][method_name]['couchrest-defaults'] = opts unless opts.empty?
@@ -86,6 +81,51 @@ JAVASCRIPT
     def fetch_view view_name, opts, &block
       database.view(view_name, opts, &block)
     end
-
+    
+    def map_function guards, declarations, key_emit
+      case self['language']
+        when :javascript
+          <<-JAVASCRIPT
+function(doc) {
+  if (#{guards.join(' && ')}) {
+    emit(#{key_emit}, null);
+  }
+}
+JAVASCRIPT
+        when :erlang
+          <<-ERLANG
+fun({Doc}) ->
+  #{declarations.join(', ')},
+  if
+    (#{guards.join(' and ')}) ->
+      Emit(#{key_emit}, null);
+    true ->
+      ok
+  end
+end.
+ERLANG
+      end
+    end
+    
+    def create_key_data keys
+      case self['language']
+        when :javascript 
+          {:keys => keys.map{|k| "doc['#{k}']"}}
+        when :erlang
+          declarations = keys.map{|k| "#{k.capitalize} = couch_util:get_value(<<\"#{k}\">>, Doc)"}
+          keys = keys.map{|k| k.capitalize}
+          {:keys => keys, :declarations => declarations}
+      end
+    end
+    
+    def null_check doc_keys
+      case self['language']
+        when :javascript 
+          doc_keys.map{|k| "(#{k} != null)"}
+        when :erlang
+          doc_keys.map{|k| "(#{k} /= null)"}
+      end
+    end
+    
   end
 end
