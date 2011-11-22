@@ -2,18 +2,16 @@ require File.expand_path("../../spec_helper", __FILE__)
 
 describe CouchRest::Design do
   
-  describe "defining a view" do
+  shared_examples_for "defining a view" do
     it "should add a view to the design doc" do
-      @des = CouchRest::Design.new
       method = @des.view_by :name
       method.should == "by_name"
       @des["views"]["by_name"].should_not be_nil
     end
   end
   
-  describe "with an unsaved view" do
+  shared_examples_for "with an unsaved view" do
     before(:each) do
-      @des = CouchRest::Design.new
       @des.view_by :name
     end
     it "should accept a name" do
@@ -28,9 +26,8 @@ describe CouchRest::Design do
     end
   end
   
-  describe "saving" do
+  shared_examples_for "saving" do
     before(:each) do
-      @des = CouchRest::Design.new
       @des.view_by :name
       @des.database = reset_test_db!
     end
@@ -43,11 +40,10 @@ describe CouchRest::Design do
     end
   end
   
-  describe "when it's saved" do
+  shared_examples_for "when it's saved" do
     before(:each) do
       @db = reset_test_db!
       @db.bulk_save([{"name" => "x"},{"name" => "y"}])
-      @des = CouchRest::Design.new
       @des.database = @db
       @des.view_by :name
     end
@@ -66,20 +62,7 @@ describe CouchRest::Design do
     end
   end
   
-  describe "from a saved document" do
-    before(:each) do
-      @db = reset_test_db!
-      @db.save_doc({
-        "_id" => "_design/test",
-        "views" => {
-          "by_name" => {
-            "map" => "function(doc){if (doc.name) emit(doc.name, null)}"
-          }
-        }
-      })
-      @db.bulk_save([{"name" => "a"},{"name" => "b"}])
-      @des = @db.get "_design/test"
-    end
+  shared_examples_for "from a saved document" do
     it "should be a Design" do
       @des.should be_an_instance_of(CouchRest::Design)
     end
@@ -94,10 +77,46 @@ describe CouchRest::Design do
     end
   end
   
-  describe "a view with default options" do
-    before(:all) do
+  describe "from a saved javascript document" do
+    before(:each) do
       @db = reset_test_db!
-      @des = CouchRest::Design.new
+      @db.save_doc({
+        "_id" => "_design/test",
+        "views" => {
+          "by_name" => {
+            "map" => "function(doc){if (doc.name) emit(doc.name, null)}"
+          }
+        }
+      })
+      @db.bulk_save([{"name" => "a"},{"name" => "b"}])
+      @des = @db.get "_design/test"
+    end
+    
+    it_should_behave_like "from a saved document"
+  end
+  
+  describe "from a saved erlang document" do
+    before(:each) do
+      @db = reset_test_db!
+      @db.save_doc({
+        "_id" => "_design/test",
+        "language" => "erlang",
+        "views" => {
+          "by_name" => {
+            "map" => "fun({Doc}) -> Name = couch_util:get_value(<<\"name\">>, Doc), if (Name /= null) -> Emit(Name, null); true -> ok end end."
+          }
+        }
+      })
+      @db.bulk_save([{"name" => "a"},{"name" => "b"}])
+      @des = @db.get "_design/test"
+    end
+    
+    it_should_behave_like "from a saved document"
+  end  
+  
+  shared_examples_for "a view with default options" do
+    before(:each) do
+      @db = reset_test_db!
       @des.name = "test"
       @des.view_by :name, :descending => true
       @des.database = @db
@@ -118,10 +137,9 @@ describe CouchRest::Design do
     end
   end
   
-  describe "a view with multiple keys" do
-    before(:all) do
+  shared_examples_for "a view with multiple keys" do
+    before(:each) do
       @db = reset_test_db!
-      @des = CouchRest::Design.new
       @des.name = "test"
       @des.view_by :name, :age
       @des.database = @db
@@ -134,11 +152,10 @@ describe CouchRest::Design do
       res["rows"].first["key"].should == ["a",2]
     end
   end
-
-  describe "a view with nil and 0 values" do
-    before(:all) do
+  
+  shared_examples_for "a view with nil and 0 values" do
+    before(:each) do
       @db = reset_test_db!
-      @des = CouchRest::Design.new
       @des.name = "test"
       @des.view_by :code
       @des.database = @db
@@ -153,11 +170,10 @@ describe CouchRest::Design do
       res["rows"][2].should be_nil
     end
   end
-
-  describe "a view with nil and 0 values and :allow_nil" do
-    before(:all) do
+  
+  shared_examples_for "a view with nil and 0 values and :allow_nil" do
+    before(:each) do
       @db = reset_test_db!
-      @des = CouchRest::Design.new
       @des.name = "test"
       @des.view_by :code, :allow_nil => true
       @des.database = @db
@@ -172,19 +188,38 @@ describe CouchRest::Design do
       res["rows"][2]["key"].should == "a"
     end
   end
-
-
-  describe "a view with a reduce function" do
-    before(:all) do
-      @db = reset_test_db!
+  
+  describe "javascript" do
+    before(:each) do
       @des = CouchRest::Design.new
-      @des.name = "test"
-      @des.view_by :code, :map => "function(d){ if(d['code']) { emit(d['code'], 1); } }", :reduce => "function(k,v,r){ return sum(v); }"
-      @des.database = @db
-      @des.save
-      @db.bulk_save([{"code" => "a", "age" => 2},
-        {"code" => 'b', "age" => 4},{"code" => 'c', "age" => 9}])
     end
+    
+    it_should_behave_like "defining a view"
+    it_should_behave_like "with an unsaved view"
+    it_should_behave_like "saving"
+    it_should_behave_like "when it's saved"
+    it_should_behave_like "a view with default options"
+    it_should_behave_like "a view with multiple keys"
+    it_should_behave_like "a view with nil and 0 values"
+    it_should_behave_like "a view with nil and 0 values and :allow_nil"
+  end
+  
+  describe "erlang" do
+    before(:each) do
+      @des = CouchRest::Design.new(:language => 'erlang')
+    end
+    
+    it_should_behave_like "defining a view"
+    it_should_behave_like "with an unsaved view"
+    it_should_behave_like "saving"
+    it_should_behave_like "when it's saved"
+    it_should_behave_like "a view with default options"
+    it_should_behave_like "a view with multiple keys"
+    it_should_behave_like "a view with nil and 0 values"
+    it_should_behave_like "a view with nil and 0 values and :allow_nil"
+  end
+
+  shared_examples_for "a view with a reduce function" do    
     it "should not set a default parameter" do
       @des['views']['by_code']['couchrest-defaults'].should be_nil
     end
@@ -202,5 +237,34 @@ describe CouchRest::Design do
     end
   end
 
+  describe "a view with a javascript reduce function" do
+    before(:all) do
+      @db = reset_test_db!
+      @des = CouchRest::Design.new
+      @des.name = "test"
+      @des.view_by :code, :map => "function(d){ if(d['code']) { emit(d['code'], 1); } }", :reduce => "function(k,v,r){ return sum(v); }"
+      @des.database = @db
+      @des.save
+      @db.bulk_save([{"code" => "a", "age" => 2},
+        {"code" => 'b', "age" => 4},{"code" => 'c', "age" => 9}])
+    end
+    
+    it_should_behave_like "a view with a reduce function"
+  end
+  
+  describe "a view with an erlang reduce function" do
+    before(:all) do
+      @db = reset_test_db!
+      @des = CouchRest::Design.new(:language => :erlang)
+      @des.name = "test"
+      @des.view_by :code, :map => "fun({Doc}) -> Code = couch_util:get_value(<<\"code\">>, Doc), if (Code /= null) -> Emit(Code, 1); true -> ok end end.", :reduce => "fun(Keys, Values, ReReduce) -> lists:sum(Values) end."
+      @des.database = @db
+      @des.save
+      @db.bulk_save([{"code" => "a", "age" => 2},
+        {"code" => 'b', "age" => 4},{"code" => 'c', "age" => 9}])
+    end
+    
+    it_should_behave_like "a view with a reduce function"
+  end
 
 end
