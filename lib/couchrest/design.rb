@@ -5,7 +5,7 @@ module CouchRest
       opts = keys.pop if keys.last.is_a?(Hash)
       opts ||= {}
       self['views'] ||= {}
-      self['language'] ||= :javascript
+      self['language'] ||= 'javascript'
       method_name = "by_#{keys.join('_and_')}"
 
       if opts[:map]
@@ -84,7 +84,7 @@ module CouchRest
     
     def map_function guards, declarations, key_emit
       case self['language']
-        when :javascript
+        when 'javascript'
           <<-JAVASCRIPT
 function(doc) {
   if (#{guards.join(' && ')}) {
@@ -92,7 +92,7 @@ function(doc) {
   }
 }
 JAVASCRIPT
-        when :erlang
+        when 'erlang'
           <<-ERLANG
 fun({Doc}) ->
   #{declarations.join(', ')},
@@ -109,9 +109,9 @@ ERLANG
     
     def create_key_data keys
       case self['language']
-        when :javascript 
+        when 'javascript'
           {:keys => keys.map{|k| "doc['#{k}']"}}
-        when :erlang
+        when 'erlang'
           declarations = keys.map{|k| "#{k.capitalize} = couch_util:get_value(<<\"#{k}\">>, Doc)"}
           keys = keys.map{|k| k.capitalize}
           {:keys => keys, :declarations => declarations}
@@ -120,9 +120,9 @@ ERLANG
     
     def null_check doc_keys
       case self['language']
-        when :javascript 
+        when 'javascript'
           doc_keys.map{|k| "(#{k} != null)"}
-        when :erlang
+        when 'erlang'
           doc_keys.map{|k| "(#{k} /= null)"}
       end
     end

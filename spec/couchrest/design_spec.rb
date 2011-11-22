@@ -206,7 +206,7 @@ describe CouchRest::Design do
   
   describe "erlang" do
     before(:each) do
-      @des = CouchRest::Design.new(:language => :erlang)
+      @des = CouchRest::Design.new(:language => 'erlang')
     end
     
     it_should_behave_like "defining a view"
