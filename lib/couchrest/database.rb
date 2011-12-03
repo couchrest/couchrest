@@ -341,6 +341,7 @@ module CouchRest
     def replicate(other_db, continuous, options)
       raise ArgumentError, "must provide a CouchReset::Database" unless other_db.kind_of?(CouchRest::Database)
       raise ArgumentError, "must provide a target or source option" unless (options.key?(:target) || options.key?(:source))
+      doc_ids = options.delete(:doc_ids)
       payload = options
       if options.has_key?(:target)
         payload['source'] = other_db.root
@@ -348,7 +349,7 @@ module CouchRest
         payload['target'] = other_db.root
       end
       payload['continuous'] = continuous
-      payload['doc_ids'] = options[:doc_ids] if options[:doc_ids]
+      payload['doc_ids'] = doc_ids if doc_ids
       CouchRest.post "#{@host}/_replicate", payload
     end
 
