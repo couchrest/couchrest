@@ -163,7 +163,7 @@ module CouchRest
     # missing ids, supply one from the uuid cache.
     #
     # If called with no arguments, bulk saves the cache of documents to be bulk saved.
-    def bulk_save(docs = nil, use_uuids = true)
+    def bulk_save(docs = nil, use_uuids = true, all_or_nothing = false)
       if docs.nil?
         docs = @bulk_save_cache
         @bulk_save_cache = []
@@ -176,7 +176,11 @@ module CouchRest
           doc['_id'] = nextid if nextid
         end
       end
-      CouchRest.post "#{@root}/_bulk_docs", {:docs => docs}
+      request_body = {:docs => docs}
+      if all_or_nothing
+        request_body[:all_or_nothing] = true
+      end
+      CouchRest.post "#{@root}/_bulk_docs", request_body
     end
     alias :bulk_delete :bulk_save
 
