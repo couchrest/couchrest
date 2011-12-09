@@ -251,7 +251,7 @@ describe CouchRest::Database do
       docs = [{"_id" => "oneB", "wild" => "and random"}, {"_id" => "twoB", "mild" => "yet local"}]
       CouchRest.should_receive(:post).with("#{COUCHHOST}/couchrest-test/_bulk_docs", {:all_or_nothing => true, :docs => docs})
       
-      @db.bulk_save(docs, false, true)
+      @db.bulk_save docs, :all_or_nothing => true
     end
 
     it "should raise an error that is useful for recovery" do
