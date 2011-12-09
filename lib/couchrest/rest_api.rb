@@ -30,7 +30,7 @@ module CouchRest
   #
   # Any other remaining options will be sent to the MultiJSON backend except for the :raw option.
   #
-  # When :raw is true in PUT and POST requests, no attempt will be made to convert the document payload to JSON. This is 
+  # When :raw is true in PUT and POST requests, no attempt will be made to convert the document payload to JSON. This is
   # not normally necessary as IO and Tempfile objects will not be parsed anyway. The result of the request will
   # *always* be parsed.
   #
@@ -84,14 +84,16 @@ module CouchRest
 
     private
 
-    # Perform the RestClient request by removing the parse specific options, ensuring the 
+    # Perform the RestClient request by removing the parse specific options, ensuring the
     # payload is prepared, and sending the request ready to parse the response.
     def execute(url, method, options = {}, payload = nil)
       request, parser = prepare_and_split_options(url, method, options)
       # Prepare the payload if it is provided
       request[:payload] = payload_from_doc(payload, parser) if payload
       begin
-        parse_response(RestClient::Request.execute(request), parser)
+        response = RestClient::Request.execute(request)
+        return if response.empty? # patch for empty response
+        parse_response(response, parser)
       rescue Exception => e
         if $DEBUG
           raise "Error while sending a #{method.to_s.upcase} request #{uri}\noptions: #{opts.inspect}\n#{e}"
@@ -131,7 +133,7 @@ module CouchRest
       [request, parser]
     end
 
-    # Check if the provided doc is nil or special IO device or temp file. If not, 
+    # Check if the provided doc is nil or special IO device or temp file. If not,
     # encode it into a string.
     #
     # The options supported are:
