@@ -1,3 +1,5 @@
+require 'tempfile'
+
 module CouchRest
   class Streamer
 
@@ -16,7 +18,11 @@ module CouchRest
     end
 
     def post(url, params = {}, &block)
-      open_pipe("curl #{default_curl_opts} -d \"#{escape_quotes(MultiJson.encode(params))}\" \"#{url}\"", &block)
+      Tempfile.open('couchrest-post') do |tmp_file|
+        tmp_file.write(MultiJson.encode(params))
+        tmp_file.close
+        open_pipe("curl #{default_curl_opts} -d @#{tmp_file.path} \"#{url}\"", &block)
+      end
     end
 
     protected
