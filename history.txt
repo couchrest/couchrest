@@ -1,9 +1,15 @@
-== 1.1.3
+== 1.1.3 - 2012-07-31
 
-* Major changes
-	* Add support for HTTP HEAD requests(Tim Anglade)
-	* Make CouchRest#database! check if a db exists before creating it(Tim Anglade)
-	
+* Minor changes
+  * Add support for HTTP HEAD requests (Tim Anglade)
+  * Make CouchRest#database! check if a db exists before creating it (Tim Anglade)
+  * Use _doc suffix in examples for delete and save (Mickael Riga)
+  * Database#view should not modify the params (@krishan)
+  * Fix replication with couchdb >= 1.1.0 (@erickt)
+  * Streamer protection against bad responses improved (@erickt)
+  * Support atomic bulk save requests with all_or_nothing CouchDB parameter (@matthiasjakel)
+  * Update multi_json dependency so we can use any 1.x version (@dgraham)
+
 == 1.1.2 - 2011-07-18
 
 * Minor changes
