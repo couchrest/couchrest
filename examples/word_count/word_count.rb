@@ -28,7 +28,7 @@ books.keys.each do |book|
     while line = file.gets
       lines << line
       if lines.length > 10
-        db.save({
+        db.save_doc({
           :title => title,
           :chunk => chunk, 
           :text => lines.join('')
