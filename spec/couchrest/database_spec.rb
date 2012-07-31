@@ -137,6 +137,12 @@ describe CouchRest::Database do
       rs = @db.view('first/test', :keys => ["another", "wild"])
       rs['rows'].length.should == 2
     end
+    it "should not modify given params" do
+      original_params = {:keys => ["another", "wild"]}
+      params = original_params.dup
+      rs = @db.view('first/test', params)
+      params.should == original_params
+    end
     it "should accept a block" do
       rows = []
       rs = @db.view('first/test', :include_docs => true) do |row|
