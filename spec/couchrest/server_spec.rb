@@ -30,6 +30,17 @@ describe CouchRest::Server do
       @couch.default_database = 'cr-server-test-default-db'
       @couch.available_database?(:default).should be_true
     end
+
+    it "should synchronize access to #next_uuid" do
+      uuids1 = []
+      uuids2 = []
+      Thread.new @couch do |server|
+        500.times { uuids1 << server.next_uuid }
+      end
+      500.times { uuids2 << @couch.next_uuid }
+      sleep 0.001 until uuids1.size == 500
+      (uuids1 + uuids2).uniq.size.should be_equal (uuids1 + uuids2).size
+    end
   end
   
 end
