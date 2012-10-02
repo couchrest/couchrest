@@ -112,6 +112,7 @@ module CouchRest
     # accept the risk that a small proportion of updates could be lost due to a
     # crash."
     def save_doc(doc, bulk = false, batch = false)
+      doc = Document.new doc
       if doc['_attachments']
         doc['_attachments'] = encode_attachments(doc['_attachments'])
       end
@@ -137,8 +138,10 @@ module CouchRest
         begin
           slug = doc['_id'] = @server.next_uuid
           CouchRest.put "#{@root}/#{slug}", doc
-        rescue #old version of couchdb
-          CouchRest.post @root, doc
+        rescue Exception => e #notify, toss the uuid and try again
+          Airbrake.notify(e, :paramaters => {:uuid => slug, :doc => doc.to_hash.inspect})
+          slug = doc['_id'] = @server.next_uuid
+          CouchRest.put "#{@root}/#{slug}", doc
         end
       end
       if result['ok']
@@ -148,7 +151,6 @@ module CouchRest
       end
       result
     end
-
     # Save a document to CouchDB in bulk mode. See #save_doc's +bulk+ argument.
     def bulk_save_doc(doc)
       save_doc(doc, true)
@@ -168,7 +170,7 @@ module CouchRest
         docs = @bulk_save_cache
         @bulk_save_cache = []
       end
-      if (use_uuids) 
+      if (use_uuids)
         ids, noids = docs.partition{|d|d['_id']}
         uuid_count = [noids.length, @server.uuid_batch_count].max
         noids.each do |doc|
@@ -196,7 +198,7 @@ module CouchRest
         return bulk_save if @bulk_save_cache.length >= @bulk_save_cache_limit
         return {'ok' => true} # Mimic the non-deferred version
       end
-      slug = escape_docid(doc['_id'])        
+      slug = escape_docid(doc['_id'])
       CouchRest.delete "#{@root}/#{slug}?rev=#{doc['_rev']}"
     end
 
@@ -377,7 +379,7 @@ module CouchRest
     end
 
     def escape_docid id
-      /^_design\/(.*)/ =~ id ? "_design/#{CGI.escape($1)}" : CGI.escape(id) 
+      /^_design\/(.*)/ =~ id ? "_design/#{CGI.escape($1)}" : CGI.escape(id)
     end
 
     def encode_attachments(attachments)
