@@ -112,7 +112,6 @@ module CouchRest
     # accept the risk that a small proportion of updates could be lost due to a
     # crash."
     def save_doc(doc, bulk = false, batch = false)
-      doc = Document.new doc
       if doc['_attachments']
         doc['_attachments'] = encode_attachments(doc['_attachments'])
       end
@@ -123,7 +122,9 @@ module CouchRest
       elsif !bulk && @bulk_save_cache.length > 0
         bulk_save
       end
-      result = if doc['_id']
+      doc_id = doc['_id'] || doc[:_id] || doc[:id] || doc["id"]
+      result = if doc_id
+        doc['_id'] = doc_id
         slug = escape_docid(doc['_id'])
         begin
           uri = "#{@root}/#{slug}"
