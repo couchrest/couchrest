@@ -129,7 +129,7 @@ module CouchRest
           uri << "?batch=ok" if batch
           CouchRest.put uri, doc
         rescue RestClient::ResourceNotFound
-          p "resource not found when saving even though an id was passed"
+          puts "resource not found when saving even though an id was passed"
           slug = doc['_id'] = @server.next_uuid
           CouchRest.put "#{@root}/#{slug}", doc
         end
