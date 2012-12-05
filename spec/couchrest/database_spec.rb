@@ -903,7 +903,7 @@ describe CouchRest::Database do
        @cr.databases.should include(@db.name)
     end
 
-    it "should recreate a db even tho it doesn't exist" do
+    it "should recreate a db even though it doesn't exist" do
       @cr.databases.should_not include(@db2.name)
       @db2.recreate!
       @cr.databases.should include(@db2.name)
