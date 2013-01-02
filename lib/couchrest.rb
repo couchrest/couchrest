@@ -110,6 +110,9 @@ module CouchRest
 
     def paramify_url url, params = {}
       if params && !params.empty?
+        # Allow a caller to completely remove param from
+        # query (e.g., remove :stale) by setting nil
+        params.reject!{|k,v| v.nil? }
         query = params.collect do |k,v|
           v = MultiJson.encode(v) if %w{key startkey endkey}.include?(k.to_s)
           "#{k}=#{CGI.escape(v.to_s)}"
