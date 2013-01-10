@@ -29,7 +29,8 @@ module CouchRest
       first = nil
       prev = nil
       IO.popen(cmd) do |f|
-        first = f.gets # discard header
+        # Discard header, unless it's a continuous changes feed
+        first = f.gets unless cmd =~ /\/_changes\?(.+&)?feed=continuous(?=[&$])/
         while line = f.gets 
           row = parse_line(line)
           block.call row unless row.nil? # last line "}]" discarded
