@@ -68,7 +68,7 @@ describe CouchRest::Database do
       rs['rows'][0]['value'].should == 9
     end
   end
-  
+
   describe "saving a view" do
     before(:each) do
       @view = {'test' => {'map' => <<-JS
@@ -97,11 +97,11 @@ describe CouchRest::Database do
       @db.get("_design/test")['views'].should == @view
     end
   end
-  
+
   describe "select from an existing view" do
     before(:each) do
       r = @db.save_doc({
-        "_id" => "_design/first", 
+        "_id" => "_design/first",
         :views => {
           :test => {
             :map => "function(doc){for(var w in doc){ if(!w.match(/^_/))emit(w,doc[w])}}"
@@ -175,7 +175,7 @@ describe CouchRest::Database do
   describe "#changes" do
     # uses standard view method, so not much testing required
     before(:each) do
-      [ 
+      [
         {"wild" => "and random"},
         {"mild" => "yet local"},
         {"another" => ["set","of","keys"]}
@@ -210,7 +210,22 @@ describe CouchRest::Database do
       @db.get(@docid)['will-exist'].should == 'here'
     end
   end
-  
+
+  describe "GET with object decoding" do
+    before(:each) do
+      @db.save_doc({'_id' => "42", JSON.create_id => 'TestObject'})
+      class TestObject
+        def self.json_create(args)
+          new
+        end
+      end
+    end
+    it "should get the document decoded as TestObject" do
+      doc = @db.get("42", :decode_object => true)
+      doc.class.should == TestObject
+    end
+  end
+
   describe "POST (adding bulk documents)" do
     it "should add them without ids" do
       rs = @db.bulk_save([
@@ -222,17 +237,17 @@ describe CouchRest::Database do
         @db.get(r['id']).rev.should == r["rev"]
       end
     end
-    
+
     it "should use uuids when ids aren't provided" do
       @db.server.stub!(:next_uuid).and_return('asdf6sgadkfhgsdfusdf')
-      
+
       docs = [{'key' => 'value'}, {'_id' => 'totally-uniq'}]
       id_docs = [{'key' => 'value', '_id' => 'asdf6sgadkfhgsdfusdf'}, {'_id' => 'totally-uniq'}]
       CouchRest.should_receive(:post).with("#{COUCHHOST}/couchrest-test/_bulk_docs", {:docs => id_docs})
-      
+
       @db.bulk_save(docs)
     end
-    
+
     it "should add them with uniq ids" do
       rs = @db.bulk_save([
           {"_id" => "oneB", "wild" => "and random"},
@@ -252,11 +267,11 @@ describe CouchRest::Database do
       @db.bulk_save
       @db.get("bulk_cache_1")["val"].should == "test"
     end
-    
+
     it "should make an atomic write when all_or_nothing is set" do
       docs = [{"_id" => "oneB", "wild" => "and random"}, {"_id" => "twoB", "mild" => "yet local"}]
       CouchRest.should_receive(:post).with("#{COUCHHOST}/couchrest-test/_bulk_docs", {:all_or_nothing => true, :docs => docs})
-      
+
       @db.bulk_save(docs, false, true)
     end
 
@@ -274,7 +289,7 @@ describe CouchRest::Database do
       end
     end
   end
-  
+
   describe "new document without an id" do
     it "should start empty" do
       @db.documents["total_rows"].should == 0
@@ -286,11 +301,11 @@ describe CouchRest::Database do
     end
     it "should use PUT with UUIDs" do
       CouchRest.should_receive(:put).and_return({"ok" => true, "id" => "100", "rev" => "55"})
-      r = @db.save_doc({'just' => ['another document']})      
+      r = @db.save_doc({'just' => ['another document']})
     end
-    
+
   end
-  
+
   describe "fetch_attachment" do
     before do
       @attach = "<html><head><title>My Doc</title></head><body><p>Has words.</p></body></html>"
@@ -306,12 +321,12 @@ describe CouchRest::Database do
       }
       @db.save_doc(@doc)
     end
-    
+
     # Depreacated
     # it "should get the attachment with the doc's _id" do
     #   @db.fetch_attachment("mydocwithattachment", "test.html").should == @attach
     # end
-    
+
     it "should get the attachment with the doc itself" do
       @db.fetch_attachment(@db.get('mydocwithattachment'), 'test.html').should == @attach
     end
@@ -331,7 +346,7 @@ describe CouchRest::Database do
       doc = @db.get("attach-this")
       attachment = @db.fetch_attachment(doc, "couchdb.png")
       (attachment == image).should be_true
-      #if attachment.respond_to?(:net_http_res)  
+      #if attachment.respond_to?(:net_http_res)
       #  attachment.net_http_res.body.should == image
       #end
     end
@@ -361,7 +376,7 @@ describe CouchRest::Database do
       attachment.should == @attach
     end
   end
-  
+
   describe "PUT document with attachment stub" do
     before(:each) do
       @attach = "<html><head><title>My Doc</title></head><body><p>Has words.</p></body></html>"
@@ -379,7 +394,7 @@ describe CouchRest::Database do
       doc['field'] << 'another value'
       @db.save_doc(doc)["ok"].should be_true
     end
-    
+
     it 'should be there' do
       doc = @db.get('mydocwithattachment')
       attachment = @db.fetch_attachment(doc, 'test.html')
@@ -421,7 +436,7 @@ describe CouchRest::Database do
       attachment.should == @attach2
     end
   end
-  
+
   describe "DELETE an attachment directly from the database" do
     before(:each) do
       doc = {
@@ -438,11 +453,11 @@ describe CouchRest::Database do
     end
     it "should delete the attachment" do
       lambda { @db.fetch_attachment(@doc,'test.html') }.should_not raise_error
-      @db.delete_attachment(@doc, "test.html")  
+      @db.delete_attachment(@doc, "test.html")
       @doc = @db.get('mydocwithattachment') # avoid getting a 409
       lambda{ @db.fetch_attachment(@doc,'test.html')}.should raise_error
     end
-    
+
     it "should force a delete even if we get a 409" do
       @doc['new_attribute'] = 'something new'
       @db.put_attachment(@doc, 'test', File.open(File.join(FIXTURE_PATH, 'attachments', 'test.html')).read)
@@ -486,7 +501,7 @@ describe CouchRest::Database do
       @db.get(@docid)['will-exist'].should == 'here'
     end
   end
-  
+
   describe "PUT (new document with id)" do
     it "should start without the document" do
       # r = @db.save_doc({'lemons' => 'from texas', 'and' => 'spain'})
@@ -502,7 +517,7 @@ describe CouchRest::Database do
       lambda{@db.save_doc({'_id' => 'my-doc'})}.should raise_error(RestClient::Request::RequestFailed)
     end
   end
-  
+
   describe "PUT (existing document with rev)" do
     before(:each) do
       @db.save_doc({'_id' => 'my-doc', 'will-exist' => 'here'})
@@ -539,7 +554,7 @@ describe CouchRest::Database do
       td = {"_id" => "btd1", "val" => "test"}
       @db.save_doc(td, true)
       @db.instance_variable_get("@bulk_save_cache").should == [td]
-      
+
     end
 
     it "doesn't save to the database until the configured cache size is exceded" do
@@ -602,9 +617,9 @@ describe CouchRest::Database do
       @db.bulk_save
       lambda{@db.get @docid}.should raise_error
     end
-    
+
   end
-  
+
   describe  "UPDATE existing document" do
     before :each do
       @id = @db.save_doc({
@@ -649,7 +664,7 @@ describe CouchRest::Database do
       @db.get(@id)['upvotes'].should == 16
     end
   end
-  
+
   describe "COPY existing document" do
     before :each do
       @r = @db.save_doc({'artist' => 'Zappa', 'title' => 'Muffin Man'})
@@ -687,8 +702,8 @@ describe CouchRest::Database do
       end
     end
   end
-  
-  
+
+
   it "should list documents" do
     5.times do
       @db.save_doc({'another' => 'doc', 'will-exist' => 'anywhere'})
@@ -698,7 +713,7 @@ describe CouchRest::Database do
     ds['rows'][0]['id'].should_not be_nil
     ds['total_rows'].should == 5
   end
-  
+
   # This is redundant with the latest view code, but left in place for prosterity.
   describe "documents / _all_docs" do
     before(:each) do
@@ -710,7 +725,7 @@ describe CouchRest::Database do
       ds = @db.documents
       ds['rows'].should be_an_instance_of(Array)
       ds['rows'][0]['id'].should == "doc0"
-      ds['total_rows'].should == 9      
+      ds['total_rows'].should == 9
     end
     it "should take query params" do
       ds = @db.documents(:startkey => 'doc0', :endkey => 'doc3')
@@ -732,7 +747,7 @@ describe CouchRest::Database do
       rs['rows'][0]['doc']['another'].should == "doc"
     end
   end
-  
+
 
   describe "#compact" do
     it "should compact the database" do
@@ -784,17 +799,17 @@ describe CouchRest::Database do
 
       it_should_behave_like "simply replicated"
     end
-    
+
     describe "with a specific doc" do
       before(:each) do
         @other_db.recreate!
         @db.save_doc({'_id' => 'unreplicated_doc', 'some-value' => 'foo'})
         @db.replicate_to @other_db, false, false, ['test_doc']
       end
-      
+
       # should contain only replicated doc and not unreplicated doc
       it_should_behave_like "simply replicated"
-      it "does not contain unreplicated doc" do 
+      it "does not contain unreplicated doc" do
         lambda { @other_db.get('unreplicated_doc') }.should raise_error(RestClient::ResourceNotFound)
       end
     end
