@@ -47,6 +47,7 @@ To date, the couchrest specs have been show to run on:
 
  * Ruby 1.8.7
  * Ruby 1.9.2
+ * Ruby 1.9.3
  * JRuby 1.5.6
 
 ## Docs
