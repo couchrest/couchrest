@@ -1,4 +1,4 @@
-# CouchRest: CouchDB, close to the metal
+# CouchRest: CouchDB, close to the metal [![Build Status](https://travis-ci.org/couchrest/couchrest.png)](https://travis-ci.org/couchrest/couchrest)
 
 CouchRest is based on [CouchDB's couch.js test
 library](http://svn.apache.org/repos/asf/couchdb/trunk/share/www/script/couch.js),
