@@ -31,4 +31,5 @@ Gem::Specification.new do |s|
   s.add_dependency(%q<multi_json>, ["~> 1.0"])
   s.add_development_dependency(%q<json>, ["~> 1.5.1"])
   s.add_development_dependency(%q<rspec>, "~> 2.6.0")
+  s.add_development_dependency(%q<rake>)
 end

@@ -41,7 +41,7 @@ CouchRest install, from the project root directory use bundler to install
 the dependencies and then run the tests:
 
     $ bundle install
-    $ bundle exec spec spec
+    $ bundle exec rake
 
 To date, the couchrest specs have been show to run on:
 

@@ -1,32 +1,17 @@
-require 'rubygems'
+# encoding: utf-8
 require 'bundler'
-require 'rspec/core/rake_task'
-require "rake/rdoctask"
-
 Bundler::GemHelper.install_tasks
 
-desc "Run all specs"
-RSpec::Core::RakeTask.new(:spec) do |spec|
-  spec.rspec_opts = ["--color"]
-  spec.pattern = 'spec/**/*_spec.rb'
-end
+require 'rspec/core/rake_task'
 
-desc "Print specdocs"
-RSpec::Core::RakeTask.new(:doc) do |spec|
-  spec.rspec_opts = ["--format", "specdoc"]
-  spec.pattern = 'spec/*_spec.rb'
-end
-
-desc "Generate the rdoc"
-Rake::RDocTask.new do |rdoc|
-  files = ["README.rdoc", "LICENSE", "lib/**/*.rb"]
-  rdoc.rdoc_files.add(files)
-  rdoc.main = "README.rdoc"
-  rdoc.title = "CouchRest: Ruby CouchDB, close to the metal"
-end
-
-desc "Run the rspec"
+desc 'Default: run unit tests.'
 task :default => :spec
+
+desc "Run all specs"
+RSpec::Core::RakeTask.new do |t|
+  t.pattern = 'spec/**/*_spec.rb'
+  t.rspec_opts = ["-c", "-f progress"]
+end
 
 module Rake
   def self.remove_task(task_name)
