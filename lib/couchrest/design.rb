@@ -46,7 +46,7 @@ JAVASCRIPT
         if defined?(Airbrake)
           Airbrake.notify(ArgumentError.new,{:parameters => {:db => db.name, :view => view_name, :query => query}})
         end
-        return []
+        return {"rows" => []}
       end
 
       view_name = view_name.to_s
