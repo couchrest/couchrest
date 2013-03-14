@@ -44,7 +44,11 @@ JAVASCRIPT
       raise ArgumentError, "View query options must be set as symbols!" if query.keys.find{|k| k.is_a?(String)}
       if query.has_key?(:key) && query[:key].nil?
         if defined?(Airbrake)
-          Airbrake.notify(ArgumentError.new,{:parameters => {:db => db.name, :view => view_name, :query => query}})
+          begin
+            raise ArgumentError, "key cannot be nil"
+          rescue => e
+            Airbrake.notify(e,{:parameters => {:db => db.name, :view => view_name, :query => query}})
+          end
         end
         return {"rows" => []}
       end
