@@ -42,6 +42,17 @@ JAVASCRIPT
     # Dispatches to any named view in a specific database
     def view_on db, view_name, query = {}, &block
       raise ArgumentError, "View query options must be set as symbols!" if query.keys.find{|k| k.is_a?(String)}
+      if query.has_key?(:key) && query[:key].nil?
+        if defined?(Airbrake)
+          begin
+            raise ArgumentError, "key cannot be nil"
+          rescue => e
+            Airbrake.notify(e,{:parameters => {:db => db.name, :view => view_name, :query => query}})
+          end
+        end
+        return {"rows" => []}
+      end
+
       view_name = view_name.to_s
       view_slug = "#{name}/#{view_name}"
       # Set the default query options
