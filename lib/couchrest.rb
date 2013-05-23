@@ -43,7 +43,7 @@ module CouchRest
   # the get, post, put, delete and copy
   CouchRest.extend(::CouchRest::RestAPI)
 
-  # The CouchRest module methods handle the basic JSON serialization 
+  # The CouchRest module methods handle the basic JSON serialization
   # and deserialization, as well as query parameters. The module also includes
   # some helpers for tasks like instantiating a new Database or Server instance.
   class << self
@@ -117,6 +117,18 @@ module CouchRest
         url = "#{url}?#{query}"
       end
       url
+    end
+
+    @@decode_json_objects = false
+
+    def decode_json_objects=(value)
+      @@decode_json_objects = value
+    end
+
+    # When set to true, CouchRest.get tries to decode the JSON returned
+    # from CouchDB into a Ruby object. Default: false.
+    def decode_json_objects
+      @@decode_json_objects
     end
   end # class << self
 end

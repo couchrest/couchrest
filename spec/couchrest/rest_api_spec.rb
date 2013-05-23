@@ -98,6 +98,27 @@ describe CouchRest::RestAPI do
         expect { CouchRest.get('foo') }.to raise_error(RestClient::Exception)
       end
 
+      context 'when decode_json_objects is true' do
+        class TestObject
+          def self.json_create(args)
+            new
+          end
+        end
+
+        before(:each) do
+          CouchRest.decode_json_objects = true
+        end
+
+        after(:each) do
+          CouchRest.decode_json_objects = false
+        end
+
+        it 'should return the response as a Ruby object' do
+          CouchRest.put "#{COUCHHOST}/#{TESTDB}/test", JSON.create_id => TestObject.to_s
+
+          CouchRest.get("#{COUCHHOST}/#{TESTDB}/test").class.should eql(TestObject)
+        end
+      end
     end
 
     describe :post do
