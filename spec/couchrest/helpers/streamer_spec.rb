@@ -131,4 +131,32 @@ describe CouchRest::Streamer do
     @streamer.send(:escape_quotes, "keys: [\"sams's test\"]").should eql("keys: [\\\"sams's test\\\"]")
   end
 
+  it "should yield all lines and return nil for a continuous feed" do
+    IO.stub(:popen) do |cmd, block|
+      class F
+        def initialize
+          @lines = [
+            '{"foo": 1}',  # line does NOT begin list, so we should get it
+            '{"foo": 2}',
+          ]
+        end
+
+        def gets
+          @lines.shift
+        end
+      end
+
+      f = F.new
+      block.call f
+
+      IO.unstub(:popen)
+      IO.popen 'true' do; end
+    end
+
+    count = 0
+    @streamer.get("#{@db.root}/_all_docs?include_docs=true&limit=0") do |row|
+      count += 1
+    end.should be_nil
+    count.should == 2  # both lines were yielded
+  end
 end
