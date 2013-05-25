@@ -120,6 +120,7 @@ describe CouchRest::Streamer do
     @streamer.get("#{@db.root}/_design/first/_view/test?limit=2") do |row|
       ids << row['id']
     end
+    ids.should have(2).items
     count = 0
     @streamer.post("#{@db.root}/_all_docs?include_docs=true", :keys => ids) do |row|
       count += 1
