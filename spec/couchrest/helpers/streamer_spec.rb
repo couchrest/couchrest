@@ -50,7 +50,7 @@ describe CouchRest::Streamer do
     header.should == {"total_rows" => 1001, "offset" => 0}
   end
 
-  it "should raise an exception receives malformed data" do
+  it "should raise an exception if it receives malformed data" do
     IO.stub(:popen) do |cmd, block|
       class F
         def initialize
