@@ -27,14 +27,9 @@ describe CouchRest do
   end
 
   it "should restart" do
+    # we really do not need to perform a proper restart!
+    CouchRest.should_receive(:post).with("#{@cr.uri}/_restart")
     @cr.restart!
-    begin
-      @cr.info
-    rescue
-      # Give the couchdb time to restart
-      sleep 0.2
-      retry
-    end
   end
 
   it "should provide one-time access to uuids" do

@@ -1,3 +1,11 @@
+== 1.2.0 - 2013-05-25
+
+* Changes
+  * Added clobal configuration option to decode JSON objects (@langalex)
+  * Changing specs to test parameters as apposed to CouchDB for replication and restart
+  * Spec updates (@tapajos)
+  * Spec typos (@frasertweedale, @m1foley)
+
 == 1.1.3 - 2012-07-31
 
 * Minor changes

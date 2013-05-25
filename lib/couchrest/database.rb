@@ -349,12 +349,12 @@ module CouchRest
       doc_ids = options.delete(:doc_ids)
       payload = options
       if options.has_key?(:target)
-        payload['source'] = other_db.root
+        payload[:source] = other_db.root
       else
-        payload['target'] = other_db.root
+        payload[:target] = other_db.root
       end
-      payload['continuous'] = continuous
-      payload['doc_ids'] = doc_ids if doc_ids
+      payload[:continuous] = continuous
+      payload[:doc_ids] = doc_ids if doc_ids
       CouchRest.post "#{@host}/_replicate", payload
     end
 
