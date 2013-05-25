@@ -8,7 +8,7 @@ module CouchRest
     end
 
     def view(*args)
-      raise "CouchRest::Streamer#view is depricated. Please use Database#view with block."
+      raise "CouchRest::Streamer#view is deprecated. Please use Database#view with block."
     end
 
     def get(url, &block)
