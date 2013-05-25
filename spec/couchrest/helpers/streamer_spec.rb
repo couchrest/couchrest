@@ -19,8 +19,8 @@ describe CouchRest::Streamer do
     })
   end
 
-  it "should raise error on #view as depricated" do
-    lambda { @streamer.view }.should raise_error(/depricated/)
+  it "should raise error on #view as deprecated" do
+    lambda { @streamer.view }.should raise_error(/deprecated/)
   end
 
   it "should GET each row in a view" do
