@@ -29,7 +29,8 @@ Gem::Specification.new do |s|
   s.add_dependency(%q<rest-client>, ["~> 1.6.1"])
   s.add_dependency(%q<mime-types>, ["~> 1.15"])
   s.add_dependency(%q<multi_json>, ["~> 1.0"])
-  s.add_development_dependency(%q<json>, ["~> 1.7.0"])
+  s.add_development_dependency(%q<json>, [">= 1.7.0"])
   s.add_development_dependency(%q<rspec>, "~> 2.6.0")
   s.add_development_dependency(%q<rake>)
+  s.add_development_dependency(%q<multi_json>, "~> 1.7") # needed for json decode json objects
 end

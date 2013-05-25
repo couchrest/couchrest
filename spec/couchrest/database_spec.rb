@@ -812,7 +812,7 @@ describe CouchRest::Database do
           include("/_replicate"),
           include(
             :create_target => true,
-            :continuous    => false,
+            :continuous    => false
           )
         )
         @other_db.replicate_from(@db, false, true)
@@ -823,7 +823,7 @@ describe CouchRest::Database do
           include("/_replicate"),
           include(
             :create_target => true,
-            :continuous    => false,
+            :continuous    => false
           )
         )
         @db.replicate_to(@other_db, false, true)
@@ -836,7 +836,7 @@ describe CouchRest::Database do
           include("/_replicate"),
           include(
             :create_target => false,
-            :continuous    => true,
+            :continuous    => true
           )
         )
         @other_db.replicate_from(@db, true)
@@ -847,7 +847,7 @@ describe CouchRest::Database do
           include("/_replicate"),
           include(
             :create_target => false,
-            :continuous    => true,
+            :continuous    => true
           )
         )
         @db.replicate_to(@other_db, true)
