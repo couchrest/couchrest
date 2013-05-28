@@ -136,7 +136,9 @@ describe CouchRest::Streamer do
       class F
         def initialize
           @lines = [
+            '',            # there may be empty lines due to heartbeat
             '{"foo": 1}',  # line does NOT begin list, so we should get it
+            '',
             '{"foo": 2}',
           ]
         end

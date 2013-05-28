@@ -34,9 +34,9 @@ module CouchRest
           first = line  # save header
         else
           row = parse_line(line)
-          if row.has_key?("rows") || row.has_key?("results")
+          if row && (row.has_key?("rows") || row.has_key?("results"))
             first = line  # this is a view or _changes result
-          else
+          elsif row
             block.call row  # no header; yield row to block
           end
         end
