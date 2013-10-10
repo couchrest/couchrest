@@ -90,6 +90,12 @@ module CouchRest
       doc
     end
 
+    def set_security(admin_names,admin_roles,member_names,member_roles)
+      uri = "#{@root}/_security"
+      puts uri
+      CouchRest.put uri, {:admins => {:names => admin_names, :roles => admin_roles}, :members => {:names => member_names, :roles => member_roles}}
+    end
+
     # Save a document to CouchDB. This will use the <tt>_id</tt> field from
     # the document as the id for PUT, or request a new UUID from CouchDB, if
     # no <tt>_id</tt> is present on the document. IDs are attached to
@@ -168,7 +174,7 @@ module CouchRest
         docs = @bulk_save_cache
         @bulk_save_cache = []
       end
-      if (use_uuids) 
+      if (use_uuids)
         ids, noids = docs.partition{|d|d['_id']}
         uuid_count = [noids.length, @server.uuid_batch_count].max
         noids.each do |doc|
@@ -196,7 +202,7 @@ module CouchRest
         return bulk_save if @bulk_save_cache.length >= @bulk_save_cache_limit
         return {'ok' => true} # Mimic the non-deferred version
       end
-      slug = escape_docid(doc['_id'])        
+      slug = escape_docid(doc['_id'])
       CouchRest.delete "#{@root}/#{slug}?rev=#{doc['_rev']}"
     end
 
@@ -378,7 +384,7 @@ module CouchRest
     end
 
     def escape_docid id
-      /^_design\/(.*)/ =~ id ? "_design/#{CGI.escape($1)}" : CGI.escape(id) 
+      /^_design\/(.*)/ =~ id ? "_design/#{CGI.escape($1)}" : CGI.escape(id)
     end
 
     def encode_attachments(attachments)
