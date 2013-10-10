@@ -74,6 +74,11 @@ module CouchRest
       database(name)
     end
 
+    # Create a user
+    def create_user(username,password,roles)
+      CouchRest.put "#{@uri}/_users/org.couchdb.user:#{username}", {:_id => "org.couchdb.user:#{username}", :name => username, :roles => roles, :type => "user", :password => password }
+    end
+
     # Restart the CouchDB instance
     def restart!
       CouchRest.post "#{@uri}/_restart"
