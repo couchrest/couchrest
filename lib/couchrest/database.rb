@@ -57,13 +57,13 @@ module CouchRest
     end
 
     # Replicates via "pulling" from another database to this database. Makes no attempt to deal with conflicts.
-    def replicate_from(other_db, continuous = false, create_target = false, doc_ids = nil)
-      replicate(other_db, continuous, :target => name, :create_target => create_target, :doc_ids => doc_ids)
+    def replicate_from(other_db, continuous = false, create_target = false, doc_ids = nil, filter = nil, query_params = nil)
+      replicate(other_db, continuous, :target => name, :create_target => create_target, :doc_ids => doc_ids, :filter => filter, :query_params => query_params)
     end
 
     # Replicates via "pushing" to another database. Makes no attempt to deal with conflicts.
-    def replicate_to(other_db, continuous = false, create_target = false, doc_ids = nil)
-      replicate(other_db, continuous, :source => name, :create_target => create_target, :doc_ids => doc_ids)
+    def replicate_to(other_db, continuous = false, create_target = false, doc_ids = nil, filter = nil, query_params = nil)
+      replicate(other_db, continuous, :source => name, :create_target => create_target, :doc_ids => doc_ids, :filter => filter, :query_params => query_params)
     end
 
     # DELETE the database itself. This is not undoable and could be rather
@@ -353,6 +353,8 @@ module CouchRest
       raise ArgumentError, "must provide a CouchReset::Database" unless other_db.kind_of?(CouchRest::Database)
       raise ArgumentError, "must provide a target or source option" unless (options.key?(:target) || options.key?(:source))
       doc_ids = options.delete(:doc_ids)
+      filter = options.delete(:filter)
+      query_params = options.delete(:query_params)
       payload = options
       if options.has_key?(:target)
         payload[:source] = other_db.root
@@ -361,6 +363,9 @@ module CouchRest
       end
       payload[:continuous] = continuous
       payload[:doc_ids] = doc_ids if doc_ids
+      payload[:filter] = filter if filter
+      payload[:query_params] = query_params if query_params
+      puts "Foo payload #{payload}"
       CouchRest.post "#{@host}/_replicate", payload
     end
 
