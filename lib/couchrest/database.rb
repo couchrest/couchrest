@@ -57,13 +57,13 @@ module CouchRest
     end
 
     # Replicates via "pulling" from another database to this database. Makes no attempt to deal with conflicts.
-    def replicate_from(other_db, continuous = false, create_target = false, doc_ids = nil)
-      replicate(other_db, continuous, :target => name, :create_target => create_target, :doc_ids => doc_ids)
+    def replicate_from(other_db, continuous = false, create_target = false, doc_ids = nil, filter = nil, query_params = nil)
+      replicate(other_db, continuous, :target => @root, :create_target => create_target, :doc_ids => doc_ids, :filter => filter, :query_params => query_params)
     end
 
     # Replicates via "pushing" to another database. Makes no attempt to deal with conflicts.
-    def replicate_to(other_db, continuous = false, create_target = false, doc_ids = nil)
-      replicate(other_db, continuous, :source => name, :create_target => create_target, :doc_ids => doc_ids)
+    def replicate_to(other_db, continuous = false, create_target = false, doc_ids = nil, filter = nil, query_params = nil)
+      replicate(other_db, continuous, :source => @root, :create_target => create_target, :doc_ids => doc_ids, :filter => filter, :query_params => query_params)
     end
 
     # DELETE the database itself. This is not undoable and could be rather
@@ -88,6 +88,12 @@ module CouchRest
       end
       doc.database = self
       doc
+    end
+
+    def set_security(admin_names,admin_roles,member_names,member_roles)
+      uri = "#{@root}/_security"
+      puts uri
+      CouchRest.put uri, {:admins => {:names => admin_names, :roles => admin_roles}, :members => {:names => member_names, :roles => member_roles}}
     end
 
     # Save a document to CouchDB. This will use the <tt>_id</tt> field from
@@ -168,7 +174,7 @@ module CouchRest
         docs = @bulk_save_cache
         @bulk_save_cache = []
       end
-      if (use_uuids) 
+      if (use_uuids)
         ids, noids = docs.partition{|d|d['_id']}
         uuid_count = [noids.length, @server.uuid_batch_count].max
         noids.each do |doc|
@@ -196,7 +202,7 @@ module CouchRest
         return bulk_save if @bulk_save_cache.length >= @bulk_save_cache_limit
         return {'ok' => true} # Mimic the non-deferred version
       end
-      slug = escape_docid(doc['_id'])        
+      slug = escape_docid(doc['_id'])
       CouchRest.delete "#{@root}/#{slug}?rev=#{doc['_rev']}"
     end
 
@@ -347,6 +353,8 @@ module CouchRest
       raise ArgumentError, "must provide a CouchReset::Database" unless other_db.kind_of?(CouchRest::Database)
       raise ArgumentError, "must provide a target or source option" unless (options.key?(:target) || options.key?(:source))
       doc_ids = options.delete(:doc_ids)
+      filter = options.delete(:filter)
+      query_params = options.delete(:query_params)
       payload = options
       if options.has_key?(:target)
         payload[:source] = other_db.root
@@ -355,7 +363,10 @@ module CouchRest
       end
       payload[:continuous] = continuous
       payload[:doc_ids] = doc_ids if doc_ids
-      CouchRest.post "#{@host}/_replicate", payload
+      payload[:filter] = filter if filter
+      payload[:query_params] = query_params if query_params
+      puts "Foo payload #{payload}"
+      CouchRest.post "#{@host}/_replicator", payload
     end
 
     def uri_for_attachment(doc, name)
@@ -378,7 +389,7 @@ module CouchRest
     end
 
     def escape_docid id
-      /^_design\/(.*)/ =~ id ? "_design/#{CGI.escape($1)}" : CGI.escape(id) 
+      /^_design\/(.*)/ =~ id ? "_design/#{CGI.escape($1)}" : CGI.escape(id)
     end
 
     def encode_attachments(attachments)
