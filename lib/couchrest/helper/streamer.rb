@@ -29,7 +29,17 @@ module CouchRest
       first = nil
       prev = nil
       IO.popen(cmd) do |f|
-        first = f.gets # discard header
+        line = f.gets
+        if line.chomp.end_with? "["
+          first = line  # save header
+        else
+          row = parse_line(line)
+          if row && (row.has_key?("rows") || row.has_key?("results"))
+            first = line  # this is a view or _changes result
+          elsif row
+            block.call row  # no header; yield row to block
+          end
+        end
         while line = f.gets 
           row = parse_line(line)
           block.call row unless row.nil? # last line "}]" discarded
