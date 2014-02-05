@@ -1,3 +1,5 @@
+require 'securerandom'
+
 module CouchRest
   class Server
 
@@ -80,12 +82,9 @@ module CouchRest
     end
 
     # Retrive an unused UUID from CouchDB. Server instances manage caching a list of unused UUIDs.
+    # The count argument is deprecated and has no effect anymore.
     def next_uuid(count = @uuid_batch_count)
-      @uuids ||= []
-      if @uuids.empty?
-        @uuids = CouchRest.get("#{@uri}/_uuids?count=#{count}")["uuids"]
-      end
-      @uuids.pop
+      SecureRandom.uuid
     end
 
   end
