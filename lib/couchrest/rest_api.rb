@@ -94,7 +94,7 @@ module CouchRest
         parse_response(RestClient::Request.execute(request), parser)
       rescue Exception => e
         if $DEBUG
-          raise "Error while sending a #{method.to_s.upcase} request #{uri}\noptions: #{opts.inspect}\n#{e}"
+          raise "Error while sending a #{method.to_s.upcase} request #{url}\noptions: #{opts.inspect}\n#{e}"
         else
           raise e
         end
