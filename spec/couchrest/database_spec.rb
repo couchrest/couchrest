@@ -189,6 +189,18 @@ describe CouchRest::Database do
       c['results'].length.should eql(3)
     end
 
+    it "should include all changes in continuous feed" do
+      changes = []
+      begin
+        c = @db.changes("feed" => "continuous", "since" => "0") do |change|
+          changes << change
+          raise RuntimeError.new # escape from infinite loop
+        end
+      rescue RuntimeError
+      end
+      changes.first["seq"].should eql(1)
+    end
+
     it "should provide id of last document" do
       c = @db.changes
       doc = @db.get(c['results'].last['id'])
