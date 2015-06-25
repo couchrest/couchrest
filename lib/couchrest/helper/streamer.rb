@@ -29,10 +29,13 @@ module CouchRest
       first = nil
       prev = nil
       IO.popen(cmd) do |f|
-        first = f.gets # discard header
-        while line = f.gets 
+        while line = f.gets
           row = parse_line(line)
-          block.call row unless row.nil? # last line "}]" discarded
+          if row.nil?
+            first ||= line # save the header for later if we can't parse it.
+          else
+            block.call row
+          end
           prev = line
         end
       end
