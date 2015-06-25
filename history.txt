@@ -6,6 +6,7 @@
   * Preserve the first change in continuous feeds (@azul)
   * Rest-client dependency upgrade (@janraasch)
   * Dropping support for older ruby's, adding new ones in Travis config (@samlown)
+  * Depends on any version of mime-types above 1.15 (hope this doesn't break anything) (@samlown)
 
 == 1.2.0 - 2013-05-25
 

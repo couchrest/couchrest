@@ -46,5 +46,5 @@ Please post bugs, suggestions and patches to the bug tracker at [http://github.c
 
 Follow us on Twitter: [http://twitter.com/couchrest](http://twitter.com/couchrest)
 
-Also, check [http://twitter.com/#search?q=%23couchrest](http://twitter.com/#search?q=%23couchrest)
+Also, check [https://twitter.com/search?q=couchrest](https://twitter.com/search?q=couchrest)
 
