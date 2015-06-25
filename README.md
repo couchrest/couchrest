@@ -8,31 +8,17 @@ to CouchDB's API endpoints so you don't have to.
 
 CouchRest is designed to make a simple base for application and framework-specific object oriented APIs. CouchRest is Object-Mapper agnostic, the parsed JSON it returns from CouchDB shows up as subclasses of Ruby's Hash. Naked JSON, just as it was mean to be.
 
-**Note: CouchRest only support CouchDB 0.9.0 or newer. Some features requires CouchDB 0.10.0 or newer.**
+## CouchDB Version
 
-## Important Upgrade Notice
+Tested on latest stable release (1.6.X), but little has changed in the last few year and should work on older versions. Also known to work fine on [Cloudant](http://cloudant.com).
 
-### 2011-04-04: Time#to_json no longer overwritten!
-
-Now sticking to JSON standard format. Ensure you views using Time will be ordered correctly after upgrade!
-
-## Easy Install
+## Install
 
     $ sudo gem install couchrest
-   
-## Relax, it's RESTful
-
-CouchRest rests on top of a HTTP abstraction layer using by default Heroku’s excellent REST Client Ruby HTTP wrapper.
 
 ## Modelling
 
-For more complete modelling support based on Rails 3's ActiveModel, please checkout CouchRest's sister project: [CouchRest Model](https://github.com/couchrest/couchrest_model).
-
-## Extended Document
-
-As of May 2010 support for the popular CouchRest::ExtendedDocument mixin has been moved to its own gem: [couchrest_extended_document](http://github.com/couchrest/couchrest_extended_document).
-
-If you're starting a new project however, we recommend you use the more actively maintained [CouchRest Model](https://github.com/couchrest/couchrest_model) project, supported by the same team of developers.
+For more complete modelling support based on ActiveModel, please checkout CouchRest's sister project: [CouchRest Model](https://github.com/couchrest/couchrest_model).
 
 ## Running the Specs
 
@@ -43,12 +29,10 @@ the dependencies and then run the tests:
     $ bundle install
     $ bundle exec rake
 
-To date, the couchrest specs have been show to run on:
+To date, the couchrest specs have been shown to run on:
 
- * Ruby 1.8.7
- * Ruby 1.9.2
- * Ruby 1.9.3
- * JRuby 1.5.6
+ * MRI Ruby 1.9.3 and later
+ * JRuby
 
 ## Docs
 
