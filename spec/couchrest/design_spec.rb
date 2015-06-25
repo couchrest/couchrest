@@ -202,5 +202,25 @@ describe CouchRest::Design do
     end
   end
 
+  describe "requesting info" do
+
+    before(:all) do
+      @db = reset_test_db!
+      @des = CouchRest::Design.new
+      @des.name = "test"
+      @des.view_by :code, :map => "function(d){ if(d['code']) { emit(d['code'], 1); } }", :reduce => "function(k,v,r){ return sum(v); }"
+      @des.database = @db
+      @des.save
+      @db.bulk_save([{"code" => "a", "age" => 2},
+        {"code" => 'b', "age" => 4},{"code" => 'c', "age" => 9}])
+    end
+
+    it "should provide a summary info hash" do
+      info = @des.info
+      info['name'].should eql("test")
+      info.should include("view_index")
+    end
+
+  end
 
 end

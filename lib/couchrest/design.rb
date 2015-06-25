@@ -60,6 +60,11 @@ JAVASCRIPT
       self['_id'] = "_design/#{newname}"
     end
 
+    # Provide information about the status of the design document.
+    def info
+      CouchRest.get "#{database.root}/#{id}/_info"
+    end
+
     def save
       raise ArgumentError, "_design docs require a name" unless name && name.length > 0
       super
