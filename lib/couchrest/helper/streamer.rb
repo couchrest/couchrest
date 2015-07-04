@@ -40,7 +40,7 @@ module CouchRest
         end
       end
 
-      raise RestClient::ServerBrokeConnection if $? && $?.exitstatus != 0
+      raise CouchRest::ServerBrokeConnection if $? && $?.exitstatus != 0
 
       parse_first(first, prev)
     end

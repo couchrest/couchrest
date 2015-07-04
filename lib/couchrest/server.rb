@@ -1,11 +1,17 @@
 module CouchRest
   class Server
 
-    attr_accessor :uri, :uuid_batch_count, :available_databases
+    attr_accessor :connection, :uri, :uuid_batch_count, :available_databases
 
     def initialize(server = 'http://127.0.0.1:5984', uuid_batch_count = 1000)
       @uri = server
       @uuid_batch_count = uuid_batch_count
+    end
+
+    # Lazy load the connection for the current thread
+    def connection
+      conns = (Thread.current['couchrest.connections'] ||= {})
+      conns[uri] ||= Connection.new(uri)
     end
 
     # Lists all "available" databases.
@@ -47,7 +53,7 @@ module CouchRest
 
     # Lists all databases on the server
     def databases
-      CouchRest.get "#{@uri}/_all_dbs"
+      connection.get "_all_dbs"
     end
 
     # Returns a CouchRest::Database for the given name
@@ -57,7 +63,7 @@ module CouchRest
 
     # Creates the database if it doesn't exist
     def database!(name)
-      CouchRest.head "#{@uri}/#{name}" # Check if the URL is valid
+      connection.head name # Check if the URL is valid
       database(name)
     rescue RestClient::ResourceNotFound # Thrown if the HTTP HEAD fails
       create_db(name)
@@ -65,27 +71,26 @@ module CouchRest
 
     # GET the welcome message
     def info
-      CouchRest.get "#{@uri}/"
+      connection.get ""
     end
 
     # Create a database
     def create_db(name)
-      CouchRest.put "#{@uri}/#{name}"
+      connection.put name
       database(name)
     end
 
     # Restart the CouchDB instance
     def restart!
-      CouchRest.post "#{@uri}/_restart"
+      connection.post "_restart"
     end
 
     # Retrive an unused UUID from CouchDB. Server instances manage caching a list of unused UUIDs.
     def next_uuid(count = @uuid_batch_count)
-      @uuids ||= []
-      if @uuids.empty?
-        @uuids = CouchRest.get("#{@uri}/_uuids?count=#{count}")["uuids"]
+      if uuids.nil? || uuids.empty?
+        self.uuids = connection.get("_uuids?count=#{count}")["uuids"]
       end
-      @uuids.pop
+      uuids.pop
     end
 
   end

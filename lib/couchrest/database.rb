@@ -3,7 +3,7 @@ require "base64"
 
 module CouchRest
   class Database
-    attr_reader :server, :host, :name, :root, :uri
+    attr_reader :server, :host, :name, :uri
     attr_accessor :bulk_save_cache_limit
 
     # Create a CouchRest::Database adapter for the supplied CouchRest::Server
@@ -18,13 +18,20 @@ module CouchRest
       @server = server
       @host = server.uri
       @uri  = "/#{name.gsub('/','%2F')}"
-      @root = host + uri
       @streamer = Streamer.new
       @bulk_save_cache = []
       @bulk_save_cache_limit = 500  # must be smaller than the uuid count
     end
 
+    def connection
+      server.connection
+    end
+
     # == Database information and manipulation methods
+
+    def root
+      host + uri
+    end
 
     # returns the database's uri
     def to_s
@@ -33,17 +40,17 @@ module CouchRest
 
     # GET the database info from CouchDB
     def info
-      CouchRest.get @root
+      connection.get uri
     end
 
     # Compact the database, removing old document revisions and optimizing space use.
     def compact!
-      CouchRest.post "#{@root}/_compact"
+      connection.post "#{uri}/_compact"
     end
 
     # Create the database
     def create!
-      bool = server.create_db(@name) rescue false
+      bool = server.create_db(uri) rescue false
       bool && true
     end
 
@@ -51,7 +58,7 @@ module CouchRest
     def recreate!
       delete!
       create!
-    rescue RestClient::ResourceNotFound
+    rescue CouchRest::NotFound
     ensure
       create!
     end
@@ -69,7 +76,7 @@ module CouchRest
     # DELETE the database itself. This is not undoable and could be rather
     # catastrophic. Use with care!
     def delete!
-      CouchRest.delete @root
+      connection.delete uri 
     end
 
 
@@ -78,8 +85,8 @@ module CouchRest
     # GET a document from CouchDB, by id. Returns a Document or Design.
     def get(id, params = {})
       slug = escape_docid(id)
-      url = CouchRest.paramify_url("#{@root}/#{slug}", params)
-      result = CouchRest.get(url)
+      url = CouchRest.paramify_url("#{uri}/#{slug}", params)
+      result = connection.get(url)
       return result unless result.is_a?(Hash)
       doc = if /^_design/ =~ result["_id"]
         Design.new(result)
@@ -125,20 +132,20 @@ module CouchRest
       result = if doc['_id']
         slug = escape_docid(doc['_id'])
         begin
-          uri = "#{@root}/#{slug}"
+          uri = "#{uri}/#{slug}"
           uri << "?batch=ok" if batch
-          CouchRest.put uri, doc
-        rescue RestClient::ResourceNotFound
+          connection.put uri, doc
+        rescue CouchRest::NotFound
           puts "resource not found when saving even though an id was passed"
-          slug = doc['_id'] = @server.next_uuid
-          CouchRest.put "#{@root}/#{slug}", doc
+          slug = doc['_id'] = server.next_uuid
+          connection.put "#{uri}/#{slug}", doc
         end
       else
         begin
           slug = doc['_id'] = @server.next_uuid
-          CouchRest.put "#{@root}/#{slug}", doc
+          connection.put "#{uri}/#{slug}", doc
         rescue #old version of couchdb
-          CouchRest.post @root, doc
+          connection.post uri, doc
         end
       end
       if result['ok']
@@ -172,7 +179,7 @@ module CouchRest
         ids, noids = docs.partition{|d|d['_id']}
         uuid_count = [noids.length, @server.uuid_batch_count].max
         noids.each do |doc|
-          nextid = @server.next_uuid(uuid_count) rescue nil
+          nextid = server.next_uuid(uuid_count) rescue nil
           doc['_id'] = nextid if nextid
         end
       end
@@ -180,7 +187,7 @@ module CouchRest
       if all_or_nothing
         request_body[:all_or_nothing] = true
       end
-      CouchRest.post "#{@root}/_bulk_docs", request_body
+      connection.post "#{uri}/_bulk_docs", request_body
     end
     alias :bulk_delete :bulk_save
 
@@ -197,7 +204,7 @@ module CouchRest
         return {'ok' => true} # Mimic the non-deferred version
       end
       slug = escape_docid(doc['_id'])        
-      CouchRest.delete "#{@root}/#{slug}?rev=#{doc['_rev']}"
+      connection.delete "#{uri}/#{slug}?rev=#{doc['_rev']}"
     end
 
     # COPY an existing document to a new id. If the destination id currently exists, a rev must be provided.
@@ -260,9 +267,9 @@ module CouchRest
         end
       else
         if !payload.empty?
-          CouchRest.post url, payload
+          connection.post url, payload
         else
-          CouchRest.get url
+          connection.get url
         end
       end
     end
@@ -311,14 +318,13 @@ module CouchRest
     # GET an attachment directly from CouchDB
     def fetch_attachment(doc, name)
       uri = url_for_attachment(doc, name)
-      CouchRest.get uri, :raw => true
+      connection.get uri, :raw => true
     end
 
     # PUT an attachment directly to CouchDB
     def put_attachment(doc, name, file, options = {})
-      docid = escape_docid(doc['_id'])
       uri = url_for_attachment(doc, name)
-      CouchRest.put(uri, file, options.merge(:raw => true))
+      connection.put(uri, file, options.merge(:raw => true))
     end
 
     # DELETE an attachment directly from CouchDB
@@ -326,20 +332,18 @@ module CouchRest
       uri = url_for_attachment(doc, name)
       # this needs a rev
       begin
-        CouchRest.delete(uri)
+        connection.delete(uri)
       rescue Exception => error
         if force
           # get over a 409
           doc = get(doc['_id'])
           uri = url_for_attachment(doc, name)
-          CouchRest.delete(uri)
+          connection.delete(uri)
         else
           error
         end
       end
     end
-
-
 
     private
 
@@ -355,6 +359,8 @@ module CouchRest
       end
       payload[:continuous] = continuous
       payload[:doc_ids] = doc_ids if doc_ids
+      
+      # Use a short lived request here
       CouchRest.post "#{@host}/_replicate", payload
     end
 
@@ -374,7 +380,7 @@ module CouchRest
     end
 
     def url_for_attachment(doc, name)
-      @root + uri_for_attachment(doc, name)
+      uri + uri_for_attachment(doc, name)
     end
 
     def escape_docid id

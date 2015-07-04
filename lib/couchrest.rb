@@ -15,12 +15,11 @@
 require 'rest_client'
 require 'multi_json'
 
-# Not sure why this is required, so removed until a reason is found!
 $:.unshift File.dirname(__FILE__) unless
  $:.include?(File.dirname(__FILE__)) ||
  $:.include?(File.expand_path(File.dirname(__FILE__)))
 
-require 'couchrest/monkeypatches'
+require 'couchrest/exceptions'
 require 'couchrest/rest_api'
 require 'couchrest/support/inheritable_attributes'
 
@@ -48,8 +47,7 @@ module CouchRest
   # some helpers for tasks like instantiating a new Database or Server instance.
   class << self
 
-    # todo, make this parse the url and instantiate a Server or Database instance
-    # depending on the specificity.
+    # Instantiate a new Server object
     def new(*opts)
       Server.new(*opts)
     end
@@ -131,16 +129,4 @@ module CouchRest
       @@decode_json_objects
     end
   end # class << self
-end
-# For the sake of backwards compatability, generate a dummy ExtendedDocument class
-# which should be replaced by real library: couchrest_extended_document.
-#
-# Added 2010-05-10 by Sam Lown. Please remove at some point in the future.
-#
-class CouchRest::ExtendedDocument < CouchRest::Document
-
-  def self.inherited(subclass)
-    raise "ExtendedDocument is no longer included in CouchRest base driver, see couchrest_extended_document gem"
-  end
-
 end
