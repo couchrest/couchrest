@@ -76,8 +76,10 @@ module CouchRest
 
     protected
 
-    def execute(uri, method, optiosns, doc = nil)
-
+    def execute(uri, method, options, doc = nil)
+      connection = CouchRest::Connection.new(uri)
+      
+      connection.close
     end
 
   end
