@@ -12,7 +12,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-require 'rest_client'
+require 'net/http/persistent'
 require 'multi_json'
 
 $:.unshift File.dirname(__FILE__) unless
@@ -20,6 +20,7 @@ $:.unshift File.dirname(__FILE__) unless
  $:.include?(File.expand_path(File.dirname(__FILE__)))
 
 require 'couchrest/exceptions'
+require 'couchrest/connection'
 require 'couchrest/rest_api'
 require 'couchrest/support/inheritable_attributes'
 

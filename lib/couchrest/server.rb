@@ -11,7 +11,7 @@ module CouchRest
     # Lazy load the connection for the current thread
     def connection
       conns = (Thread.current['couchrest.connections'] ||= {})
-      conns[uri] ||= Connection.new(uri)
+      conns[uri] ||= Connection.new(URI uri)
     end
 
     # Lists all "available" databases.
@@ -65,7 +65,7 @@ module CouchRest
     def database!(name)
       connection.head name # Check if the URL is valid
       database(name)
-    rescue RestClient::ResourceNotFound # Thrown if the HTTP HEAD fails
+    rescue CouchRest::NotFound # Thrown if the HTTP HEAD fails
       create_db(name)
     end
 

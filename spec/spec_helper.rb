@@ -34,13 +34,13 @@ RSpec.configure do |config|
   end
 end
 
+# Check if lucene server is running on port 5985 (not 5984)
 def couchdb_lucene_available?
-  lucene_path = "http://localhost:5985/"
-  url = URI.parse(lucene_path)
+  url = URI "http://localhost:5985/"
   req = Net::HTTP::Get.new(url.path)
-  res = Net::HTTP.new(url.host, url.port).start { |http| http.request(req) }
+  Net::HTTP.new(url.host, url.port).start { |http| http.request(req) }
   true
- rescue Exception => e
+ rescue Exception
   false
 end
 
