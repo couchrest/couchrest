@@ -31,7 +31,7 @@ Gem::Specification.new do |s|
   s.add_dependency("mime-types", [">= 1.15"])
   s.add_dependency("multi_json", ["~> 1.0"])
   s.add_development_dependency("json", [">= 1.7.0"])
-  s.add_development_dependency("rspec", "~> 2.6.0")
+  s.add_development_dependency("rspec", "~> 2.14.1")
   s.add_development_dependency("rake")
   s.add_development_dependency("multi_json", "~> 1.7") # needed for json decode json objects
 end
