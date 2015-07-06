@@ -2,7 +2,6 @@ require File.expand_path("../../spec_helper", __FILE__)
 
 describe CouchRest::Connection do
 
-
   let(:simple_response) { "{\"ok\":true}" }
   let(:parser) { MultiJson }
   let(:parser_opts) { {:max_nesting => false} }
@@ -30,27 +29,57 @@ describe CouchRest::Connection do
     end
     
     describe "with SSL options" do
-      it "should support SSL verify mode" do
-
+      it "should leave the default if nothing set" do
+        default = Net::HTTP::Persistent.new('test').verify_mode
+        conn = CouchRest::Connection.new(URI "https://localhost:5984")
+        expect(conn.http.verify_mode).to eql(default)
       end
-
+      it "should support disabling SSL verify mode" do
+        conn = CouchRest::Connection.new(URI("https://localhost:5984"), :verify_ssl => false)
+        expect(conn.http.verify_mode).to eql(OpenSSL::SSL::VERIFY_NONE)
+      end
+      it "should support enabling SSL verify mode" do
+        conn = CouchRest::Connection.new(URI("https://localhost:5984"), :verify_ssl => true)
+        expect(conn.http.verify_mode).to eql(OpenSSL::SSL::VERIFY_PEER)
+      end
       it "should support setting specific cert, key, and ca" do
-        keys = [:ssl_client_cert, :ssl_client_key, :ssl_ca_file]
+        conn = CouchRest::Connection.new(URI("https://localhost:5984"),
+          :ssl_client_cert => 'cert',
+          :ssl_client_key  => 'key',
+          :ssl_ca_file     => 'ca_file'
+        )
+        expect(conn.http.certificate).to eql('cert')
+        expect(conn.http.private_key).to eql('key')
+        expect(conn.http.ca_file).to eql('ca_file')
       end
 
     end
 
     describe "with timeout options" do
       it "should be set on the http object" do
+        conn = CouchRest::Connection.new(URI("https://localhost:5984"),
+                                         :timeout => 23,
+                                         :open_timeout => 26
+                                        )
 
+        expect(conn.http.read_timeout).to eql(23)
+        expect(conn.http.open_timeout).to eql(26)
       end
+      it "should support read_timeout" do
+        conn = CouchRest::Connection.new(URI("https://localhost:5984"),
+                                         :read_timeout => 25
+                                        )
+        expect(conn.http.read_timeout).to eql(25)
+      end 
     end
   
   end
 
   describe :get do
+    
     it "should send basic request" do
-      
+      conn = CouchRest::Connection.new( )
+       
     end
 
   end

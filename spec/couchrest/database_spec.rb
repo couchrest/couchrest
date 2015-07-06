@@ -11,15 +11,15 @@ describe CouchRest::Database do
   describe "database name including slash" do
     it "should escape the name in the URI" do
       db = @cr.database("foo/bar")
-      db.name.should == "foo/bar"
-      db.root.should == "#{COUCHHOST}/foo%2Fbar"
-      db.uri.should  == "/foo%2Fbar"
+      expect(db.name).to eq "foo/bar"
+      expect(db.root).to eq "#{COUCHHOST}/foo%2Fbar"
+      expect(db.uri).to  eq "/foo%2Fbar"
     end
   end
 
   describe "#info" do
     it "should request basic database data" do
-      @db.info['db_name'].should eql(TESTDB)
+      expect(@db.info['db_name']).to eql(TESTDB)
     end
   end
 
@@ -34,23 +34,23 @@ describe CouchRest::Database do
     end
     it "should return the result of the temporary function" do
       rs = @db.temp_view(@temp_view)
-      rs['rows'].select{|r|r['key'] == 'wild' && r['value'] == 'and random'}.length.should == 1
+      expect(rs['rows'].select{|r|r['key'] == 'wild' && r['value'] == 'and random'}.length).to eq 1
     end
     it "should work with a range" do
       rs = @db.temp_view(@temp_view, :startkey => "b", :endkey => "z")
-      rs['rows'].length.should == 2
+      expect(rs['rows'].length).to eq 2
     end
     it "should work with a key" do
       rs = @db.temp_view(@temp_view, :key => "wild")
-      rs['rows'].length.should == 1
+      expect(rs['rows'].length).to eq 1
     end
     it "should work with a limit" do
       rs = @db.temp_view(@temp_view, :limit => 1)
-      rs['rows'].length.should == 1
+      expect(rs['rows'].length).to eq 1
     end
     it "should work with multi-keys" do
       rs = @db.temp_view(@temp_view, :keys => ["another", "wild"])
-      rs['rows'].length.should == 2
+      expect(rs['rows'].length).to eq 2
     end
   end
 
@@ -64,8 +64,8 @@ describe CouchRest::Database do
     end
     it "should return the result of the temporary function" do
       rs = @db.temp_view(:map => "function(doc){emit(doc.beverage, doc.count)}", :reduce =>  "function(beverage,counts){return sum(counts)}")
-      # rs.should == 'x'
-      rs['rows'][0]['value'].should == 9
+      # expect(rs).to eq 'x'
+      expect(rs['rows'][0]['value']).to eq 9
     end
   end
   
@@ -91,10 +91,10 @@ describe CouchRest::Database do
         {"word" => "and again"}
       ])
       r = @db.view('test/test')
-      r['total_rows'].should == 1
+      expect(r['total_rows']).to eq 1
     end
     it "should round trip" do
-      @db.get("_design/test")['views'].should == @view
+      expect(@db.get("_design/test")['views']).to eq @view
     end
   end
   
@@ -115,60 +115,60 @@ describe CouchRest::Database do
         ])
     end
     it "should have the view" do
-      @db.get('_design/first')['views']['test']['map'].should include("for(var w in doc)")
+      expect(@db.get('_design/first')['views']['test']['map']).to include("for(var w in doc)")
     end
     it "should list from the view" do
       rs = @db.view('first/test')
-      rs['rows'].select{|r|r['key'] == 'wild' && r['value'] == 'and random'}.length.should == 1
+      expect(rs['rows'].select{|r|r['key'] == 'wild' && r['value'] == 'and random'}.length).to eq 1
     end
     it "should work with a range" do
       rs = @db.view('first/test', :startkey => "b", :endkey => "z")
-      rs['rows'].length.should == 2
+      expect(rs['rows'].length).to eq 2
     end
     it "should work with a key" do
       rs = @db.view('first/test', :key => "wild")
-      rs['rows'].length.should == 1
+      expect(rs['rows'].length).to eq 1
     end
     it "should work with a limit" do
       rs = @db.view('first/test', :limit => 1)
-      rs['rows'].length.should == 1
+      expect(rs['rows'].length).to eq 1
     end
     it "should work with multi-keys" do
       rs = @db.view('first/test', :keys => ["another", "wild"])
-      rs['rows'].length.should == 2
+      expect(rs['rows'].length).to eq 2
     end
     it "should not modify given params" do
       original_params = {:keys => ["another", "wild"]}
       params = original_params.dup
       rs = @db.view('first/test', params)
-      params.should == original_params
+      expect(params).to eq original_params
     end
     it "should accept a block" do
       rows = []
       rs = @db.view('first/test', :include_docs => true) do |row|
         rows << row
       end
-      rows.length.should == 3
-      rs["total_rows"].should == 3
+      expect(rows.length).to eq 3
+      expect(rs["total_rows"]).to eq 3
     end
     it "should accept a block with several params" do
       rows = []
       rs = @db.view('first/test', :include_docs => true, :limit => 2) do |row|
         rows << row
       end
-      rows.length.should == 2
+      expect(rows.length).to eq 2
     end
     it "should accept a payload" do
       rs = @db.view('first/test', {}, :keys => ["another", "wild"])
-      rs['rows'].length.should == 2
+      expect(rs['rows'].length).to eq 2
     end
     it "should accept a payload with block" do
       rows = []
       rs = @db.view('first/test', {:include_docs => true}, :keys => ["another", "wild"]) do |row|
         rows << row
       end
-      rows.length.should == 2
-      rows.first['doc']['another'].should_not be_empty
+      expect(rows.length).to eq 2
+      expect(rows.first['doc']['another']).not_to be_empty
     end
   end
 
@@ -186,7 +186,7 @@ describe CouchRest::Database do
 
     it "should produce a basic list of changes" do
       c = @db.changes
-      c['results'].length.should eql(3)
+      expect(c['results'].length).to eql(3)
     end
 
     it "should include all changes in continuous feed" do
@@ -198,13 +198,13 @@ describe CouchRest::Database do
         end
       rescue RuntimeError
       end
-      changes.first["seq"].should eql(1)
+      expect(changes.first["seq"]).to eql(1)
     end
 
     it "should provide id of last document" do
       c = @db.changes
       doc = @db.get(c['results'].last['id'])
-      doc['another'].should_not be_empty
+      expect(doc['another']).not_to be_empty
     end
   end
 
@@ -216,10 +216,10 @@ describe CouchRest::Database do
     end
     it "should get the document" do
       doc = @db.get(@r['id'])
-      doc['lemons'].should == 'from texas'
+      expect(doc['lemons']).to eq 'from texas'
     end
     it "should work with a funky id" do
-      @db.get(@docid)['will-exist'].should == 'here'
+      expect(@db.get(@docid)['will-exist']).to eq 'here'
     end
   end
   
@@ -231,7 +231,7 @@ describe CouchRest::Database do
           {"another" => ["set","of","keys"]}
         ])
       rs.each do |r|
-        @db.get(r['id']).rev.should == r["rev"]
+        expect(@db.get(r['id']).rev).to eq r["rev"]
       end
     end
     
@@ -240,7 +240,7 @@ describe CouchRest::Database do
       
       docs = [{'key' => 'value'}, {'_id' => 'totally-uniq'}]
       id_docs = [{'key' => 'value', '_id' => 'asdf6sgadkfhgsdfusdf'}, {'_id' => 'totally-uniq'}]
-      CouchRest.should_receive(:post).with("#{COUCHHOST}/couchrest-test/_bulk_docs", {:docs => id_docs})
+      expect(CouchRest).to receive(:post).with("#{COUCHHOST}/couchrest-test/_bulk_docs", {:docs => id_docs})
       
       @db.bulk_save(docs)
     end
@@ -252,22 +252,22 @@ describe CouchRest::Database do
           {"another" => ["set","of","keys"]}
         ])
       rs.each do |r|
-        @db.get(r['id']).rev.should == r["rev"]
+        expect(@db.get(r['id']).rev).to eq r["rev"]
       end
     end
 
     it "should empty the bulk save cache if no documents are given" do
       @db.save_doc({"_id" => "bulk_cache_1", "val" => "test"}, true)
-      lambda do
+      expect do
         @db.get('bulk_cache_1')
-      end.should raise_error(RestClient::ResourceNotFound)
+      end.to raise_error(RestClient::ResourceNotFound)
       @db.bulk_save
-      @db.get("bulk_cache_1")["val"].should == "test"
+      expect(@db.get("bulk_cache_1")["val"]).to eq "test"
     end
     
     it "should make an atomic write when all_or_nothing is set" do
       docs = [{"_id" => "oneB", "wild" => "and random"}, {"_id" => "twoB", "mild" => "yet local"}]
-      CouchRest.should_receive(:post).with("#{COUCHHOST}/couchrest-test/_bulk_docs", {:all_or_nothing => true, :docs => docs})
+      expect(CouchRest).to receive(:post).with("#{COUCHHOST}/couchrest-test/_bulk_docs", {:all_or_nothing => true, :docs => docs})
       
       @db.bulk_save(docs, false, true)
     end
@@ -282,22 +282,22 @@ describe CouchRest::Database do
           ])
       rescue RestClient::RequestFailed => e
         # soon CouchDB will provide _which_ docs conflicted
-        MultiJson.decode(e.response.body)['error'].should == 'conflict'
+        expect(MultiJson.decode(e.response.body)['error']).to eq 'conflict'
       end
     end
   end
   
   describe "new document without an id" do
     it "should start empty" do
-      @db.documents["total_rows"].should == 0
+      expect(@db.documents["total_rows"]).to eq 0
     end
     it "should create the document and return the id" do
       r = @db.save_doc({'lemons' => 'from texas', 'and' => 'spain'})
       r2 = @db.get(r['id'])
-      r2["lemons"].should == "from texas"
+      expect(r2["lemons"]).to eq "from texas"
     end
     it "should use PUT with UUIDs" do
-      CouchRest.should_receive(:put).and_return({"ok" => true, "id" => "100", "rev" => "55"})
+      expect(CouchRest).to receive(:put).and_return({"ok" => true, "id" => "100", "rev" => "55"})
       r = @db.save_doc({'just' => ['another document']})      
     end
     
@@ -321,11 +321,11 @@ describe CouchRest::Database do
     
     # Depreacated
     # it "should get the attachment with the doc's _id" do
-    #   @db.fetch_attachment("mydocwithattachment", "test.html").should == @attach
+    #   expect(@db.fetch_attachment("mydocwithattachment", "test.html")).to eq @attach
     # end
     
     it "should get the attachment with the doc itself" do
-      @db.fetch_attachment(@db.get('mydocwithattachment'), 'test.html').should == @attach
+      expect(@db.fetch_attachment(@db.get('mydocwithattachment'), 'test.html')).to eq @attach
     end
   end
 
@@ -339,12 +339,12 @@ describe CouchRest::Database do
     end
     it "should save the attachment to a new doc" do
       r = @db.put_attachment({'_id' => 'attach-this'}, 'couchdb.png', image = @file.read, {:content_type => 'image/png'})
-      r['ok'].should == true
+      expect(r['ok']).to be_true
       doc = @db.get("attach-this")
       attachment = @db.fetch_attachment(doc, "couchdb.png")
-      (attachment == image).should be_true
+      expect((attachment == image)).to be_true
       #if attachment.respond_to?(:net_http_res)  
-      #  attachment.net_http_res.body.should == image
+      #  expect(attachment.net_http_res.body).to eq image
       #end
     end
   end
@@ -366,11 +366,11 @@ describe CouchRest::Database do
       @doc = @db.get("mydocwithattachment")
     end
     it "should save and be indicated" do
-      @doc['_attachments']['test.html']['length'].should == @attach.length
+      expect(@doc['_attachments']['test.html']['length']).to eq @attach.length
     end
     it "should be there" do
       attachment = @db.fetch_attachment(@doc,"test.html")
-      attachment.should == @attach
+      expect(attachment).to eq @attach
     end
   end
   
@@ -387,15 +387,15 @@ describe CouchRest::Database do
         }
       }
       @db.save_doc(doc)
-      doc['_rev'].should_not be_nil
+      expect(doc['_rev']).not_to be_nil
       doc['field'] << 'another value'
-      @db.save_doc(doc)["ok"].should be_true
+      expect(@db.save_doc(doc)["ok"]).to be_true
     end
     
     it 'should be there' do
       doc = @db.get('mydocwithattachment')
       attachment = @db.fetch_attachment(doc, 'test.html')
-      Base64.decode64(attachment).should == @attach
+      expect(Base64.decode64(attachment)).to eq @attach
     end
   end
 
@@ -421,16 +421,16 @@ describe CouchRest::Database do
       @doc = @db.get("mydocwithattachment")
     end
     it "should save and be indicated" do
-      @doc['_attachments']['test.html']['length'].should == @attach.length
-      @doc['_attachments']['other.html']['length'].should == @attach2.length
+      expect(@doc['_attachments']['test.html']['length']).to eq @attach.length
+      expect(@doc['_attachments']['other.html']['length']).to eq @attach2.length
     end
     it "should be there" do
       attachment = @db.fetch_attachment(@doc,"test.html")
-      attachment.should == @attach
+      expect(attachment).to eq @attach
     end
     it "should be there" do
       attachment = @db.fetch_attachment(@doc,"other.html")
-      attachment.should == @attach2
+      expect(attachment).to eq @attach2
     end
   end
   
@@ -449,10 +449,10 @@ describe CouchRest::Database do
       @doc = @db.get('mydocwithattachment')
     end
     it "should delete the attachment" do
-      lambda { @db.fetch_attachment(@doc,'test.html') }.should_not raise_error
+      expect(lambda { @db.fetch_attachment(@doc,'test.html') }).not_to raise_error
       @db.delete_attachment(@doc, "test.html")  
       @doc = @db.get('mydocwithattachment') # avoid getting a 409
-      lambda{ @db.fetch_attachment(@doc,'test.html')}.should raise_error
+      expect(lambda{ @db.fetch_attachment(@doc,'test.html')}).to raise_error
     end
     
     it "should force a delete even if we get a 409" do
@@ -460,8 +460,8 @@ describe CouchRest::Database do
       @db.put_attachment(@doc, 'test', File.open(File.join(FIXTURE_PATH, 'attachments', 'test.html')).read)
       # at this point the revision number changed, if we try to save doc one more time
       # we would get a 409.
-      lambda{ @db.save_doc(@doc) }.should raise_error
-      lambda{ @db.delete_attachment(@doc, "test", true) }.should_not raise_error
+      expect(lambda{ @db.save_doc(@doc) }).to raise_error
+      expect(lambda{ @db.delete_attachment(@doc, "test", true) }).not_to raise_error
     end
   end
 
@@ -481,12 +481,12 @@ describe CouchRest::Database do
     end
     it "should save and be indicated" do
       doc = @db.get(@docid)
-      doc['_attachments']['http://example.com/stuff.cgi?things=and%20stuff']['length'].should == @attach.length
+      expect(doc['_attachments']['http://example.com/stuff.cgi?things=and%20stuff']['length']).to eq @attach.length
     end
     it "should be there" do
       doc = @db.get(@docid)
       attachment = @db.fetch_attachment(doc,"http://example.com/stuff.cgi?things=and%20stuff")
-      attachment.should == @attach
+      expect(attachment).to eq @attach
     end
   end
 
@@ -494,8 +494,8 @@ describe CouchRest::Database do
     it "should create the document" do
       @docid = "http://example.com/stuff.cgi?things=and%20stuff"
       @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
-      lambda{@db.save_doc({'_id' => @docid})}.should raise_error(RestClient::Request::RequestFailed)
-      @db.get(@docid)['will-exist'].should == 'here'
+      expect(lambda{@db.save_doc({'_id' => @docid})}).to raise_error(RestClient::Request::RequestFailed)
+      expect(@db.get(@docid)['will-exist']).to eq 'here'
     end
   end
   
@@ -503,7 +503,7 @@ describe CouchRest::Database do
     it "should start without the document" do
       # r = @db.save_doc({'lemons' => 'from texas', 'and' => 'spain'})
       @db.documents['rows'].each do |doc|
-        doc['id'].should_not == 'my-doc'
+        expect(doc['id']).not_to eq 'my-doc'
       end
       # should_not include({'_id' => 'my-doc'})
       # this needs to be a loop over docs on content with the post
@@ -511,7 +511,7 @@ describe CouchRest::Database do
     end
     it "should create the document" do
       @db.save_doc({'_id' => 'my-doc', 'will-exist' => 'here'})
-      lambda{@db.save_doc({'_id' => 'my-doc'})}.should raise_error(RestClient::Request::RequestFailed)
+      expect(lambda{@db.save_doc({'_id' => 'my-doc'})}).to raise_error(RestClient::Request::RequestFailed)
     end
   end
   
@@ -523,26 +523,26 @@ describe CouchRest::Database do
       @db.save_doc({'_id' => @docid, 'now' => 'save'})
     end
     it "should start with the document" do
-      @doc['will-exist'].should == 'here'
-      @db.get(@docid)['now'].should == 'save'
+      expect(@doc['will-exist']).to eq 'here'
+      expect(@db.get(@docid)['now']).to eq 'save'
     end
     it "should save with url id" do
       doc = @db.get(@docid)
       doc['yaml'] = ['json', 'word.']
       @db.save_doc doc
-      @db.get(@docid)['yaml'].should == ['json', 'word.']
+      expect(@db.get(@docid)['yaml']).to eq ['json', 'word.']
     end
     it "should fail to resave without the rev" do
       @doc['them-keys'] = 'huge'
       @doc['_rev'] = 'wrong'
       # @db.save_doc(@doc)
-      lambda {@db.save_doc(@doc)}.should raise_error
+      expect(lambda {@db.save_doc(@doc)}).to raise_error
     end
     it "should update the document" do
       @doc['them-keys'] = 'huge'
       @db.save_doc(@doc)
       now = @db.get('my-doc')
-      now['them-keys'].should == 'huge'
+      expect(now['them-keys']).to eq 'huge'
     end
   end
 
@@ -550,7 +550,7 @@ describe CouchRest::Database do
     it "stores documents in a database-specific cache" do
       td = {"_id" => "btd1", "val" => "test"}
       @db.save_doc(td, true)
-      @db.instance_variable_get("@bulk_save_cache").should == [td]
+      expect(@db.instance_variable_get("@bulk_save_cache")).to eq [td]
       
     end
 
@@ -560,17 +560,17 @@ describe CouchRest::Database do
       td2 = {"_id" => "td2", "val" => 4}
       @db.save_doc(td1, true)
       @db.save_doc(td2, true)
-      lambda do
+      expect do
         @db.get(td1["_id"])
-      end.should raise_error(RestClient::ResourceNotFound)
-      lambda do
+      end.to raise_error(RestClient::ResourceNotFound)
+      expect do
         @db.get(td2["_id"])
-      end.should raise_error(RestClient::ResourceNotFound)
+      end.to raise_error(RestClient::ResourceNotFound)
       td3 = {"_id" => "td3", "val" => "foo"}
       @db.save_doc(td3, true)
-      @db.get(td1["_id"])["val"].should == td1["val"]
-      @db.get(td2["_id"])["val"].should == td2["val"]
-      @db.get(td3["_id"])["val"].should == td3["val"]
+      expect(@db.get(td1["_id"])["val"]).to eq td1["val"]
+      expect(@db.get(td2["_id"])["val"]).to eq td2["val"]
+      expect(@db.get(td3["_id"])["val"]).to eq td3["val"]
     end
 
     it "clears the bulk save cache the first time a non bulk save is requested" do
@@ -578,12 +578,12 @@ describe CouchRest::Database do
       td2 = {"_id" => "steve", "val" => 3}
       @db.bulk_save_cache_limit = 50
       @db.save_doc(td1, true)
-      lambda do
+      expect do
         @db.get(td1["_id"])
-      end.should raise_error(RestClient::ResourceNotFound)
+      end.to raise_error(RestClient::ResourceNotFound)
       @db.save_doc(td2)
-      @db.get(td1["_id"])["val"].should == td1["val"]
-      @db.get(td2["_id"])["val"].should == td2["val"]
+      expect(@db.get(td1["_id"])["val"]).to eq td1["val"]
+      expect(@db.get(td2["_id"])["val"]).to eq td2["val"]
     end
   end
 
@@ -595,24 +595,24 @@ describe CouchRest::Database do
     end
     it "should work" do
       doc = @db.get(@r['id'])
-      doc['and'].should == 'spain'
+      expect(doc['and']).to eq 'spain'
       @db.delete_doc doc
-      lambda{@db.get @r['id']}.should raise_error
+      expect(lambda{@db.get @r['id']}).to raise_error
     end
     it "should work with uri id" do
       doc = @db.get(@docid)
       @db.delete_doc doc
-      lambda{@db.get @docid}.should raise_error
+      expect(lambda{@db.get @docid}).to raise_error
     end
     it "should fail without an _id" do
-      lambda{@db.delete_doc({"not"=>"a real doc"})}.should raise_error(ArgumentError)
+      expect(lambda{@db.delete_doc({"not"=>"a real doc"})}).to raise_error(ArgumentError)
     end
     it "should defer actual deletion when using bulk save" do
       doc = @db.get(@docid)
       @db.delete_doc doc, true
-      lambda{@db.get @docid}.should_not raise_error
+      expect(lambda{@db.get @docid}).not_to raise_error
       @db.bulk_save
-      lambda{@db.get @docid}.should raise_error
+      expect(lambda{@db.get @docid}).to raise_error
     end
     
   end
@@ -628,10 +628,10 @@ describe CouchRest::Database do
       @db.update_doc @id do |doc|
         doc['upvotes'] += 1
       end
-      @db.get(@id)['upvotes'].should == 11
+      expect(@db.get(@id)['upvotes']).to eq 11
     end
     it "should fail if update_limit is reached" do
-      lambda do
+      expect do
         @db.update_doc @id do |doc|
           # modify and save the doc so that a collision happens
           conflicting_doc = @db.get @id
@@ -641,12 +641,12 @@ describe CouchRest::Database do
           # then try saving it through the update
           doc['upvotes'] += 1
         end
-      end.should raise_error(RestClient::RequestFailed)
+      end.to raise_error(RestClient::RequestFailed)
     end
     it "should not fail if update_limit is not reached" do
       limit = 5
-      lambda do
-      @db.update_doc @id do |doc|
+      expect do
+        @db.update_doc @id do |doc|
           # same as the last spec except we're only forcing 5 conflicts
           if limit > 0
             conflicting_doc = @db.get @id
@@ -657,8 +657,8 @@ describe CouchRest::Database do
           doc['upvotes'] += 1
           doc
         end
-      end.should_not raise_error
-      @db.get(@id)['upvotes'].should == 16
+      end.not_to raise_error
+      expect(@db.get(@id)['upvotes']).to eq 16
     end
   end
   
@@ -672,10 +672,10 @@ describe CouchRest::Database do
       it "should work" do
         @db.copy_doc @doc, @docid
         newdoc = @db.get(@docid)
-        newdoc['artist'].should == 'Zappa'
+        expect(newdoc['artist']).to eq 'Zappa'
       end
       it "should fail without an _id" do
-        lambda{@db.copy_doc({"not"=>"a real doc"})}.should raise_error(ArgumentError)
+        expect(lambda{@db.copy_doc({"not"=>"a real doc"})}).to raise_error(ArgumentError)
       end
     end
     describe "to an existing location" do
@@ -683,19 +683,19 @@ describe CouchRest::Database do
         @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
       end
       it "should fail without a rev" do
-        lambda{@db.copy_doc @doc, @docid}.should raise_error(RestClient::RequestFailed)
+        expect(lambda{@db.copy_doc @doc, @docid}).to raise_error(RestClient::RequestFailed)
       end
       it "should succeed with a rev" do
         @to_be_overwritten = @db.get(@docid)
         @db.copy_doc @doc, "#{@docid}?rev=#{@to_be_overwritten['_rev']}"
         newdoc = @db.get(@docid)
-        newdoc['artist'].should == 'Zappa'
+        expect(newdoc['artist']).to eq 'Zappa'
       end
       it "should succeed given the doc to overwrite" do
         @to_be_overwritten = @db.get(@docid)
         @db.copy_doc @doc, @to_be_overwritten
         newdoc = @db.get(@docid)
-        newdoc['artist'].should == 'Zappa'
+        expect(newdoc['artist']).to eq 'Zappa'
       end
     end
   end
@@ -706,9 +706,9 @@ describe CouchRest::Database do
       @db.save_doc({'another' => 'doc', 'will-exist' => 'anywhere'})
     end
     ds = @db.documents
-    ds['rows'].should be_an_instance_of(Array)
-    ds['rows'][0]['id'].should_not be_nil
-    ds['total_rows'].should == 5
+    expect(ds['rows']).to be_an_instance_of(Array)
+    expect(ds['rows'][0]['id']).not_to be_nil
+    expect(ds['total_rows']).to eq 5
   end
   
   # This is redundant with the latest view code, but left in place for prosterity.
@@ -720,28 +720,28 @@ describe CouchRest::Database do
     end
     it "should list documents with keys and such" do
       ds = @db.documents
-      ds['rows'].should be_an_instance_of(Array)
-      ds['rows'][0]['id'].should == "doc0"
-      ds['total_rows'].should == 9      
+      expect(ds['rows']).to be_an_instance_of(Array)
+      expect(ds['rows'][0]['id']).to eq "doc0"
+      expect(ds['total_rows']).to eq 9      
     end
     it "should take query params" do
       ds = @db.documents(:startkey => 'doc0', :endkey => 'doc3')
-      ds['rows'].length.should == 4
+      expect(ds['rows'].length).to eq 4
       ds = @db.documents(:key => 'doc0')
-      ds['rows'].length.should == 1
+      expect(ds['rows'].length).to eq 1
     end
     it "should work with multi-key" do
       rs = @db.documents :keys => ["doc0", "doc7"]
-      rs['rows'].length.should == 2
+      expect(rs['rows'].length).to eq 2
     end
     it "should work with include_docs" do
       ds = @db.documents(:startkey => 'doc0', :endkey => 'doc3', :include_docs => true)
-      ds['rows'][0]['doc']['another'].should == "doc"
+      expect(ds['rows'][0]['doc']['another']).to eq "doc"
     end
     it "should have the bulk_load macro" do
       rs = @db.bulk_load ["doc0", "doc7"]
-      rs['rows'].length.should == 2
-      rs['rows'][0]['doc']['another'].should == "doc"
+      expect(rs['rows'].length).to eq 2
+      expect(rs['rows'][0]['doc']['another']).to eq "doc"
     end
   end
   
@@ -750,20 +750,20 @@ describe CouchRest::Database do
     # Can cause failures in recent versions of CouchDB, just ensure
     # we actually send the right command.
     it "should compact the database" do
-      CouchRest.should_receive(:post).with("#{@cr.uri}/couchrest-test/_compact")
+      expect(CouchRest).to receive(:post).with("#{@cr.uri}/couchrest-test/_compact")
       @cr.database('couchrest-test').compact!
     end
   end
 
   describe "deleting a database" do
     it "should start with the test database" do
-      @cr.databases.should include('couchrest-test')
+      expect(@cr.databases).to include('couchrest-test')
     end
     it "should delete the database" do
       db = @cr.database('couchrest-test')
       r = db.delete!
-      r['ok'].should == true
-      @cr.databases.should_not include('couchrest-test')
+      expect(r['ok']).to eq true
+      expect(@cr.databases).not_to include('couchrest-test')
     end
   end
 
@@ -779,7 +779,7 @@ describe CouchRest::Database do
     end
 
     it "should replicate via pulling" do
-      CouchRest.should_receive(:post).with(
+      expect(CouchRest).to receive(:post).with(
         include("/_replicate"),
         include(
           :create_target => false,
@@ -792,7 +792,7 @@ describe CouchRest::Database do
     end
 
     it "should replicate via pushing" do
-      CouchRest.should_receive(:post).with(
+      expect(CouchRest).to receive(:post).with(
         include("/_replicate"),
         include(
           :create_target => false,
@@ -805,7 +805,7 @@ describe CouchRest::Database do
     end
 
     it "should replacicate with a specific doc" do
-      CouchRest.should_receive(:post).with(
+      expect(CouchRest).to receive(:post).with(
         include("/_replicate"),
         include(
           :create_target => false,
@@ -820,7 +820,7 @@ describe CouchRest::Database do
 
     describe "implicitly creating target" do
       it "should replicate via pulling" do
-        CouchRest.should_receive(:post).with(
+        expect(CouchRest).to receive(:post).with(
           include("/_replicate"),
           include(
             :create_target => true,
@@ -831,7 +831,7 @@ describe CouchRest::Database do
       end
 
       it "should replicate via pushing" do
-        CouchRest.should_receive(:post).with(
+        expect(CouchRest).to receive(:post).with(
           include("/_replicate"),
           include(
             :create_target => true,
@@ -844,7 +844,7 @@ describe CouchRest::Database do
 
     describe "continuous replication" do
       it "should replicate via pulling" do
-        CouchRest.should_receive(:post).with(
+        expect(CouchRest).to receive(:post).with(
           include("/_replicate"),
           include(
             :create_target => false,
@@ -855,7 +855,7 @@ describe CouchRest::Database do
       end
 
       it "should replicate via pushing" do
-        CouchRest.should_receive(:post).with(
+        expect(CouchRest).to receive(:post).with(
           include("/_replicate"),
           include(
             :create_target => false,
@@ -875,9 +875,9 @@ describe CouchRest::Database do
     end
 
     it "should just work fine" do
-      @cr.databases.should_not include('couchrest-test-db_to_create')
+      expect(@cr.databases).not_to include('couchrest-test-db_to_create')
       @db.create!
-      @cr.databases.should include('couchrest-test-db_to_create')
+      expect(@cr.databases).to include('couchrest-test-db_to_create')
     end
   end
 
@@ -890,15 +890,15 @@ describe CouchRest::Database do
     end
 
     it "should drop and recreate a database" do
-       @cr.databases.should include(@db.name)
+       expect(@cr.databases).to include(@db.name)
        @db.recreate!
-       @cr.databases.should include(@db.name)
+       expect(@cr.databases).to include(@db.name)
     end
 
     it "should recreate a db even though it doesn't exist" do
-      @cr.databases.should_not include(@db2.name)
+      expect(@cr.databases).not_to include(@db2.name)
       @db2.recreate!
-      @cr.databases.should include(@db2.name)
+      expect(@cr.databases).to include(@db2.name)
     end
   end
 
@@ -916,9 +916,9 @@ describe CouchRest::Database do
       if couchdb_lucene_available?
         result = @db.search('search/people', :q => 'name:J*')
         doc_ids = result['rows'].collect{ |row| row['id'] }
-        doc_ids.size.should == 2
-        doc_ids.should include('john')
-        doc_ids.should include('jack')
+        expect(doc_ids.size).to eq 2
+        expect(doc_ids).to include('john')
+        expect(doc_ids).to include('jack')
       end
     end
   end

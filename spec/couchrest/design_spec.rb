@@ -6,8 +6,8 @@ describe CouchRest::Design do
     it "should add a view to the design doc" do
       @des = CouchRest::Design.new
       method = @des.view_by :name
-      method.should == "by_name"
-      @des["views"]["by_name"].should_not be_nil
+      expect(method).to == "by_name"
+      expect(@des["views"]["by_name"]).not_to be_nil
     end
   end
   
@@ -18,13 +18,13 @@ describe CouchRest::Design do
     end
     it "should accept a name" do
       @des.name = "mytest"
-      @des.name.should == "mytest"
+      expect(@des.name).to == "mytest"
     end
     it "should not save on view definition" do
-      @des.rev.should be_nil
+      expect(@des.rev).to be_nil
     end
     it "should freak out on view access" do
-      lambda{@des.view :by_name}.should raise_error
+      expect(lambda{@des.view :by_name}).to raise_error
     end
   end
   
@@ -35,7 +35,7 @@ describe CouchRest::Design do
       @des.database = reset_test_db!
     end
     it "should fail without a name" do
-      lambda{@des.save}.should raise_error(ArgumentError)
+      expect(lambda{@des.save}).to raise_error(ArgumentError)
     end
     it "should work with a name" do
       @des.name = "myview"
@@ -55,14 +55,14 @@ describe CouchRest::Design do
       @des.name = "mydesign"
       @des.save
       res = @des.view :by_name
-      res["rows"][0]["key"].should == "x"
+      expect(res["rows"][0]["key"]).to == "x"
     end
     it "should be queryable on specified database" do
       @des.name = "mydesign"
       @des.save
       @des.database = nil
       res = @des.view_on @db, :by_name
-      res["rows"][0]["key"].should == "x"
+      expect(res["rows"][0]["key"]).to == "x"
     end
   end
   
@@ -81,16 +81,16 @@ describe CouchRest::Design do
       @des = @db.get "_design/test"
     end
     it "should be a Design" do
-      @des.should be_an_instance_of(CouchRest::Design)
+      expect(@des).to be_an_instance_of(CouchRest::Design)
     end
     it "should have a modifiable name" do
-      @des.name.should == "test"
+      expect(@des.name).to == "test"
       @des.name = "supertest"
-      @des.id.should == "_design/supertest"
+      expect(@des.id).to == "_design/supertest"
     end
     it "should by queryable" do
       res = @des.view :by_name 
-      res["rows"][0]["key"].should == "a"
+      expect(res["rows"][0]["key"]).to == "a"
     end
   end
   
@@ -106,15 +106,15 @@ describe CouchRest::Design do
     end
     it "should save them" do
       @d2 = @db.get(@des.id)
-      @d2["views"]["by_name"]["couchrest-defaults"].should == {"descending"=>true}
+      expect(@d2["views"]["by_name"]["couchrest-defaults"]).to == {"descending"=>true}
     end
     it "should use them" do
       res = @des.view :by_name
-      res["rows"].first["key"].should == "z"
+      expect(res["rows"].first["key"]).to == "z"
     end
     it "should override them" do
       res = @des.view :by_name, :descending => false
-      res["rows"].first["key"].should == "a"
+      expect(res["rows"].first["key"]).to == "a"
     end
   end
   
@@ -131,7 +131,7 @@ describe CouchRest::Design do
     end
     it "should work" do
       res = @des.view :by_name_and_age
-      res["rows"].first["key"].should == ["a",2]
+      expect(res["rows"].first["key"]).to == ["a",2]
     end
   end
 
@@ -148,9 +148,9 @@ describe CouchRest::Design do
     end
     it "should work" do
       res = @des.view :by_code
-      res["rows"][0]["key"].should == 0
-      res["rows"][1]["key"].should == "a"
-      res["rows"][2].should be_nil
+      expect(res["rows"][0]["key"]).to == 0
+      expect(res["rows"][1]["key"]).to == "a"
+      expect(res["rows"][2]).to be_nil
     end
   end
 
@@ -167,9 +167,9 @@ describe CouchRest::Design do
     end
     it "should work" do
       res = @des.view :by_code
-      res["rows"][0]["key"].should == nil
-      res["rows"][1]["key"].should == 0
-      res["rows"][2]["key"].should == "a"
+      expect(res["rows"][0]["key"]).to == nil
+      expect(res["rows"][1]["key"]).to == 0
+      expect(res["rows"][2]["key"]).to == "a"
     end
   end
 
@@ -186,19 +186,19 @@ describe CouchRest::Design do
         {"code" => 'b', "age" => 4},{"code" => 'c', "age" => 9}])
     end
     it "should not set a default parameter" do
-      @des['views']['by_code']['couchrest-defaults'].should be_nil
+      expect(@des['views']['by_code']['couchrest-defaults']).to be_nil
     end
     it "should include reduce parameter in query" do
       # this would fail without it
       res = @des.view :by_code
-      res["rows"][0]["key"].should == 'a'
+      expect(res["rows"][0]["key"]).to == 'a'
     end
     it "should allow reduce to be performed" do
       res = @des.view :by_code, :reduce => true
-      res["rows"][0]["value"].should eql(3)
+      expect(res["rows"][0]["value"]).to eql(3)
     end
     it "does not allow string keys to be passed to view as options" do
-      lambda{ @des.view :by_code, 'reduce' => true }.should raise_error(ArgumentError, /set as symbols/)
+      expect(lambda{ @des.view :by_code, 'reduce' => true }).to raise_error(ArgumentError, /set as symbols/)
     end
   end
 
@@ -217,8 +217,8 @@ describe CouchRest::Design do
 
     it "should provide a summary info hash" do
       info = @des.info
-      info['name'].should eql("test")
-      info.should include("view_index")
+      expect(info['name']).to eql("test")
+      expect(info).to include("view_index")
     end
 
   end

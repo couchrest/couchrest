@@ -20,7 +20,7 @@ describe CouchRest::Streamer do
   end
 
   it "should raise error on #view as deprecated" do
-    lambda { @streamer.view }.should raise_error(/deprecated/)
+    expect(lambda { @streamer.view }).to raise_error(/deprecated/)
   end
 
   it "should GET each row in a view" do
@@ -28,8 +28,8 @@ describe CouchRest::Streamer do
     header = @streamer.get("#{@db.root}/_all_docs") do |row|
       count += 1
     end
-    count.should == 1001
-    header.should == {"total_rows" => 1001, "offset" => 0}
+    expect(count).to == 1001
+    expect(header).to == {"total_rows" => 1001, "offset" => 0}
   end
 
   it "should GET each row in a view with params" do
@@ -37,8 +37,8 @@ describe CouchRest::Streamer do
     header = @streamer.get("#{@db.root}/_all_docs?include_docs=true&limit=5") do |row|
       count += 1
     end
-    count.should == 5
-    header.should == {"total_rows" => 1001, "offset" => 0}
+    expect(count).to == 5
+    expect(header).to == {"total_rows" => 1001, "offset" => 0}
   end
 
   it "should GET no rows in a view with limit=0" do
@@ -46,8 +46,8 @@ describe CouchRest::Streamer do
     header = @streamer.get("#{@db.root}/_all_docs?include_docs=true&limit=0") do |row|
       count += 1
     end
-    count.should == 0
-    header.should == {"total_rows" => 1001, "offset" => 0}
+    expect(count).to == 0
+    expect(header).to == {"total_rows" => 1001, "offset" => 0}
   end
 
   it "should raise an exception if it receives malformed data" do
@@ -78,7 +78,7 @@ describe CouchRest::Streamer do
       @streamer.get("#{@db.root}/_all_docs?include_docs=true&limit=0") do |row|
         count += 1
       end
-    end.should raise_error(MultiJson::DecodeError)
+    expect(end).to raise_error(MultiJson::DecodeError)
   end
 
   it "should raise an exception if the couch connection fails" do
@@ -109,9 +109,9 @@ describe CouchRest::Streamer do
       @streamer.get("#{@db.root}/_all_docs?include_docs=true&limit=0") do |row|
         count += 1
       end
-    end.should raise_error(RestClient::ServerBrokeConnection)
+    expect(end).to raise_error(RestClient::ServerBrokeConnection)
 
-    count.should == 2
+    expect(count).to == 2
   end
 
   it "should POST for each row in a view" do
@@ -124,11 +124,11 @@ describe CouchRest::Streamer do
     @streamer.post("#{@db.root}/_all_docs?include_docs=true", :keys => ids) do |row|
       count += 1
     end
-    count.should == 2
+    expect(count).to == 2
   end
 
   it "should escape quotes" do
-    @streamer.send(:escape_quotes, "keys: [\"sams's test\"]").should eql("keys: [\\\"sams's test\\\"]")
+    expect(@streamer.send(:escape_quotes, "keys: [\"sams's test\"]")).to eql("keys: [\\\"sams's test\\\"]")
   end
 
 end

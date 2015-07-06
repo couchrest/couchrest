@@ -143,10 +143,13 @@ module CouchRest
       # Prepare the request body, if provided
       req.body = payload_from_doc(payload, options) unless payload.nil?
 
-      # Request, and leave a reference to the response for debugging purposes
-      @last_response =  http.request(req_uri, req)
+      # Send and parse response
+      parse_response(send_request(req_uri, req), options)
+    end
 
-      parse_response(last_response, options)
+    # Send request, and leave a reference to the response for debugging purposes
+    def send_request(req_uri, req)
+      @last_response =  http.request(req_uri, req)
     end
 
     # Check if the provided doc is nil or special IO device or temp file. If not,
