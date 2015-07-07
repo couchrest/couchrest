@@ -62,6 +62,7 @@ module CouchRest
 
     # Send a GET request.
     def get(path, options = {})
+      puts "GET: #{path}"
       execute(Net::HTTP::Get, path, options)
     end
 
@@ -132,7 +133,7 @@ module CouchRest
     end
 
     def execute(method, path, options, payload = nil)
-      req_uri = uri + path
+      req_uri = uri.merge(path)
       req = method.new(req_uri.path)
 
       # Prepare the request headers
@@ -143,6 +144,7 @@ module CouchRest
       # Prepare the request body, if provided
       req.body = payload_from_doc(payload, options) unless payload.nil?
 
+      #http.debug_output = $stderr
       # Send and parse response
       parse_response(send_request(req_uri, req), options)
     end

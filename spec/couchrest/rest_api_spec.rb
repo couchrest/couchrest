@@ -19,7 +19,7 @@ describe CouchRest::RestAPI do
       should respond_to :delete
       should respond_to :head
     end
-
+§
     it "should provide default headers" do
       should respond_to :default_headers
       expect(CouchRest.default_headers).to be_a(Hash)

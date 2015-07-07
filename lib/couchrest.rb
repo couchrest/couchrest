@@ -108,14 +108,20 @@ module CouchRest
     end
 
     def paramify_url url, params = {}
+      query = params_to_query(params)
+      query ? "#{url}?#{query}" : url
+    end
+
+    def params_to_query
       if params && !params.empty?
         query = params.collect do |k,v|
           v = MultiJson.encode(v) if %w{key startkey endkey}.include?(k.to_s)
           "#{k}=#{CGI.escape(v.to_s)}"
         end.join("&")
-        url = "#{url}?#{query}"
+        query
+      else
+        nil
       end
-      url
     end
 
     @@decode_json_objects = false

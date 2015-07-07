@@ -3,7 +3,19 @@ require "base64"
 
 module CouchRest
   class Database
-    attr_reader :server, :host, :name, :uri
+
+    ##
+    # Server object we'll use to communicate with.
+    attr_reader :server
+    
+    ##
+    # Name of the database of we're using.
+    attr_reader :name
+
+    ##
+    # Name of the database we can use in requests.
+    attr_reader :path
+
     attr_accessor :bulk_save_cache_limit
 
     # Create a CouchRest::Database adapter for the supplied CouchRest::Server
@@ -14,10 +26,9 @@ module CouchRest
     # name<String>:: database name
     #
     def initialize(server, name)
-      @name = name
-      @server = server
-      @host = server.uri
-      @uri  = "/#{name.gsub('/','%2F')}"
+      @name     = name
+      @server   = server
+      @path     = "/#{name.gsub('/','%2F')}"
       @streamer = Streamer.new
       @bulk_save_cache = []
       @bulk_save_cache_limit = 500  # must be smaller than the uuid count
@@ -27,30 +38,30 @@ module CouchRest
       server.connection
     end
 
-    # == Database information and manipulation methods
-
-    def root
-      host + uri
+    # A URI object for the exact location of this database
+    def uri
+      server.uri + path 
     end
+    alias root uri
 
-    # returns the database's uri
+    # String of #root
     def to_s
-      @root
+      uri.to_s
     end
 
     # GET the database info from CouchDB
     def info
-      connection.get uri
+      connection.get path
     end
 
     # Compact the database, removing old document revisions and optimizing space use.
     def compact!
-      connection.post "#{uri}/_compact"
+      connection.post "#{path}/_compact"
     end
 
     # Create the database
     def create!
-      bool = server.create_db(uri) rescue false
+      bool = server.create_db(path) rescue false
       bool && true
     end
 
@@ -76,7 +87,7 @@ module CouchRest
     # DELETE the database itself. This is not undoable and could be rather
     # catastrophic. Use with care!
     def delete!
-      connection.delete uri 
+      connection.delete path 
     end
 
 
@@ -85,7 +96,7 @@ module CouchRest
     # GET a document from CouchDB, by id. Returns a Document or Design.
     def get(id, params = {})
       slug = escape_docid(id)
-      url = CouchRest.paramify_url("#{uri}/#{slug}", params)
+      url = CouchRest.paramify_url("#{path}/#{slug}", params)
       result = connection.get(url)
       return result unless result.is_a?(Hash)
       doc = if /^_design/ =~ result["_id"]
@@ -132,20 +143,20 @@ module CouchRest
       result = if doc['_id']
         slug = escape_docid(doc['_id'])
         begin
-          uri = "#{uri}/#{slug}"
-          uri << "?batch=ok" if batch
-          connection.put uri, doc
+          doc_path = "#{path}/#{slug}"
+          doc_path << "?batch=ok" if batch
+          connection.put doc_path, doc
         rescue CouchRest::NotFound
           puts "resource not found when saving even though an id was passed"
           slug = doc['_id'] = server.next_uuid
-          connection.put "#{uri}/#{slug}", doc
+          connection.put "#{path}/#{slug}", doc
         end
       else
         begin
           slug = doc['_id'] = @server.next_uuid
-          connection.put "#{uri}/#{slug}", doc
+          connection.put "#{path}/#{slug}", doc
         rescue #old version of couchdb
-          connection.post uri, doc
+          connection.post path, doc
         end
       end
       if result['ok']
@@ -187,7 +198,7 @@ module CouchRest
       if all_or_nothing
         request_body[:all_or_nothing] = true
       end
-      connection.post "#{uri}/_bulk_docs", request_body
+      connection.post "#{path}/_bulk_docs", request_body
     end
     alias :bulk_delete :bulk_save
 
@@ -204,7 +215,7 @@ module CouchRest
         return {'ok' => true} # Mimic the non-deferred version
       end
       slug = escape_docid(doc['_id'])        
-      connection.delete "#{uri}/#{slug}?rev=#{doc['_rev']}"
+      connection.delete "#{path}/#{slug}?rev=#{doc['_rev']}"
     end
 
     # COPY an existing document to a new id. If the destination id currently exists, a rev must be provided.
@@ -218,7 +229,7 @@ module CouchRest
       else
         dest
       end
-      CouchRest.copy "#{@root}/#{slug}", destination
+      connection.copy "#{path}/#{slug}", "#{path}/#{destination}"
     end
 
     # Updates the given doc by yielding the current state of the doc
@@ -234,7 +245,7 @@ module CouchRest
         yield doc
         begin
           resp = self.save_doc doc
-        rescue RestClient::RequestFailed => e
+        rescue CouchRest::RequestFailed => e
           if e.http_code == 409 # Update collision
             update_limit -= 1
             last_fail = e
@@ -258,18 +269,18 @@ module CouchRest
       payload['keys'] = params.delete(:keys) if params[:keys]
       # Try recognising the name, otherwise assume already prepared
       view_path = name_to_view_path(name)
-      url = CouchRest.paramify_url "#{@root}/#{view_path}", params
+      req_path = CouchRest.paramify_url("#{path}/#{view_path}", params)
       if block_given?
         if !payload.empty?
-          @streamer.post url, payload, &block
+          @streamer.post req_path, payload, &block
         else
-          @streamer.get url, &block
+          @streamer.get req_path, &block
         end
       else
         if !payload.empty?
-          connection.post url, payload
+          connection.post req_path, payload
         else
-          connection.get url
+          connection.get req_path
         end
       end
     end
@@ -317,28 +328,25 @@ module CouchRest
 
     # GET an attachment directly from CouchDB
     def fetch_attachment(doc, name)
-      uri = url_for_attachment(doc, name)
-      connection.get uri, :raw => true
+      connection.get path_for_attachment(doc, name), :raw => true
     end
 
     # PUT an attachment directly to CouchDB
     def put_attachment(doc, name, file, options = {})
-      uri = url_for_attachment(doc, name)
-      connection.put(uri, file, options.merge(:raw => true))
+      connection.put path_for_attachment(doc, name), file, options.merge(:raw => true)
     end
 
     # DELETE an attachment directly from CouchDB
     def delete_attachment(doc, name, force=false)
-      uri = url_for_attachment(doc, name)
-      # this needs a rev
+      attach_path = path_for_attachment(doc, name)
       begin
-        connection.delete(uri)
+        connection.delete(attach_path)
       rescue Exception => error
         if force
           # get over a 409
           doc = get(doc['_id'])
-          uri = url_for_attachment(doc, name)
-          connection.delete(uri)
+          attach_path = path_for_attachment(doc, name)
+          connection.delete(attach_path)
         else
           error
         end
@@ -364,7 +372,7 @@ module CouchRest
       CouchRest.post "#{@host}/_replicate", payload
     end
 
-    def uri_for_attachment(doc, name)
+    def path_for_attachment(doc, name)
       if doc.is_a?(String)
         puts "CouchRest::Database#fetch_attachment will eventually require a doc as the first argument, not a doc.id"
         docid = doc
@@ -376,11 +384,7 @@ module CouchRest
       docid = escape_docid(docid)
       name = CGI.escape(name)
       rev = "?rev=#{doc['_rev']}" if rev
-      "/#{docid}/#{name}#{rev}"
-    end
-
-    def url_for_attachment(doc, name)
-      uri + uri_for_attachment(doc, name)
+      "#{path}/#{docid}/#{name}#{rev}"
     end
 
     def escape_docid id

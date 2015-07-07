@@ -13,7 +13,6 @@ unless defined?(FIXTURE_PATH)
   TESTDB    = 'couchrest-test'
   REPLICATIONDB = 'couchrest-test-replication'
   TEST_SERVER    = CouchRest.new COUCHHOST
-  TEST_SERVER.default_database = TESTDB
   DB = TEST_SERVER.database(TESTDB)
 end
 

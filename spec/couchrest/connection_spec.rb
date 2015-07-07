@@ -18,6 +18,13 @@ describe CouchRest::Connection do
 
   describe "initialization" do
 
+    it "should not modify the provided URI" do
+      uri = URI("http://localhost:5984/path/random?query=none#fragment")
+      s = uri.to_s
+      CouchRest::Connection.new(uri)
+      expect(uri.to_s).to eql(s)
+    end
+
     it "should clean the provided URI" do
       conn = CouchRest::Connection.new(URI "http://localhost:5984/path/random?query=none#fragment")
       expect(conn.uri.to_s).to eql("http://localhost:5984")
@@ -77,9 +84,19 @@ describe CouchRest::Connection do
 
   describe :get do
     
+    let :doc do
+      { '_id' => 'test-doc', 'name' => 'test document' }
+    end
+    let :uri do
+      URI(DB.to_s + "/test-doc")
+    end
+
     it "should send basic request" do
-      conn = CouchRest::Connection.new( )
-       
+      DB.save_doc(doc)
+      conn = CouchRest::Connection.new(uri)
+      res = conn.get(uri.path)
+      puts "RES: #{uri} #{res}"
+      expect(res['name']).to eql(doc['name'])
     end
 
   end
