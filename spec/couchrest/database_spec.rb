@@ -4,7 +4,7 @@ describe CouchRest::Database do
   before(:each) do
     @cr = CouchRest.new(COUCHHOST)
     @db = @cr.database(TESTDB)
-    @db.delete! rescue RestClient::ResourceNotFound
+    @db.delete! rescue CouchRest::NotFound
     @db = @cr.create_db(TESTDB) # rescue nil
   end
 
@@ -12,8 +12,10 @@ describe CouchRest::Database do
     it "should escape the name in the URI" do
       db = @cr.database("foo/bar")
       expect(db.name).to eq "foo/bar"
-      expect(db.root).to eq "#{COUCHHOST}/foo%2Fbar"
-      expect(db.uri).to  eq "/foo%2Fbar"
+      expect(db.root).to eq URI("#{COUCHHOST}/foo%2Fbar")
+      expect(db.uri).to eq URI("#{COUCHHOST}/foo%2Fbar")
+      expect(db.to_s).to eq "#{COUCHHOST}/foo%2Fbar"
+      expect(db.path).to  eq "/foo%2Fbar"
     end
   end
 
@@ -236,7 +238,7 @@ describe CouchRest::Database do
     end
     
     it "should use uuids when ids aren't provided" do
-      @db.server.stub!(:next_uuid).and_return('asdf6sgadkfhgsdfusdf')
+      @db.server.stub(:next_uuid).and_return('asdf6sgadkfhgsdfusdf')
       
       docs = [{'key' => 'value'}, {'_id' => 'totally-uniq'}]
       id_docs = [{'key' => 'value', '_id' => 'asdf6sgadkfhgsdfusdf'}, {'_id' => 'totally-uniq'}]
@@ -260,7 +262,7 @@ describe CouchRest::Database do
       @db.save_doc({"_id" => "bulk_cache_1", "val" => "test"}, true)
       expect do
         @db.get('bulk_cache_1')
-      end.to raise_error(RestClient::ResourceNotFound)
+      end.to raise_error(CouchRest::NotFound)
       @db.bulk_save
       expect(@db.get("bulk_cache_1")["val"]).to eq "test"
     end
@@ -280,7 +282,7 @@ describe CouchRest::Database do
             {"_id" => "free", "mild" => "yet local"},
             {"another" => ["set","of","keys"]}
           ])
-      rescue RestClient::RequestFailed => e
+      rescue CouchRest::RequestFailed => e
         # soon CouchDB will provide _which_ docs conflicted
         expect(MultiJson.decode(e.response.body)['error']).to eq 'conflict'
       end
@@ -494,7 +496,7 @@ describe CouchRest::Database do
     it "should create the document" do
       @docid = "http://example.com/stuff.cgi?things=and%20stuff"
       @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
-      expect(lambda{@db.save_doc({'_id' => @docid})}).to raise_error(RestClient::Request::RequestFailed)
+      expect(lambda{@db.save_doc({'_id' => @docid})}).to raise_error(CouchRest::RequestFailed)
       expect(@db.get(@docid)['will-exist']).to eq 'here'
     end
   end
@@ -511,7 +513,7 @@ describe CouchRest::Database do
     end
     it "should create the document" do
       @db.save_doc({'_id' => 'my-doc', 'will-exist' => 'here'})
-      expect(lambda{@db.save_doc({'_id' => 'my-doc'})}).to raise_error(RestClient::Request::RequestFailed)
+      expect(lambda{@db.save_doc({'_id' => 'my-doc'})}).to raise_error(CouchRest::RequestFailed)
     end
   end
   
@@ -562,10 +564,10 @@ describe CouchRest::Database do
       @db.save_doc(td2, true)
       expect do
         @db.get(td1["_id"])
-      end.to raise_error(RestClient::ResourceNotFound)
+      end.to raise_error(CouchRest::NotFound)
       expect do
         @db.get(td2["_id"])
-      end.to raise_error(RestClient::ResourceNotFound)
+      end.to raise_error(CouchRest::NotFound)
       td3 = {"_id" => "td3", "val" => "foo"}
       @db.save_doc(td3, true)
       expect(@db.get(td1["_id"])["val"]).to eq td1["val"]
@@ -580,7 +582,7 @@ describe CouchRest::Database do
       @db.save_doc(td1, true)
       expect do
         @db.get(td1["_id"])
-      end.to raise_error(RestClient::ResourceNotFound)
+      end.to raise_error(CouchRest::NotFound)
       @db.save_doc(td2)
       expect(@db.get(td1["_id"])["val"]).to eq td1["val"]
       expect(@db.get(td2["_id"])["val"]).to eq td2["val"]
@@ -641,7 +643,7 @@ describe CouchRest::Database do
           # then try saving it through the update
           doc['upvotes'] += 1
         end
-      end.to raise_error(RestClient::RequestFailed)
+      end.to raise_error(CouchRest::RequestFailed)
     end
     it "should not fail if update_limit is not reached" do
       limit = 5
@@ -683,7 +685,7 @@ describe CouchRest::Database do
         @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
       end
       it "should fail without a rev" do
-        expect(lambda{@db.copy_doc @doc, @docid}).to raise_error(RestClient::RequestFailed)
+        expect(lambda{@db.copy_doc @doc, @docid}).to raise_error(CouchRest::RequestFailed)
       end
       it "should succeed with a rev" do
         @to_be_overwritten = @db.get(@docid)

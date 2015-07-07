@@ -101,4 +101,8 @@ module CouchRest
     Exceptions::EXCEPTIONS_MAP[code] = klass_constant
   end
 
+  # Error handler for broken connections, mainly used by streamer
+  class ServerBrokeConnection < ::Exception
+  end
+
 end

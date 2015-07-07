@@ -22,14 +22,14 @@ module CouchRest
     # Send a PUT request.
     def put(url, doc = nil, options = {})
       connection(url, options) do |uri, conn|
-        conn.put(uri.path, options, doc)
+        conn.put(uri.path, doc, options)
       end
     end
 
     # Send a POST request.
     def post(url, doc = nil, options = {})
       connection(url, options) do |uri, conn|
-        conn.post(uri.path, options, doc)
+        conn.post(uri.path, doc, options)
       end
     end
 

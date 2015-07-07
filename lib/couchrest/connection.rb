@@ -61,9 +61,8 @@ module CouchRest
     end
 
     # Send a GET request.
-    def get(path, options = {})
-      puts "GET: #{path}"
-      execute(Net::HTTP::Get, path, options)
+    def get(path, options = {}, &block)
+      execute(Net::HTTP::Get, path, options, nil, &block)
     end
 
     # Send a PUT request.
@@ -72,8 +71,8 @@ module CouchRest
     end
 
     # Send a POST request.
-    def post(path, doc = nil, options = {})
-      execute(Net::HTTP::Post, path, options, doc)
+    def post(path, doc = nil, options = {}, &block)
+      execute(Net::HTTP::Post, path, options, doc, &block)
     end
 
     # Send a DELETE request.
@@ -132,9 +131,9 @@ module CouchRest
       http.open_timeout = opts[:open_timeout] if opts.include?(:open_timeout)
     end
 
-    def execute(method, path, options, payload = nil)
+    def execute(method, path, options, payload = nil, &block)
       req_uri = uri.merge(path)
-      req = method.new(req_uri.path)
+      req = method.new(req_uri.request_uri)
 
       # Prepare the request headers
       DEFAULT_HEADERS.merge(parse_and_convert_request_headers(options)).each do |key, value|
@@ -142,16 +141,24 @@ module CouchRest
       end
 
       # Prepare the request body, if provided
-      req.body = payload_from_doc(payload, options) unless payload.nil?
+      unless payload.nil?
+        req.body = payload_from_doc(req, payload, options)
+      end
 
-      #http.debug_output = $stderr
       # Send and parse response
-      parse_response(send_request(req_uri, req), options)
+      parse_response(send_request(req_uri, req, &block), options)
     end
 
     # Send request, and leave a reference to the response for debugging purposes
-    def send_request(req_uri, req)
-      @last_response =  http.request(req_uri, req)
+    def send_request(req_uri, req, &block)
+      if block_given?
+        http.request req_uri, req do |response|
+          @last_response = response
+
+        end
+      else
+        @last_response = http.request(req_uri, req)
+      end
     end
 
     # Check if the provided doc is nil or special IO device or temp file. If not,
@@ -160,12 +167,20 @@ module CouchRest
     # The options supported are:
     # * :raw TrueClass, if true the payload will not be altered.
     #
-    def payload_from_doc(doc, opts = {})
-      if opts[:raw] || doc.nil? || doc.is_a?(IO) || doc.is_a?(Tempfile)
+    def payload_from_doc(req, doc, opts = {})
+      if doc.is_a?(IO) || doc.is_a?(Tempfile)
+        req['Content-Type'] = mime_for(req.path)
+        doc.read
+      elsif opts[:raw] || doc.nil?
         doc
       else
         MultiJson.encode(doc.respond_to?(:as_couch_json) ? doc.as_couch_json : doc)
       end
+    end
+
+    def mime_for(path)
+      mime = MIME::Types.type_for path
+      mime.empty? ? 'text/plain' : mime[0].content_type
     end
 
     # Parse the response provided.

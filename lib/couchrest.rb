@@ -14,6 +14,7 @@
 
 require 'net/http/persistent'
 require 'multi_json'
+require 'mime/types'
 
 $:.unshift File.dirname(__FILE__) unless
  $:.include?(File.dirname(__FILE__)) ||
@@ -112,7 +113,7 @@ module CouchRest
       query ? "#{url}?#{query}" : url
     end
 
-    def params_to_query
+    def params_to_query(params)
       if params && !params.empty?
         query = params.collect do |k,v|
           v = MultiJson.encode(v) if %w{key startkey endkey}.include?(k.to_s)

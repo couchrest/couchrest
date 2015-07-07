@@ -34,4 +34,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency("rspec", "~> 2.14.1")
   s.add_development_dependency("rake")
   s.add_development_dependency("multi_json", "~> 1.7") # needed for json decode json objects
+  s.add_development_dependency("webmock")
 end
