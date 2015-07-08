@@ -142,7 +142,7 @@ describe CouchRest::Database do
     it "should not modify given params" do
       original_params = {:keys => ["another", "wild"]}
       params = original_params.dup
-      rs = @db.view('first/test', params)
+      @db.view('first/test', params)
       expect(params).to eq original_params
     end
     it "should accept a block" do

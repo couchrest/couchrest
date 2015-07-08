@@ -102,7 +102,6 @@ describe CouchRest::Connection do
     end
 
     describe :get do
-      
 
       it "should send basic request" do
         DB.save_doc(doc)
@@ -222,6 +221,35 @@ describe CouchRest::Connection do
           expect(conn.get("#{TESTDB}/test2").class).to eql(Hash)
         end
       end
+
+      describe "with block" do
+
+        let :sample_data do
+          <<-EOF
+            {
+              "total_rows": 3, "offset": 0, "rows": [
+                {"id": "doc1", "key": "doc1", "value": {"rev":"4324BB"}},
+                {"id": "doc2", "key": "doc2", "value": {"rev":"2441HF"}},
+                {"id": "doc3", "key": "doc3", "value": {"rev":"74EC24"}}
+              ]
+            }
+          EOF
+        end
+
+        it "should handle basic streaming request" do
+          stub_request(:get, "http://mock/db/test")
+            .to_return(:body => sample_data)
+          rows = []
+          head = mock_conn.get("db/test") do |row|
+            rows << row
+          end
+          expect(rows.length).to eql(3)
+          expect(head['total_rows']).to eql(3)
+          expect(rows.first['id']).to eql('doc1')
+        end
+
+      end
+
     end
 
     describe :put do
@@ -297,6 +325,34 @@ describe CouchRest::Connection do
         res = conn.get("#{TESTDB}/test-post-doc")
         expect(res['name']).to eql post_doc['name']
         expect(res['_rev']).to_not be_nil
+      end
+
+      describe "with block" do
+
+        let :sample_data do
+          <<-EOF
+            {
+              "total_rows": 3, "offset": 0, "rows": [
+                {"id": "doc1", "key": "doc1", "value": {"rev":"4324BB"}},
+                {"id": "doc2", "key": "doc2", "value": {"rev":"2441HF"}},
+                {"id": "doc3", "key": "doc3", "value": {"rev":"74EC24"}}
+              ]
+            }
+          EOF
+        end
+
+        it "should handle basic streaming request" do
+          stub_request(:post, "http://mock/db/test")
+            .to_return(:body => sample_data)
+          rows = []
+          head = mock_conn.post("db/test") do |row|
+            rows << row
+          end
+          expect(rows.length).to eql(3)
+          expect(head['total_rows']).to eql(3)
+          expect(rows.first['id']).to eql('doc1')
+        end
+
       end
 
     end

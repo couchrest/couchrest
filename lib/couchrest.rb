@@ -29,16 +29,16 @@ require 'forwardable'
 
 # = CouchDB, close to the metal
 module CouchRest
-  autoload :Attributes,   'couchrest/attributes'
-  autoload :Server,       'couchrest/server'
-  autoload :Database,     'couchrest/database'
-  autoload :Document,     'couchrest/document'
-  autoload :Design,       'couchrest/design'
-  autoload :Model,        'couchrest/model'
-  autoload :Pager,        'couchrest/helper/pager'
-  autoload :Streamer,     'couchrest/helper/streamer'
-  autoload :Attachments,  'couchrest/helper/attachments'
-  autoload :Upgrade,      'couchrest/helper/upgrade'
+  autoload :Attributes,      'couchrest/attributes'
+  autoload :Server,          'couchrest/server'
+  autoload :Database,        'couchrest/database'
+  autoload :Document,        'couchrest/document'
+  autoload :Design,          'couchrest/design'
+  autoload :Model,           'couchrest/model'
+  autoload :Pager,           'couchrest/helper/pager'
+  autoload :Attachments,     'couchrest/helper/attachments'
+  autoload :StreamRowParser, 'couchrest/helper/stream_row_parser'
+  autoload :Upgrade,         'couchrest/helper/upgrade'
 
   # we extend CouchRest with the RestAPI module which gives us acess to
   # the get, post, put, delete and copy

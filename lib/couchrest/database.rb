@@ -4,18 +4,16 @@ require "base64"
 module CouchRest
   class Database
 
-    ##
     # Server object we'll use to communicate with.
     attr_reader :server
     
-    ##
     # Name of the database of we're using.
     attr_reader :name
 
-    ##
     # Name of the database we can use in requests.
     attr_reader :path
 
+    # How many documents should be cached before peforming the bulk save operation
     attr_accessor :bulk_save_cache_limit
 
     # Create a CouchRest::Database adapter for the supplied CouchRest::Server
@@ -29,7 +27,6 @@ module CouchRest
       @name     = name
       @server   = server
       @path     = "/#{name.gsub('/','%2F')}"
-      @streamer = Streamer.new
       @bulk_save_cache = []
       @bulk_save_cache_limit = 500  # must be smaller than the uuid count
     end
@@ -270,18 +267,10 @@ module CouchRest
       # Try recognising the name, otherwise assume already prepared
       view_path = name_to_view_path(name)
       req_path = CouchRest.paramify_url("#{path}/#{view_path}", params)
-      if block_given?
-        if !payload.empty?
-          @streamer.post req_path, payload, &block
-        else
-          @streamer.get req_path, &block
-        end
+      if payload.empty?
+        connection.get req_path, {}, &block
       else
-        if !payload.empty?
-          connection.post req_path, payload
-        else
-          connection.get req_path
-        end
+        connection.post req_path, payload, {}, &block
       end
     end
 

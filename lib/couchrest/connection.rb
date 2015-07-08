@@ -145,20 +145,55 @@ module CouchRest
         req.body = payload_from_doc(req, payload, options)
       end
 
-      # Send and parse response
-      parse_response(send_request(req_uri, req, &block), options)
+      send_and_parse_response(req_uri, req, options, &block)
+    end
+
+    def send_and_parse_response(req_uri, req, options, &block)
+      if block_given?
+        head = nil
+        send_request(req_uri, req) do |response|
+          handle_response_code(response) 
+          head = for_each_response_document(response) do |doc|
+            block.call(parse_body(doc, options))
+          end
+        end
+        parse_body(head, options)
+      else
+        response = send_request(req_uri, req)
+        handle_response_code(response)
+        parse_body(response.body, options)
+      end
     end
 
     # Send request, and leave a reference to the response for debugging purposes
     def send_request(req_uri, req, &block)
-      if block_given?
-        http.request req_uri, req do |response|
-          @last_response = response
+      @last_response = http.request(req_uri, req, &block)
+    end
 
-        end
+    def handle_response_code(response)
+      raise_response_error(response) unless SUCCESS_RESPONSE_CODES.include?(response.code)
+    end
+
+    def parse_body(body, opts)
+      if opts[:raw]
+        # passthru
+        body
       else
-        @last_response = http.request(req_uri, req)
+        MultiJson.load(body, prepare_json_load_options(opts))
       end
+    end
+
+    # Assume the response contains an IO object. Iterate through the stream
+    # splitting the contents into sub documents.
+    def for_each_response_document(response)
+      @last_response = response
+      parser = CouchRest::StreamRowParser.new
+      response.read_body do |segment|
+        parser.parse(segment) do |row|
+          yield row
+        end
+      end
+      parser.header
     end
 
     # Check if the provided doc is nil or special IO device or temp file. If not,
@@ -181,17 +216,6 @@ module CouchRest
     def mime_for(path)
       mime = MIME::Types.type_for path
       mime.empty? ? 'text/plain' : mime[0].content_type
-    end
-
-    # Parse the response provided.
-    def parse_response(response, opts)
-      raise_response_error(response) unless SUCCESS_RESPONSE_CODES.include?(response.code)
-      if opts[:raw]
-        # passthru
-        response.body
-      else
-        MultiJson.load(response.body, prepare_json_load_options(opts))
-      end
     end
 
     def raise_response_error(response)
