@@ -50,7 +50,7 @@ module CouchRest
 
     def http_code
       # return integer for compatibility
-      @response.code.to_i if @response
+      @response.status if @response
     end
 
     def http_headers

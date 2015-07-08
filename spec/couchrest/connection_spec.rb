@@ -36,7 +36,7 @@ describe CouchRest::Connection do
 
     it "should have instantiated an HTTP connection" do
       conn = CouchRest::Connection.new(URI "http://localhost:5984")
-      expect(conn.http).to be_a(Net::HTTP::Persistent)
+      expect(conn.http).to be_a(Excon::Connection)
     end
     
     describe "with SSL options" do

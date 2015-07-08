@@ -12,9 +12,9 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-require 'net/http/persistent'
 require 'multi_json'
 require 'mime/types'
+require 'excon'
 
 $:.unshift File.dirname(__FILE__) unless
  $:.include?(File.dirname(__FILE__)) ||

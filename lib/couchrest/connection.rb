@@ -50,7 +50,7 @@ module CouchRest
       :max_nesting, :allow_nan, :quirks_mode, :create_additions
     ]
 
-    SUCCESS_RESPONSE_CODES = ['200', '201', '202', '204']
+    SUCCESS_RESPONSE_CODES = [200, 201, 202, 204]
 
     attr_reader :uri, :http, :last_response
 
@@ -62,22 +62,22 @@ module CouchRest
 
     # Send a GET request.
     def get(path, options = {}, &block)
-      execute(Net::HTTP::Get, path, options, nil, &block)
+      execute(:get, path, options, nil, &block)
     end
 
     # Send a PUT request.
     def put(path, doc = nil, options = {})
-      execute(Net::HTTP::Put, path, options, doc)
+      execute(:put, path, options, doc)
     end
 
     # Send a POST request.
     def post(path, doc = nil, options = {}, &block)
-      execute(Net::HTTP::Post, path, options, doc, &block)
+      execute(:post, path, options, doc, &block)
     end
 
     # Send a DELETE request.
     def delete(path, options = {})
-      execute(Net::HTTP::Delete, path, options)
+      execute(:delete, path, options)
     end
 
     # Send a COPY request to the URI provided.
@@ -85,13 +85,13 @@ module CouchRest
       opts = options.nil? ? {} : options.dup
       opts[:headers] = options[:headers].nil? ? {} : options[:headers].dup
       opts[:headers]['Destination'] = destination
-      execute(Net::HTTP::Copy, path, opts)
+      execute(:copy, path, opts)
     end
 
     # Send a HEAD request.
     def head(path, options = {})
       options = options.merge(:raw => true) # No parsing!
-      execute(Net::HTTP::Head, path, options)
+      execute(:head, path, options)
     end
 
     # Close the connection. This will happen automatically if the current thread is
@@ -112,66 +112,72 @@ module CouchRest
     end
 
     # Take a look at the options povided and try to apply them to the HTTP conneciton.
-    # We try to maintain RestClient compatability here.
+    # We try to maintain RestClient compatability as this is what we used before.
     def prepare_http_connection(opts)
-      # We use the 'couchrest' namespace, as required by Persistent library
-      @http = Net::HTTP::Persistent.new 'couchrest'
+      http_opts = {
+        :persistent  => true,
+        :tcp_nodelay => true
+      }
 
       # SSL Certificate option mapping
-      if opts.include?(:verify_ssl)
-        http.verify_mode = opts[:verify_ssl] ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
-      end
-      http.certificate = opts[:ssl_client_cert] if opts.include?(:ssl_client_cert)
-      http.private_key = opts[:ssl_client_key] if opts.include?(:ssl_client_key)
-      http.ca_file = opts[:ssl_ca_file] if opts.include?(:ssl_ca_file)
+      http_opts[:ssl_verify_peer] = opts[:verify_ssl] if opts.include?(:verify_ssl)
+      http_opts[:client_cert]     = opts[:ssl_client_cert] if opts.include?(:ssl_client_cert)
+      http_opts[:client_key]      = opts[:ssl_client_key] if opts.include?(:ssl_client_key)
+      http_opts[:client_key_pass] = opts[:ssl_client_key_pass] if opts.include?(:ssl_client_key_pass)
 
       # Timeout options
-      http.read_timeout = opts[:timeout] if opts.include?(:timeout)
-      http.read_timeout = opts[:read_timeout] if opts.include?(:read_timeout)
-      http.open_timeout = opts[:open_timeout] if opts.include?(:open_timeout)
+      http_opts[:connect_timeout] = opts[:timeout] if opts.include?(:timeout)
+      http_opts[:read_timeout]    = opts[:read_timeout] if opts.include?(:read_timeout)
+      http_opts[:open_timeout]    = opts[:open_timeout] if opts.include?(:open_timeout)
+
+      @http = Excon.new(uri.to_s, http_opts)
     end
 
     def execute(method, path, options, payload = nil, &block)
-      req_uri = uri.merge(path)
-      req = method.new(req_uri.request_uri)
+      req = {
+        :method => method,
+        :path   => path
+      }
 
       # Prepare the request headers
       DEFAULT_HEADERS.merge(parse_and_convert_request_headers(options)).each do |key, value|
-        req[key] = value
+        req[:headers] ||= {}
+        req[:headers][key] = value
       end
 
       # Prepare the request body, if provided
       unless payload.nil?
-        req.body = payload_from_doc(req, payload, options)
+        req[:body] = payload_from_doc(req, payload, options)
       end
 
-      send_and_parse_response(req_uri, req, options, &block)
+      send_and_parse_response(req, options, &block)
     end
 
-    def send_and_parse_response(req_uri, req, options, &block)
+    def send_and_parse_response(req, options, &block)
       if block_given?
-        head = nil
-        send_request(req_uri, req) do |response|
-          handle_response_code(response) 
-          head = for_each_response_document(response) do |doc|
+        parser = CouchRest::StreamRowParser.new
+        streamer = lambda do |chunk, remaining_bytes, total_bytes|
+          parser.parse(chunk) do |doc|
             block.call(parse_body(doc, options))
           end
         end
-        parse_body(head, options)
+        response = send_request(req.merge(:response_block => streamer))
+        handle_response_code(response)
+        parse_body(parser.header, options)
       else
-        response = send_request(req_uri, req)
+        response = send_request(req)
         handle_response_code(response)
         parse_body(response.body, options)
       end
     end
 
     # Send request, and leave a reference to the response for debugging purposes
-    def send_request(req_uri, req, &block)
-      @last_response = http.request(req_uri, req, &block)
+    def send_request(req)
+      @last_response = http.request(req)
     end
 
     def handle_response_code(response)
-      raise_response_error(response) unless SUCCESS_RESPONSE_CODES.include?(response.code)
+      raise_response_error(response) unless SUCCESS_RESPONSE_CODES.include?(response.status)
     end
 
     def parse_body(body, opts)
@@ -183,19 +189,6 @@ module CouchRest
       end
     end
 
-    # Assume the response contains an IO object. Iterate through the stream
-    # splitting the contents into sub documents.
-    def for_each_response_document(response)
-      @last_response = response
-      parser = CouchRest::StreamRowParser.new
-      response.read_body do |segment|
-        parser.parse(segment) do |row|
-          yield row
-        end
-      end
-      parser.header
-    end
-
     # Check if the provided doc is nil or special IO device or temp file. If not,
     # encode it into a string.
     #
@@ -204,7 +197,7 @@ module CouchRest
     #
     def payload_from_doc(req, doc, opts = {})
       if doc.is_a?(IO) || doc.is_a?(Tempfile)
-        req['Content-Type'] = mime_for(req.path)
+        req[:headers]['Content-Type'] = mime_for(req[:path])
         doc.read
       elsif opts[:raw] || doc.nil?
         doc
@@ -219,7 +212,7 @@ module CouchRest
     end
 
     def raise_response_error(response)
-      exp = CouchRest::Exceptions::EXCEPTIONS_MAP[response.code.to_i]
+      exp = CouchRest::Exceptions::EXCEPTIONS_MAP[response.status]
       exp ||= CouchRest::RequestFailed
       raise exp.new(response)
     end
