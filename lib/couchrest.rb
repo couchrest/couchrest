@@ -26,6 +26,7 @@ require 'couchrest/rest_api'
 require 'couchrest/support/inheritable_attributes'
 
 require 'forwardable'
+require 'tempfile'
 
 # = CouchDB, close to the metal
 module CouchRest
