@@ -194,7 +194,7 @@ describe CouchRest::Database do
     it "should include all changes in continuous feed" do
       changes = []
       begin
-        c = @db.changes("feed" => "continuous", "since" => "0") do |change|
+        @db.changes("feed" => "continuous", "since" => "0") do |change|
           changes << change
           raise RuntimeError.new # escape from infinite loop
         end
@@ -242,7 +242,8 @@ describe CouchRest::Database do
       
       docs = [{'key' => 'value'}, {'_id' => 'totally-uniq'}]
       id_docs = [{'key' => 'value', '_id' => 'asdf6sgadkfhgsdfusdf'}, {'_id' => 'totally-uniq'}]
-      expect(CouchRest).to receive(:post).with("#{COUCHHOST}/couchrest-test/_bulk_docs", {:docs => id_docs})
+
+      expect(@db.connection).to receive(:post).with("/couchrest-test/_bulk_docs", {:docs => id_docs})
       
       @db.bulk_save(docs)
     end
@@ -269,7 +270,7 @@ describe CouchRest::Database do
     
     it "should make an atomic write when all_or_nothing is set" do
       docs = [{"_id" => "oneB", "wild" => "and random"}, {"_id" => "twoB", "mild" => "yet local"}]
-      expect(CouchRest).to receive(:post).with("#{COUCHHOST}/couchrest-test/_bulk_docs", {:all_or_nothing => true, :docs => docs})
+      expect(@db.connection).to receive(:post).with("/couchrest-test/_bulk_docs", {:all_or_nothing => true, :docs => docs})
       
       @db.bulk_save(docs, false, true)
     end
@@ -299,8 +300,8 @@ describe CouchRest::Database do
       expect(r2["lemons"]).to eq "from texas"
     end
     it "should use PUT with UUIDs" do
-      expect(CouchRest).to receive(:put).and_return({"ok" => true, "id" => "100", "rev" => "55"})
-      r = @db.save_doc({'just' => ['another document']})      
+      expect(@db.connection).to receive(:put).and_return({"ok" => true, "id" => "100", "rev" => "55"})
+      r = @db.save_doc({'just' => ['another document']})
     end
     
   end
@@ -752,8 +753,9 @@ describe CouchRest::Database do
     # Can cause failures in recent versions of CouchDB, just ensure
     # we actually send the right command.
     it "should compact the database" do
-      expect(CouchRest).to receive(:post).with("#{@cr.uri}/couchrest-test/_compact")
-      @cr.database('couchrest-test').compact!
+      db = @cr.database('couchrest-test')
+      expect(db.connection).to receive(:post).with("/couchrest-test/_compact")
+      db.compact!
     end
   end
 
@@ -781,8 +783,8 @@ describe CouchRest::Database do
     end
 
     it "should replicate via pulling" do
-      expect(CouchRest).to receive(:post).with(
-        include("/_replicate"),
+      expect(@other_db.connection).to receive(:post).with(
+        include("_replicate"),
         include(
           :create_target => false,
           :continuous    => false,
@@ -794,8 +796,8 @@ describe CouchRest::Database do
     end
 
     it "should replicate via pushing" do
-      expect(CouchRest).to receive(:post).with(
-        include("/_replicate"),
+      expect(@db.connection).to receive(:post).with(
+        include("_replicate"),
         include(
           :create_target => false,
           :continuous    => false,
@@ -807,8 +809,8 @@ describe CouchRest::Database do
     end
 
     it "should replacicate with a specific doc" do
-      expect(CouchRest).to receive(:post).with(
-        include("/_replicate"),
+      expect(@db.connection).to receive(:post).with(
+        include("_replicate"),
         include(
           :create_target => false,
           :continuous    => false,
@@ -822,8 +824,8 @@ describe CouchRest::Database do
 
     describe "implicitly creating target" do
       it "should replicate via pulling" do
-        expect(CouchRest).to receive(:post).with(
-          include("/_replicate"),
+        expect(@other_db.connection).to receive(:post).with(
+          include("_replicate"),
           include(
             :create_target => true,
             :continuous    => false
@@ -833,8 +835,8 @@ describe CouchRest::Database do
       end
 
       it "should replicate via pushing" do
-        expect(CouchRest).to receive(:post).with(
-          include("/_replicate"),
+        expect(@db.connection).to receive(:post).with(
+          include("_replicate"),
           include(
             :create_target => true,
             :continuous    => false
@@ -846,8 +848,8 @@ describe CouchRest::Database do
 
     describe "continuous replication" do
       it "should replicate via pulling" do
-        expect(CouchRest).to receive(:post).with(
-          include("/_replicate"),
+        expect(@other_db.connection).to receive(:post).with(
+          include("_replicate"),
           include(
             :create_target => false,
             :continuous    => true
@@ -857,8 +859,8 @@ describe CouchRest::Database do
       end
 
       it "should replicate via pushing" do
-        expect(CouchRest).to receive(:post).with(
-          include("/_replicate"),
+        expect(@db.connection).to receive(:post).with(
+          include("_replicate"),
           include(
             :create_target => false,
             :continuous    => true

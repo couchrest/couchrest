@@ -14,7 +14,7 @@ describe CouchRest::StreamRowParser do
 
   end
 
-  describe :parse do
+  describe "#parse with rows" do
 
     let :obj do
       CouchRest::StreamRowParser.new
@@ -117,6 +117,37 @@ describe CouchRest::StreamRowParser do
       row = MultiJson.load(rows.first)
       expect(row['value']['rev']).to match(/43"4BB/)
     end
+
+  end
+
+
+  describe "#parse with feed" do
+
+    let :obj do
+      CouchRest::StreamRowParser.new(:feed)
+    end
+
+    it "should parse a basic complete segment" do
+      data = <<-EOF
+        {"id": "doc1", "key": "doc1", "value": {"rev": "4324BB"}}
+        {"id": "doc2", "key": "doc2", "value": {"rev":"2441HF"}}
+        {"id": "doc3", "key": "doc3", "value": {"rev":"74EC24"}}
+      EOF
+      rows = []
+      obj.parse(data) do |row|
+        rows << row
+      end
+
+      expect(rows.length).to eql(3)
+      row = nil
+      expect do
+        row = MultiJson.load(rows[0])
+      end.to_not raise_error
+      expect(row['id']).to eql('doc1')
+
+      obj.header.should be_empty
+    end
+
 
   end
 

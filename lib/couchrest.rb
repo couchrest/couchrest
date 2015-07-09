@@ -88,9 +88,9 @@ module CouchRest
       }
     end
 
-    # set proxy to use
+    # Set default proxy to use in connections
     def proxy url
-      RestClient.proxy = url
+      CouchRest::Connection.proxy = url
     end
 
     # ensure that a database exists

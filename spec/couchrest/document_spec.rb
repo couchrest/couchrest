@@ -58,18 +58,18 @@ describe CouchRest::Document do
       @doc = CouchRest::Document.new
     end
     it "should work" do
-      expect(@doc["enamel"]).to == nil
+      expect(@doc["enamel"]).to be_nil
       @doc["enamel"] = "Strong"
-      expect(@doc["enamel"]).to == "Strong"
+      expect(@doc["enamel"]).to eql "Strong"
     end
     it "[]= should convert to string" do
-      expect(@doc["enamel"]).to == nil
+      expect(@doc["enamel"]).to be_nil
       @doc[:enamel] = "Strong"
-      expect(@doc["enamel"]).to == "Strong"
+      expect(@doc["enamel"]).to eql "Strong"
     end
     it "should read as a string" do
       @doc[:enamel] = "Strong"
-      expect(@doc[:enamel]).to == "Strong"
+      expect(@doc[:enamel]).to eql "Strong"
     end
   end
 
@@ -157,7 +157,7 @@ describe CouchRest::Document do
     it "should be set using use_database on the model" do
       expect(Video.new.database).to be_nil
       Video.use_database @db
-      expect(Video.new.database).to == @db
+      expect(Video.new.database).to eql @db
       Video.use_database nil
     end
     
@@ -167,7 +167,7 @@ describe CouchRest::Document do
       expect(article.database).to be_nil
       article.database = db
       expect(article.database).not_to be_nil
-      expect(article.database).to == db
+      expect(article.database).to eql db
     end
   end
 
@@ -176,8 +176,8 @@ describe CouchRest::Document do
       @doc = CouchRest::Document.new("key" => [1,2,3], :more => "values")    
     end
     it "should create itself from a Hash" do
-      expect(@doc["key"]).to == [1,2,3]
-      expect(@doc["more"]).to == "values"
+      expect(@doc["key"]).to eql [1,2,3]
+      expect(@doc["more"]).to eql "values"
     end
     it "should not have rev and id" do
       expect(@doc.rev).to be_nil
@@ -202,19 +202,19 @@ describe CouchRest::Document do
       @resp = @db.save_doc(@doc)
     end
     it "should apply the database" do
-      expect(@doc.database).to == @db    
+      expect(@doc.database).to eql @db    
     end
     it "should get id and rev" do
-      expect(@doc.id).to == @resp["id"]
-      expect(@doc.rev).to == @resp["rev"]
+      expect(@doc.id).to eql @resp["id"]
+      expect(@doc.rev).to eql @resp["rev"]
     end
     it "should generate a correct URI" do
-      expect(@doc.uri).to == "#{@db.root}/#{@doc.id}"
-      expect(URI.parse(@doc.uri).to_s).to == @doc.uri
+      expect(@doc.uri).to eql "#{@db.root}/#{@doc.id}"
+      expect(URI.parse(@doc.uri).to_s).to eql @doc.uri
     end
     it "should generate a correct URI with revision" do
-      expect(@doc.uri(true)).to == "#{@db.root}/#{@doc.id}?rev=#{@doc.rev}"
-      expect(URI.parse(@doc.uri(true)).to_s).to == @doc.uri(true)
+      expect(@doc.uri(true)).to eql "#{@db.root}/#{@doc.id}?rev=#{@doc.rev}"
+      expect(URI.parse(@doc.uri(true)).to_s).to eql @doc.uri(true)
     end
   end
 
@@ -227,9 +227,9 @@ describe CouchRest::Document do
       doc = CouchRest::Document.new({"_id" => "bulkdoc", "val" => 3})
       doc.database = @db
       doc.save(true)
-      expect(lambda { doc.database.get(doc["_id"]) }).to raise_error(RestClient::ResourceNotFound)
+      expect(lambda { doc.database.get(doc["_id"]) }).to raise_error(CouchRest::NotFound)
       doc.database.bulk_save
-      expect(doc.database.get(doc["_id"])["val"]).to == doc["val"]
+      expect(doc.database.get(doc["_id"])["val"]).to eql doc["val"]
     end
   end
 
@@ -245,15 +245,15 @@ describe CouchRest::Document do
       expect(@doc).to be_an_instance_of(CouchRest::Document)
     end
     it "should have a database" do
-      expect(@doc.database).to == @db
+      expect(@doc.database).to eql @db
     end
     it "should be saveable and resavable" do
       @doc["more"] = "keys"
       @doc.save
-      expect(@db.get(@resp['id'])["more"]).to == "keys"
+      expect(@db.get(@resp['id'])["more"]).to eql "keys"
       @doc["more"] = "these keys"    
       @doc.save
-      expect(@db.get(@resp['id'])["more"]).to == "these keys"
+      expect(@db.get(@resp['id'])["more"]).to eql "these keys"
     end
   end
 
@@ -286,8 +286,8 @@ describe CouchRest::Document do
     end
     it "should defer actual deletion" do
       @doc.destroy(true)
-      expect(@doc['_id']).to == nil
-      expect(@doc['_rev']).to == nil
+      expect(@doc['_id']).to be_nil
+      expect(@doc['_rev']).to be_nil
       expect(lambda{@db.get @resp['id']}).not_to raise_error
       @db.bulk_save
       expect(lambda{@db.get @resp['id']}).to raise_error
@@ -305,7 +305,7 @@ describe CouchRest::Document do
       it "should work" do
         @doc.copy @docid
         newdoc = @db.get(@docid)
-        expect(newdoc['key']).to == 'value'
+        expect(newdoc['key']).to eql 'value'
       end
       it "should fail without a database" do
         expect(lambda{CouchRest::Document.new({"not"=>"a real doc"}).copy}).to raise_error(ArgumentError)
@@ -316,19 +316,19 @@ describe CouchRest::Document do
         @db.save_doc({'_id' => @docid, 'will-exist' => 'here'})
       end
       it "should fail without a rev" do
-        expect(lambda{@doc.copy @docid}).to raise_error(RestClient::RequestFailed)
+        expect(lambda{@doc.copy @docid}).to raise_error(CouchRest::RequestFailed)
       end
       it "should succeed with a rev" do
         @to_be_overwritten = @db.get(@docid)
         @doc.copy "#{@docid}?rev=#{@to_be_overwritten['_rev']}"
         newdoc = @db.get(@docid)
-        expect(newdoc['key']).to == 'value'
+        expect(newdoc['key']).to eql 'value'
       end
       it "should succeed given the doc to overwrite" do
         @to_be_overwritten = @db.get(@docid)
         @doc.copy @to_be_overwritten
         newdoc = @db.get(@docid)
-        expect(newdoc['key']).to == 'value'
+        expect(newdoc['key']).to eql 'value'
       end
     end
   end
@@ -358,17 +358,17 @@ describe "dealing with attachments" do
     end
 
     it "is there" do
-      expect(@db.fetch_attachment(@doc, 'test.html')).to == @attach
+      expect(@db.fetch_attachment(@doc, 'test.html')).to eql @attach
     end
 
     it "updates the revision" do
-      expect(@doc[:_rev]).not_to == @rev
+      expect(@doc[:_rev]).not_to eql @rev
     end
 
     it "updates attachments" do
       @attach2 = "<html><head><title>My Doc</title></head><body><p>Is Different.</p></body></html>"
       @doc.put_attachment('test.html', @attach2)
-      expect(@db.fetch_attachment(@doc, 'test.html')).to == @attach2
+      expect(@db.fetch_attachment(@doc, 'test.html')).to eql @attach2
     end
   end
 
@@ -378,7 +378,7 @@ describe "dealing with attachments" do
     end
 
     it "pulls the attachment" do
-      expect(@doc.fetch_attachment('test.html')).to == @attach
+      expect(@doc.fetch_attachment('test.html')).to eql @attach
     end
   end
 
@@ -389,11 +389,13 @@ describe "dealing with attachments" do
     end
 
     it "removes it" do
-      expect(expect(lambda { @db.fetch_attachment(@doc, 'test.html')).to }).to raise_error(RestClient::ResourceNotFound)
+      expect {
+        @db.fetch_attachment(@doc, 'test.html')
+      }.to raise_error(CouchRest::NotFound)
     end
 
     it "updates the revision" do
-      expect(@doc[:_rev]).not_to == @rev
+      expect(@doc[:_rev]).not_to eql @rev
     end
   end
 

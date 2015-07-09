@@ -1,14 +1,16 @@
 module CouchRest
   class Server
 
-    ##
     # URI object of the link to the server we're using.
     attr_reader :uri
     
-    ##
     # Number of UUIDs to fetch from the server when preparing to save new
     # documents. Set to 1000 by default.
     attr_reader :uuid_batch_count
+
+    # Accessor for the current internal array of UUIDs ready to be used when
+    # saving new documents. See also #next_uuid.
+    attr_reader :uuids
 
     def initialize(server = 'http://127.0.0.1:5984', uuid_batch_count = 1000)
       @uri = prepare_uri(server).freeze
@@ -58,7 +60,7 @@ module CouchRest
     # Retrive an unused UUID from CouchDB. Server instances manage caching a list of unused UUIDs.
     def next_uuid(count = @uuid_batch_count)
       if uuids.nil? || uuids.empty?
-        self.uuids = connection.get("_uuids?count=#{count}")["uuids"]
+        @uuids = connection.get("_uuids?count=#{count}")["uuids"]
       end
       uuids.pop
     end

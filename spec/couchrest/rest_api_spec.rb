@@ -25,11 +25,10 @@ describe CouchRest::RestAPI do
         URI("http://mock/db/doc")
       end
 
-      it "should start and close connection" do
+      it "should start and use connection" do
         expect(CouchRest::Connection).to receive(:new)
           .with(uri, {})
           .and_return(mock_conn)
-        expect(mock_conn).to receive(:close)
   
         stub_request(:get, uri.to_s)
           .to_return(:body => {'_id' => 'test', 'name' => 'none'}.to_json)
@@ -49,6 +48,19 @@ describe CouchRest::RestAPI do
         res = CouchRest.get(uri.to_s, :test => 'foo')
         expect(res['name']).to eql('none')
       end
+
+      it "should handle query parameters and send them to connection" do
+
+        uri = URI("http://mock/db/doc?q=a")
+        expect(CouchRest::Connection).to receive(:new)
+          .with(uri, {})
+          .and_return(mock_conn)
+        stub_request(:get, uri.to_s)
+          .to_return(:body => {'_id' => 'test', 'name' => 'none'}.to_json)
+        res = CouchRest.get(uri.to_s)
+        expect(res['name']).to eql('none')
+      end
+
     end
 
   end

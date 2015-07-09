@@ -94,12 +94,6 @@ module CouchRest
       execute('HEAD', path, options)
     end
 
-    # Close the connection. This will happen automatically if the current thread is
-    # killed, so shouldn't be used under normal circumstances.
-    def close
-      http.reset
-    end
-
     protected
 
     # Duplicate and remove excess baggage from the provided URI
@@ -114,19 +108,14 @@ module CouchRest
     # Take a look at the options povided and try to apply them to the HTTP conneciton.
     # We try to maintain RestClient compatability as this is what we used before.
     def prepare_http_connection(opts)
-      @http = HTTPClient.new
+      @http = HTTPClient.new(opts[:proxy] || self.class.proxy)
 
       # SSL Certificate option mapping
       if opts.include?(:verify_ssl)
         http.ssl_config.verify_mode = opts[:verify_ssl] ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
       end
-      if opts.include?(:ssl_client_cert)
-        http.ssl_config.set_client_cert_file(
-          opts[:ssl_client_cert],
-          opts[:ssl_client_key],
-          opts[:ssl_client_key_pass]
-        )
-      end
+      http.ssl_config.client_cert = opts[:ssl_client_cert] if opts.include?(:ssl_client_cert)
+      http.ssl_config.client_key  = opts[:ssl_client_key]  if opts.include?(:ssl_client_key)
 
       # Timeout options
       http.receive_timeout = opts[:timeout] if opts.include?(:timeout)
@@ -158,7 +147,7 @@ module CouchRest
 
     def send_and_parse_response(req, options, &block)
       if block_given?
-        parser = CouchRest::StreamRowParser.new
+        parser = CouchRest::StreamRowParser.new(options[:continuous] ? :feed : :array)
         response = send_request(req) do |chunk|
           parser.parse(chunk) do |doc|
             block.call(parse_body(doc, options))
@@ -198,9 +187,9 @@ module CouchRest
     # * :raw TrueClass, if true the payload will not be altered.
     #
     def payload_from_doc(req, doc, opts = {})
-      if doc.is_a?(IO) || doc.is_a?(Tempfile)
+      if doc.is_a?(IO) || doc.is_a?(StringIO) || doc.is_a?(Tempfile) # attachments
         req[:header]['Content-Type'] = mime_for(req[:uri].path)
-        doc.read
+        doc
       elsif opts[:raw] || doc.nil?
         doc
       else
@@ -249,6 +238,13 @@ module CouchRest
       else
         type
       end
+    end
+
+    class << self
+
+      # Default proxy URL to use in all connections.
+      attr_accessor :proxy
+
     end
 
   end

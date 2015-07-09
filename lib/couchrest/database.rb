@@ -130,6 +130,7 @@ module CouchRest
       if doc['_attachments']
         doc['_attachments'] = encode_attachments(doc['_attachments'])
       end
+
       if bulk
         @bulk_save_cache << doc
         bulk_save if @bulk_save_cache.length >= @bulk_save_cache_limit
@@ -149,12 +150,8 @@ module CouchRest
           connection.put "#{path}/#{slug}", doc
         end
       else
-        begin
-          slug = doc['_id'] = @server.next_uuid
-          connection.put "#{path}/#{slug}", doc
-        rescue #old version of couchdb
-          connection.post path, doc
-        end
+        slug = doc['_id'] = @server.next_uuid
+        connection.put "#{path}/#{slug}", doc
       end
       if result['ok']
         doc['_id'] = result['id']
@@ -226,7 +223,7 @@ module CouchRest
       else
         dest
       end
-      connection.copy "#{path}/#{slug}", "#{path}/#{destination}"
+      connection.copy "#{path}/#{slug}", destination
     end
 
     # Updates the given doc by yielding the current state of the doc
@@ -262,15 +259,21 @@ module CouchRest
     # Query a CouchDB view as defined by a <tt>_design</tt> document. Accepts
     # paramaters as described in http://wiki.apache.org/couchdb/HttpViewApi
     def view(name, params = {}, payload = {}, &block)
+      opts = {}
       params = params.dup
       payload['keys'] = params.delete(:keys) if params[:keys]
+
+      # Continuous feeds need to be parsed differently
+      opts[:continuous] = true if params['feed'] == 'continuous'
+
       # Try recognising the name, otherwise assume already prepared
       view_path = name_to_view_path(name)
       req_path = CouchRest.paramify_url("#{path}/#{view_path}", params)
+
       if payload.empty?
-        connection.get req_path, {}, &block
+        connection.get req_path, opts, &block
       else
-        connection.post req_path, payload, {}, &block
+        connection.post req_path, payload, opts, &block
       end
     end
 
@@ -320,9 +323,11 @@ module CouchRest
       connection.get path_for_attachment(doc, name), :raw => true
     end
 
-    # PUT an attachment directly to CouchDB
+    # PUT an attachment directly to CouchDB, expects an IO object, or a string
+    # that will be converted to a StringIO in the 'file' parameter.
     def put_attachment(doc, name, file, options = {})
-      connection.put path_for_attachment(doc, name), file, options.merge(:raw => true)
+      file = StringIO.new(file) if file.is_a?(String)
+      connection.put path_for_attachment(doc, name), file, options
     end
 
     # DELETE an attachment directly from CouchDB
@@ -350,29 +355,21 @@ module CouchRest
       doc_ids = options.delete(:doc_ids)
       payload = options
       if options.has_key?(:target)
-        payload[:source] = other_db.root
+        payload[:source] = other_db.root.to_s
       else
-        payload[:target] = other_db.root
+        payload[:target] = other_db.root.to_s
       end
       payload[:continuous] = continuous
       payload[:doc_ids] = doc_ids if doc_ids
       
       # Use a short lived request here
-      CouchRest.post "#{@host}/_replicate", payload
+      connection.post "_replicate", payload
     end
 
     def path_for_attachment(doc, name)
-      if doc.is_a?(String)
-        puts "CouchRest::Database#fetch_attachment will eventually require a doc as the first argument, not a doc.id"
-        docid = doc
-        rev = nil
-      else
-        docid = doc['_id']
-        rev = doc['_rev']
-      end
-      docid = escape_docid(docid)
-      name = CGI.escape(name)
-      rev = "?rev=#{doc['_rev']}" if rev
+      docid = escape_docid(doc['_id'])
+      name  = CGI.escape(name)
+      rev   = doc['_rev'] ? "?rev=#{doc['_rev']}" : ''
       "#{path}/#{docid}/#{name}#{rev}"
     end
 

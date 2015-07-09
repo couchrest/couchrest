@@ -14,25 +14,17 @@ describe CouchRest::Exception do
   end
 
   it "sets the exception message to ErrorMessage" do
-    expect(CouchRest::ResourceNotFound.new.message).to eq 'Not Found'
+    expect(CouchRest::NotFound.new.message).to eq 'Not Found'
   end
 
   it "contains exceptions in CouchRest" do
-    expect(CouchRest::Unauthorized.new).to be_a_kind_of(RestClient::Exception)
-    expect(CouchRest::ServerBrokeConnection.new).to be_a_kind_of(RestClient::Exception)
-  end
-end
-
-describe CouchRest::ServerBrokeConnection do
-  it "should have a default message of 'Server broke connection'" do
-    e = CouchRest::ServerBrokeConnection.new
-    expect(e.message).to eq 'Server broke connection'
+    expect(CouchRest::Unauthorized.new).to be_a_kind_of(CouchRest::Exception)
   end
 end
 
 describe CouchRest::RequestFailed do
   before do
-    @response = double('HTTP Response', :code => '500')
+    @response = double('HTTP Response', :status => 500)
   end
 
   it "stores the http response on the exception" do
@@ -58,23 +50,23 @@ describe CouchRest::RequestFailed do
   end
 end
 
-describe CouchRest::ResourceNotFound do
+describe CouchRest::NotFound do
   it "also has the http response attached" do
     response = "response"
     begin
-      raise CouchRest::ResourceNotFound, response
-    rescue CouchRest::ResourceNotFound => e
+      raise CouchRest::NotFound, response
+    rescue CouchRest::NotFound => e
       expect(e.response).to eq response
     end
   end
 
   it 'stores the body on the response of the exception' do
     body = "body"
-    stub_request(:get, "www.example.com").to_return(:body => body, :status => 404)
+    stub_request(:get, "http://www.example.com").to_return(:body => body, :status => 404)
     begin
-      CouchRest.get "www.example.com"
+      CouchRest.get "http://www.example.com"
       raise
-    rescue CouchRest::ResourceNotFound => e
+    rescue CouchRest::NotFound => e
       expect(e.response.body).to eq body
     end
   end

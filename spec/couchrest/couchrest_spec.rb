@@ -16,6 +16,10 @@ describe CouchRest do
     end
   end
 
+  let :mock_server do
+    CouchRest.new("http://mock")
+  end
+
   describe "getting info" do
     it "should list databases" do
       expect(@cr.databases).to be_an_instance_of(Array)
@@ -28,8 +32,9 @@ describe CouchRest do
 
   it "should restart" do
     # we really do not need to perform a proper restart!
-    expect(CouchRest).to receive(:post).with("#{@cr.uri}/_restart")
-    @cr.restart!
+    stub_request(:post, "http://mock/_restart")
+      .to_return(:body => "{\"ok\":true}")
+    mock_server.restart!
   end
 
   it "should provide one-time access to uuids" do
@@ -40,7 +45,7 @@ describe CouchRest do
     it "should return a db" do
       db = @cr.database(TESTDB)
       expect(db).to be_an_instance_of(CouchRest::Database)
-      expect(db.host).to eq @cr.uri
+      expect(db.uri).to eq(@cr.uri + TESTDB)
     end
   end
 
@@ -124,7 +129,7 @@ describe CouchRest do
     it "should be possible without an explicit CouchRest instantiation" do
       db = CouchRest.database "http://127.0.0.1:5984/couchrest-test"
       expect(db).to be_an_instance_of(CouchRest::Database)
-      expect(db.host).to eq "http://127.0.0.1:5984"
+      expect(db.uri.to_s).to eq "http://127.0.0.1:5984/couchrest-test"
     end
     # TODO add https support (need test environment...)
     # it "should work with https" # do
@@ -133,7 +138,7 @@ describe CouchRest do
     #    end
     it "should not create the database automatically" do
       db = CouchRest.database "http://127.0.0.1:5984/couchrest-test"
-      expect(lambda{db.info}).to raise_error(RestClient::ResourceNotFound)      
+      expect(lambda{db.info}).to raise_error(CouchRest::NotFound)      
     end
   end
 
@@ -167,31 +172,20 @@ describe CouchRest do
       expect(@cr.databases).to include(TESTDB)
     end
     it "should PUT the database and raise an error" do
-      expect(
+      expect {
         @cr.create_db(TESTDB)
-      ).to raise_error(RestClient::Request::RequestFailed)
+      }.to raise_error(CouchRest::PreconditionFailed)
     end
   end
 
-  describe "using a proxy for RestClient connections" do
-    it "should set proxy url for RestClient" do
+  describe "using a proxy for connections" do
+    it "should set proxy url" do
       CouchRest.proxy 'http://localhost:8888/'
-      proxy_uri = URI.parse(RestClient.proxy)
+      proxy_uri = URI.parse(CouchRest::Connection.proxy)
       expect(proxy_uri.host).to eql( 'localhost' )
       expect(proxy_uri.port).to eql( 8888 )
       CouchRest.proxy nil
     end
   end
 
-  describe "Including old ExtendedDocument library" do
-
-    it "should raise an exception" do
-      expect do
-        class TestDoc < CouchRest::ExtendedDocument
-          attr_reader :fail
-        end
-      end.to raise_error(RuntimeError)
-    end
-
-  end
 end

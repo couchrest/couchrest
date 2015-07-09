@@ -16,18 +16,30 @@ module CouchRest
     # String containing the fields provided before and after the rows.
     attr_accessor :header
 
-    def initialize
+    # The row level at which we expect to receive "rows" of data.
+    # Typically this will be 0 for contious feeds, and 1 for most other users.
+    attr_reader :row_level
+
+    # Instantiate a new StreamRowParser with the mode set according to the type of data.
+    # The supported modes are:
+    #
+    #  * `:array` - objects are contianed in a data array, the default.
+    #  * `:feed` - each row of the stream is an object, like in continuous changes feeds.
+    #
+    def initialize(mode = :array)
       @header  = ""
       @data    = ""
       @string  = false
       @escape  = false
 
+      @row_level = mode == :array ? 1 : 0
       @in_rows   = false
       @obj_level = 0
       @obj_close = false
     end
 
     def parse(segment, &block)
+      @in_rows = true if @row_level == 0
       segment.each_char do |c|
         if @string
           # Inside a string, handling escaping and closure
@@ -41,10 +53,11 @@ module CouchRest
             end
           end
         else
+          # Inside an object
           @obj_close = false
-          if @obj_level == 1 && c == "[" # start of rows
+          if @obj_level == @row_level && c == "[" # start of rows
             @in_rows = true
-          elsif @obj_level == 1 && c == "]" # end of rows
+          elsif @obj_level == @row_level && c == "]" # end of rows
             @in_rows = false
           elsif c == "{" # object
             @obj_level += 1
@@ -57,14 +70,18 @@ module CouchRest
         end
 
         # Append data
-        if @obj_level == 0 || (@obj_level == 1 && !@obj_close)
-          @header << c unless @in_rows && (c == ',' || c == ' ' || c == "\n") # skip row whitespace
+        if @row_level > 0
+          if @obj_level == 0 || (@obj_level == @row_level && !@obj_close)
+            @header << c unless @in_rows && (c == ',' || c == ' ' || c == "\n") # skip row whitespace
+          else
+            @data << c
+          end
         else
           @data << c
         end
 
         # Determine if we need to trigger an event
-        if @obj_close && @obj_level == 1
+        if @obj_close && @obj_level == @row_level
           block.call(@data)
           @data = ""
         end

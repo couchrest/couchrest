@@ -36,32 +36,50 @@ describe CouchRest::Connection do
 
     it "should have instantiated an HTTP connection" do
       conn = CouchRest::Connection.new(URI "http://localhost:5984")
-      expect(conn.http).to be_a(Excon::Connection)
+      expect(conn.http).to be_a(HTTPClient)
+    end
+
+    it "should use the proxy if defined in parameters" do
+      conn = CouchRest::Connection.new(URI("http://localhost:5984"), :proxy => 'http://proxy')
+      expect(conn.http.proxy.to_s).to eql('http://proxy')
+    end
+
+    it "should use the proxy if defined in class" do
+      CouchRest::Connection.proxy = 'http://proxy'
+      conn = CouchRest::Connection.new(URI "http://localhost:5984")
+      expect(conn.http.proxy.to_s).to eql('http://proxy')
+      CouchRest::Connection.proxy = nil
+
+    end
+
+    it "should allow default proxy to be overwritten" do
+      CouchRest::Connection.proxy = 'http://proxy'
+      conn = CouchRest::Connection.new(URI("http://localhost:5984"), :proxy => 'http://proxy2')
+      expect(conn.http.proxy.to_s).to eql('http://proxy2')
+      CouchRest::Connection.proxy = nil
     end
     
     describe "with SSL options" do
       it "should leave the default if nothing set" do
-        default = Net::HTTP::Persistent.new('test').verify_mode
+        default = HTTPClient.new.ssl_config.verify_mode
         conn = CouchRest::Connection.new(URI "https://localhost:5984")
-        expect(conn.http.verify_mode).to eql(default)
+        expect(conn.http.ssl_config.verify_mode).to eql(default)
       end
       it "should support disabling SSL verify mode" do
         conn = CouchRest::Connection.new(URI("https://localhost:5984"), :verify_ssl => false)
-        expect(conn.http.verify_mode).to eql(OpenSSL::SSL::VERIFY_NONE)
+        expect(conn.http.ssl_config.verify_mode).to eql(OpenSSL::SSL::VERIFY_NONE)
       end
       it "should support enabling SSL verify mode" do
         conn = CouchRest::Connection.new(URI("https://localhost:5984"), :verify_ssl => true)
-        expect(conn.http.verify_mode).to eql(OpenSSL::SSL::VERIFY_PEER)
+        expect(conn.http.ssl_config.verify_mode).to eql(OpenSSL::SSL::VERIFY_PEER)
       end
       it "should support setting specific cert, key, and ca" do
         conn = CouchRest::Connection.new(URI("https://localhost:5984"),
           :ssl_client_cert => 'cert',
           :ssl_client_key  => 'key',
-          :ssl_ca_file     => 'ca_file'
         )
-        expect(conn.http.certificate).to eql('cert')
-        expect(conn.http.private_key).to eql('key')
-        expect(conn.http.ca_file).to eql('ca_file')
+        expect(conn.http.ssl_config.client_cert).to eql('cert')
+        expect(conn.http.ssl_config.client_key).to eql('key')
       end
 
     end
@@ -70,20 +88,16 @@ describe CouchRest::Connection do
       it "should be set on the http object" do
         conn = CouchRest::Connection.new(URI("https://localhost:5984"),
                                          :timeout => 23,
-                                         :open_timeout => 26
+                                         :open_timeout => 26,
+                                         :read_timeout => 27
                                         )
 
-        expect(conn.http.read_timeout).to eql(23)
-        expect(conn.http.open_timeout).to eql(26)
+        expect(conn.http.receive_timeout).to eql(23)
+        expect(conn.http.connect_timeout).to eql(26)
+        expect(conn.http.send_timeout).to eql(27)
       end
-      it "should support read_timeout" do
-        conn = CouchRest::Connection.new(URI("https://localhost:5984"),
-                                         :read_timeout => 25
-                                        )
-        expect(conn.http.read_timeout).to eql(25)
-      end 
+
     end
-  
   end
 
   describe "basic requests" do
@@ -286,7 +300,7 @@ describe CouchRest::Connection do
         mock_conn.put("db/test-put-nil", nil)
       end
 
-      it "should send raw data file and detect file type" do
+      it "should send data file and detect file type" do
         f = File.open(FIXTURE_PATH + '/attachments/couchdb.png')
         stub_request(:put, "http://mock/db/test-put-image.png")
           .with(:body => f.read, :headers => { 'Content-Type' => 'image/png' })
@@ -295,13 +309,22 @@ describe CouchRest::Connection do
         mock_conn.put("db/test-put-image.png", f)
       end
 
-      it "should send raw tempfile and detect file type" do
+      it "should send tempfile and detect file type" do
         f = Tempfile.new('test.png')
         stub_request(:put, "http://mock/db/test-put-image.png")
           .with(:body => f.read, :headers => { 'Content-Type' => 'image/png' })
           .to_return(:body => simple_response)
         f.rewind
         mock_conn.put("db/test-put-image.png", f)
+      end
+
+      it "should send StringIO and detect file type" do
+        f = StringIO.new('this is a test file')
+        stub_request(:put, "http://mock/db/test-put-text.txt")
+          .with(:body => f.read, :headers => { 'Content-Type' => 'text/plain' })
+          .to_return(:body => simple_response)
+        f.rewind
+        mock_conn.put("db/test-put-text.txt", f)
       end
 
       it "should use as_couch_json method if available" do
@@ -385,23 +408,6 @@ describe CouchRest::Connection do
           .to_return(:status => 404)
         expect { mock_conn.head('db/test-missing-head') }.to raise_error(CouchRest::NotFound)
       end
-    end
-
-  end
-
-  describe :close do
-
-    let :uri do
-      URI(DB.to_s + "/test-doc")
-    end
-    let :conn do
-      CouchRest::Connection.new(uri)
-    end
-
-    it "should send a shutdown and end the session" do
-      conn.get(TESTDB)
-      expect(conn.http).to receive(:shutdown)
-      conn.close
     end
 
   end
