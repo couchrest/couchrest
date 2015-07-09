@@ -60,7 +60,6 @@ module CouchRest
       uri = URI url
       conn = CouchRest::Connection.new(uri, options)
       res = yield uri, conn
-      conn.close
       res
     end
 
