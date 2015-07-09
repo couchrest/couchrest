@@ -301,12 +301,12 @@ describe CouchRest::Connection do
       end
 
       it "should send data file and detect file type" do
-        f = File.open(FIXTURE_PATH + '/attachments/couchdb.png')
-        stub_request(:put, "http://mock/db/test-put-image.png")
-          .with(:body => f.read, :headers => { 'Content-Type' => 'image/png' })
+        f = File.open(FIXTURE_PATH + '/attachments/test.html')
+        stub_request(:put, "http://mock/db/test-put.html")
+          .with(:body => f.read, :headers => { 'Content-Type' => 'text/html' })
           .to_return(:body => simple_response)
         f.rewind
-        mock_conn.put("db/test-put-image.png", f)
+        mock_conn.put("db/test-put.html", f)
       end
 
       it "should send tempfile and detect file type" do
