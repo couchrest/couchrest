@@ -84,7 +84,7 @@ module CouchRest
     # DELETE the database itself. This is not undoable and could be rather
     # catastrophic. Use with care!
     def delete!
-      connection.delete path 
+      connection.delete path
     end
 
 

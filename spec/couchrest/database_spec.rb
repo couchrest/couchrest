@@ -766,7 +766,7 @@ describe CouchRest::Database do
     it "should delete the database" do
       db = @cr.database('couchrest-test')
       r = db.delete!
-      expect(r['ok']).to eq true
+      expect(r['ok']).to be_true
       expect(@cr.databases).not_to include('couchrest-test')
     end
   end

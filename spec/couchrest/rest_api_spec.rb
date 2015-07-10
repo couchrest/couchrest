@@ -63,5 +63,15 @@ describe CouchRest::RestAPI do
 
     end
 
+    describe :delete do
+    
+      it "should delete a document" do
+        res = CouchRest.post(DB.uri.to_s, {'name' => "TestDoc"})
+        res = CouchRest.delete("#{DB.uri.to_s}/#{res['id']}?rev=#{res['rev']}")
+        expect(res['ok']).to be_true
+      end
+
+    end
+
   end
 end
