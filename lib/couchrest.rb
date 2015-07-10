@@ -12,32 +12,34 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-require 'rest_client'
 require 'multi_json'
+require 'mime/types'
+require 'httpclient'
 
-# Not sure why this is required, so removed until a reason is found!
 $:.unshift File.dirname(__FILE__) unless
  $:.include?(File.dirname(__FILE__)) ||
  $:.include?(File.expand_path(File.dirname(__FILE__)))
 
-require 'couchrest/monkeypatches'
+require 'couchrest/exceptions'
+require 'couchrest/connection'
 require 'couchrest/rest_api'
 require 'couchrest/support/inheritable_attributes'
 
 require 'forwardable'
+require 'tempfile'
 
 # = CouchDB, close to the metal
 module CouchRest
-  autoload :Attributes,   'couchrest/attributes'
-  autoload :Server,       'couchrest/server'
-  autoload :Database,     'couchrest/database'
-  autoload :Document,     'couchrest/document'
-  autoload :Design,       'couchrest/design'
-  autoload :Model,        'couchrest/model'
-  autoload :Pager,        'couchrest/helper/pager'
-  autoload :Streamer,     'couchrest/helper/streamer'
-  autoload :Attachments,  'couchrest/helper/attachments'
-  autoload :Upgrade,      'couchrest/helper/upgrade'
+  autoload :Attributes,      'couchrest/attributes'
+  autoload :Server,          'couchrest/server'
+  autoload :Database,        'couchrest/database'
+  autoload :Document,        'couchrest/document'
+  autoload :Design,          'couchrest/design'
+  autoload :Model,           'couchrest/model'
+  autoload :Pager,           'couchrest/helper/pager'
+  autoload :Attachments,     'couchrest/helper/attachments'
+  autoload :StreamRowParser, 'couchrest/helper/stream_row_parser'
+  autoload :Upgrade,         'couchrest/helper/upgrade'
 
   # we extend CouchRest with the RestAPI module which gives us acess to
   # the get, post, put, delete and copy
@@ -48,8 +50,7 @@ module CouchRest
   # some helpers for tasks like instantiating a new Database or Server instance.
   class << self
 
-    # todo, make this parse the url and instantiate a Server or Database instance
-    # depending on the specificity.
+    # Instantiate a new Server object
     def new(*opts)
       Server.new(*opts)
     end
@@ -88,9 +89,9 @@ module CouchRest
       }
     end
 
-    # set proxy to use
+    # Set default proxy to use in connections
     def proxy url
-      RestClient.proxy = url
+      CouchRest::Connection.proxy = url
     end
 
     # ensure that a database exists
@@ -109,14 +110,20 @@ module CouchRest
     end
 
     def paramify_url url, params = {}
+      query = params_to_query(params)
+      query ? "#{url}?#{query}" : url
+    end
+
+    def params_to_query(params)
       if params && !params.empty?
         query = params.collect do |k,v|
           v = MultiJson.encode(v) if %w{key startkey endkey}.include?(k.to_s)
           "#{k}=#{CGI.escape(v.to_s)}"
         end.join("&")
-        url = "#{url}?#{query}"
+        query
+      else
+        nil
       end
-      url
     end
 
     @@decode_json_objects = false
@@ -131,16 +138,4 @@ module CouchRest
       @@decode_json_objects
     end
   end # class << self
-end
-# For the sake of backwards compatability, generate a dummy ExtendedDocument class
-# which should be replaced by real library: couchrest_extended_document.
-#
-# Added 2010-05-10 by Sam Lown. Please remove at some point in the future.
-#
-class CouchRest::ExtendedDocument < CouchRest::Document
-
-  def self.inherited(subclass)
-    raise "ExtendedDocument is no longer included in CouchRest base driver, see couchrest_extended_document gem"
-  end
-
 end

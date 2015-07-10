@@ -1,53 +1,31 @@
 module CouchRest
   class Server
 
-    attr_accessor :uri, :uuid_batch_count, :available_databases
+    # URI object of the link to the server we're using.
+    attr_reader :uri
+    
+    # Number of UUIDs to fetch from the server when preparing to save new
+    # documents. Set to 1000 by default.
+    attr_reader :uuid_batch_count
+
+    # Accessor for the current internal array of UUIDs ready to be used when
+    # saving new documents. See also #next_uuid.
+    attr_reader :uuids
 
     def initialize(server = 'http://127.0.0.1:5984', uuid_batch_count = 1000)
-      @uri = server
+      @uri = prepare_uri(server).freeze
       @uuid_batch_count = uuid_batch_count
     end
 
-    # Lists all "available" databases.
-    # An available database, is a database that was specified
-    # as avaiable by your code.
-    # It allows to define common databases to use and reuse in your code
-    def available_databases
-      @available_databases ||= {}
-    end
-
-    # Adds a new available database and create it unless it already exists
-    #
-    # Example:
-    #
-    # @couch = CouchRest::Server.new
-    # @couch.define_available_database(:default, "tech-blog")
-    #
-    def define_available_database(reference, db_name, create_unless_exists = true)
-      available_databases[reference.to_sym] = create_unless_exists ? database!(db_name) : database(db_name)
-    end
-
-    # Checks that a database is set as available
-    #
-    # Example:
-    #
-    # @couch.available_database?(:default)
-    #
-    def available_database?(ref_or_name)
-      ref_or_name.is_a?(Symbol) ? available_databases.keys.include?(ref_or_name) : available_databases.values.map{|db| db.name}.include?(ref_or_name)
-    end
-
-    def default_database=(name, create_unless_exists = true)
-      define_available_database(:default, name, create_unless_exists = true)
-    end
-
-    def default_database
-      available_databases[:default]
+    # Lazy load the connection for the current thread
+    def connection
+      conns = (Thread.current['couchrest.connections'] ||= {})
+      conns[uri.to_s] ||= Connection.new(uri)
     end
 
     # Lists all databases on the server
     def databases
-      CouchRest.get "#{@uri}/_all_dbs"
+      connection.get "_all_dbs"
     end
 
     # Returns a CouchRest::Database for the given name
@@ -57,35 +35,44 @@ module CouchRest
 
     # Creates the database if it doesn't exist
     def database!(name)
-      CouchRest.head "#{@uri}/#{name}" # Check if the URL is valid
+      connection.head name # Check if the URL is valid
       database(name)
-    rescue RestClient::ResourceNotFound # Thrown if the HTTP HEAD fails
+    rescue CouchRest::NotFound # Thrown if the HTTP HEAD fails
       create_db(name)
     end
 
     # GET the welcome message
     def info
-      CouchRest.get "#{@uri}/"
+      connection.get ""
     end
 
     # Create a database
     def create_db(name)
-      CouchRest.put "#{@uri}/#{name}"
+      connection.put name
       database(name)
     end
 
     # Restart the CouchDB instance
     def restart!
-      CouchRest.post "#{@uri}/_restart"
+      connection.post "_restart"
     end
 
     # Retrive an unused UUID from CouchDB. Server instances manage caching a list of unused UUIDs.
     def next_uuid(count = @uuid_batch_count)
-      @uuids ||= []
-      if @uuids.empty?
-        @uuids = CouchRest.get("#{@uri}/_uuids?count=#{count}")["uuids"]
+      if uuids.nil? || uuids.empty?
+        @uuids = connection.get("_uuids?count=#{count}")["uuids"]
       end
-      @uuids.pop
+      uuids.pop
+    end
+
+    protected
+
+    def prepare_uri(url)
+      uri = URI(url)
+      uri.path     = ""
+      uri.query    = nil
+      uri.fragment = nil
+      uri
     end
 
   end

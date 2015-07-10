@@ -1,3 +1,11 @@
+== 2.0.0.beta1
+
+* Major Changes
+  * Refactoring to support persisitent HTTP connections with HTTPClient gem (@samlown)
+  * Using Ruby's URI object consistently. (@samlown)
+  * Removing concepts of `Server#available_databases` and `Server#default_databases` (@samlown)
+  * Removing the `Streamer` class, added support for built-in streamer (@samlown)
+
 == 1.2.1 - 2015-06-25
 
 * Changes

@@ -27,11 +27,11 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.7}
   s.summary = %q{Lean and RESTful interface to CouchDB.}
 
-  s.add_dependency(%q<rest-client>, ["~> 1.8.0"])
-  s.add_dependency(%q<mime-types>, [">= 1.15"])
-  s.add_dependency(%q<multi_json>, ["~> 1.0"])
-  s.add_development_dependency(%q<json>, [">= 1.7.0"])
-  s.add_development_dependency(%q<rspec>, "~> 2.6.0")
-  s.add_development_dependency(%q<rake>)
-  s.add_development_dependency(%q<multi_json>, "~> 1.7") # needed for json decode json objects
+  s.add_dependency("httpclient", ["~> 2.6.0"])
+  s.add_dependency("mime-types", [">= 1.15"])
+  s.add_dependency("multi_json", ["~> 1.7"])
+  s.add_development_dependency("json", [">= 1.7.0"])
+  s.add_development_dependency("rspec", "~> 2.14.1")
+  s.add_development_dependency("rake")
+  s.add_development_dependency("webmock")
 end

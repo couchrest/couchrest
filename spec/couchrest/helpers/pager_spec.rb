@@ -22,7 +22,7 @@ describe CouchRest::Pager do
   end
   
   it "should store the db" do
-    @pager.db.should == @db
+    expect(@pager.db).to eql @db
   end
   
   describe "paging all docs" do
@@ -31,22 +31,22 @@ describe CouchRest::Pager do
       @pager.all_docs(10) do |doc|
         n += 1
       end
-      n.should == 10
+      expect(n).to eql 10
     end
     it "should yield each docrow group without duplicate docs" do
       docids = {}
       @pager.all_docs(10) do |docrows|
         docrows.each do |row|
-          docids[row['id']].should be_nil
+          expect(docids[row['id']]).to be_nil
           docids[row['id']] = true
         end
       end      
-      docids.keys.length.should == 100
+      expect(docids.keys.length).to eql 100
     end
     it "should yield each docrow group" do
       @pager.all_docs(10) do |docrows|
         doc = @db.get(docrows[0]['id'])
-        doc['number'].class.should == Fixnum
+        expect(doc['number'].class).to eql Fixnum
       end      
     end
   end
@@ -64,12 +64,12 @@ describe CouchRest::Pager do
     end
     
     it "should have docs" do
-      @docs.length.should == 100
-      @db.documents['rows'].length.should == 101
+      expect(@docs.length).to eql 100
+      expect(@db.documents['rows'].length).to eql 101
     end
     
     it "should have a view" do
-      @db.view('magic/number', :limit => 10)['rows'][0]['key'].should == 0
+      expect(@db.view('magic/number', :limit => 10)['rows'][0]['key']).to eql 0
     end
     
     it "should yield once per key" do
@@ -77,8 +77,8 @@ describe CouchRest::Pager do
       @pager.key_reduce('magic/number', 20) do |k,vs|
         results[k] = vs.length
       end
-      results[0].should == 10
-      results[3].should == 10
+      expect(results[0]).to eql 10
+      expect(results[3]).to eql 10
     end
     
     it "with a small step size should yield once per key" do
@@ -86,30 +86,30 @@ describe CouchRest::Pager do
       @pager.key_reduce('magic/number', 7) do |k,vs|
         results[k] = vs.length
       end
-      results[0].should == 10
-      results[3].should == 10
-      results[9].should == 10
+      expect(results[0]).to eql 10
+      expect(results[3]).to eql 10
+      expect(results[9]).to eql 10
     end
     it "with a large step size should yield once per key" do
       results = {}
       @pager.key_reduce('magic/number', 1000) do |k,vs|
         results[k] = vs.length
       end
-      results[0].should == 10
-      results[3].should == 10
-      results[9].should == 10
+      expect(results[0]).to eql 10
+      expect(results[3]).to eql 10
+      expect(results[9]).to eql 10
     end
     it "with a begin and end should only yield in the range (and leave out the lastkey)" do
       results = {}
       @pager.key_reduce('magic/number', 1000, 4, 7) do |k,vs|
         results[k] = vs.length
       end
-      results[0].should be_nil
-      results[4].should == 10
-      results[6].should == 10
-      results[7].should be_nil
-      results[8].should be_nil
-      results[9].should be_nil
+      expect(results[0]).to be_nil
+      expect(results[4]).to eql 10
+      expect(results[6]).to eql 10
+      expect(results[7]).to be_nil
+      expect(results[8]).to be_nil
+      expect(results[9]).to be_nil
     end
   end
 end
