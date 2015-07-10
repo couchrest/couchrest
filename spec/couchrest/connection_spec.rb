@@ -37,6 +37,7 @@ describe CouchRest::Connection do
     it "should have instantiated an HTTP connection" do
       conn = CouchRest::Connection.new(URI "http://localhost:5984")
       expect(conn.http).to be_a(HTTPClient)
+      expect(conn.http.www_auth.basic_auth.set?).to be_false
     end
 
     it "should use the proxy if defined in parameters" do
@@ -57,6 +58,11 @@ describe CouchRest::Connection do
       conn = CouchRest::Connection.new(URI("http://localhost:5984"), :proxy => 'http://proxy2')
       expect(conn.http.proxy.to_s).to eql('http://proxy2')
       CouchRest::Connection.proxy = nil
+    end
+
+    it "should pass through authentication details" do
+      conn = CouchRest::Connection.new(URI "http://user:pass@mock")
+      expect(conn.http.www_auth.basic_auth.set?).to be_true
     end
     
     describe "with SSL options" do
@@ -194,6 +200,13 @@ describe CouchRest::Connection do
         stub_request(:get, "http://mock/db/test")
           .to_return(:body => doc.to_json)
         mock_conn.get("db/test", :quirks_mode => true)
+      end
+
+      it "should forward user and password details" do
+        stub_request(:get, "http://user:pass@mock/db/test")
+          .to_return(:body => doc.to_json)
+        conn = CouchRest::Connection.new(URI "http://user:pass@mock")
+        conn.get("db/test")
       end
 
       context 'when decode_json_objects is true' do

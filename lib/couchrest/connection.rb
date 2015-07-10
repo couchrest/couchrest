@@ -110,6 +110,11 @@ module CouchRest
     def prepare_http_connection(opts)
       @http = HTTPClient.new(opts[:proxy] || self.class.proxy)
 
+      # Authentication
+      unless uri.user.to_s.empty?
+        http.set_auth(uri.to_s, uri.user, uri.password)
+      end
+
       # SSL Certificate option mapping
       if opts.include?(:verify_ssl)
         http.ssl_config.verify_mode = opts[:verify_ssl] ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
