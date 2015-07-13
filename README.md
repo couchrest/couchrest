@@ -18,13 +18,15 @@ Tested on latest stable release (1.6.X), but should work on older versions above
 
 ## Basic Usage
 
-Getting started with CouchRest is easy.
+Getting started with CouchRest is easy. You can send requests directly to a URL using a [RestClient](https://github.com/rest-client/rest-client)-like interface:
 
 ```ruby
-# Send requests directly to the database using RestClient-like API
 CouchRest.put("http://localhost:5984/testdb/doc", 'name' => 'test', 'date' => Date.current)
+```
 
-# Server orientated API (recommended approach)
+Or use the lean server and database orientated API to take advantage of persistent and reusable connections:
+
+```ruby
 server = CouchRest.new           # assumes localhost by default!
 db = server.database!('testdb')  # create db if it doesn't already exist
 
