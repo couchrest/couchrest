@@ -8,14 +8,16 @@ describe CouchRest::Database do
     @db = @cr.create_db(TESTDB) # rescue nil
   end
 
-  describe "database name including slash" do
-    it "should escape the name in the URI" do
-      db = @cr.database("foo/bar")
-      expect(db.name).to eq "foo/bar"
-      expect(db.root).to eq URI("#{COUCHHOST}/foo%2Fbar")
-      expect(db.uri).to eq URI("#{COUCHHOST}/foo%2Fbar")
-      expect(db.to_s).to eq "#{COUCHHOST}/foo%2Fbar"
-      expect(db.path).to  eq "/foo%2Fbar"
+  describe "#initialize" do
+    describe "database name including slash" do
+      it "should escape the name in the URI" do
+        db = @cr.database("foo/bar")
+        expect(db.name).to eq "foo/bar"
+        expect(db.root).to eq URI("#{COUCHHOST}/foo%2Fbar")
+        expect(db.uri).to eq URI("#{COUCHHOST}/foo%2Fbar")
+        expect(db.to_s).to eq "#{COUCHHOST}/foo%2Fbar"
+        expect(db.path).to  eq "/foo%2Fbar"
+      end
     end
   end
 
@@ -171,6 +173,13 @@ describe CouchRest::Database do
       end
       expect(rows.length).to eq 2
       expect(rows.first['doc']['another']).not_to be_empty
+    end
+    it "should accept a short design doc name" do
+      res = { 'rows' => [] }
+      db = CouchRest.new("http://mock").database('db')
+      stub_request(:get, "http://mock/db/_design/a/_view/test")
+        .to_return(:body => res.to_json)
+      expect(db.view('a/test')).to eql(res)
     end
   end
 

@@ -392,7 +392,7 @@ module CouchRest
     # Convert a simplified view name into a complete view path. If
     # the name already starts with a "_" no alterations will be made.
     def name_to_view_path(name)
-      name =~ /^([^_].+?)\/(.*)$/ ? "_design/#{$1}/_view/#{$2}" : name
+      name =~ /^([^_].*?)\/(.*)$/ ? "_design/#{$1}/_view/#{$2}" : name
     end
   end
 end
