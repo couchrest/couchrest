@@ -2,10 +2,11 @@
 
 [![Build Status](https://travis-ci.org/couchrest/couchrest.png)](https://travis-ci.org/couchrest/couchrest)
 
-CouchRest wraps CouchDB's HTTP API using persistent connections with the [HTTPClient gem](https://github.com/nahi/httpclient), managing JSON serialization, and remembering the URI-paths
-to CouchDB's API endpoints so you don't have to.
+CouchRest wraps CouchDB's HTTP API using persistent connections with the [HTTPClient gem](https://github.com/nahi/httpclient) managing servers, databases, and JSON document serialization using CouchDB's API endpoints so you don't have to.
 
-CouchRest is designed to make a simple base for application and framework-specific object oriented APIs. CouchRest is Object-Mapper agnostic, the parsed JSON it returns from CouchDB shows up as subclasses of Ruby's Hash. Naked JSON, just as it was mean to be.
+CouchRest is designed to provide a simple base for application and framework-specific object oriented APIs. CouchRest is Object-Mapper agnostic, the JSON objects provided by CouchDB are parsed and returned as Document objects providing a simple Hash-like interface.
+
+For more complete modelling support based on ActiveModel, please checkout CouchRest's sister project: [CouchRest Model](https://github.com/couchrest/couchrest_model).
 
 ## CouchDB Version
 
@@ -15,9 +16,28 @@ Tested on latest stable release (1.6.X), but should work on older versions above
 
     $ sudo gem install couchrest
 
-## Modelling
+## Basic Usage
 
-For more complete modelling support based on ActiveModel, please checkout CouchRest's sister project: [CouchRest Model](https://github.com/couchrest/couchrest_model).
+Getting started with CouchRest is easy.
+
+```ruby
+# Send requests directly to the database using RestClient-like API
+CouchRest.put("http://localhost:5984/testdb/doc", 'name' => 'test', 'date' => Date.current)
+
+# Server orientated API (recommended approach)
+server = CouchRest.new           # assumes localhost by default!
+db = server.database!('testdb')  # create db if it doesn't already exist
+
+# Save a document, with ID
+db.save_doc('_id' => 'doc', 'name' => 'test', 'date' => Date.current)
+
+# Fetch doc
+doc = db.get('doc')
+doc.inspect # #<CouchRest::Document _id: "doc", _rev: "1-defa304b36f9b3ef3ed606cc45d02fe2", name: "test", date: "2015-07-13">
+
+# Delete
+db.delete_doc(doc)
+```
 
 ## Running the Specs
 
