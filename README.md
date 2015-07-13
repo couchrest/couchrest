@@ -1,24 +1,45 @@
-# CouchRest: CouchDB, close to the metal [![Build Status](https://travis-ci.org/couchrest/couchrest.png)](https://travis-ci.org/couchrest/couchrest)
+# CouchRest: CouchDB, close to the metal
 
-CouchRest is based on [CouchDB's couch.js test
-library](http://svn.apache.org/repos/asf/couchdb/trunk/share/www/script/couch.js),
-which I find to be concise, clear, and well designed. CouchRest lightly wraps
-CouchDB's HTTP API, managing JSON serialization, and remembering the URI-paths
-to CouchDB's API endpoints so you don't have to.
+[![Build Status](https://travis-ci.org/couchrest/couchrest.png)](https://travis-ci.org/couchrest/couchrest)
 
-CouchRest is designed to make a simple base for application and framework-specific object oriented APIs. CouchRest is Object-Mapper agnostic, the parsed JSON it returns from CouchDB shows up as subclasses of Ruby's Hash. Naked JSON, just as it was mean to be.
+CouchRest wraps CouchDB's HTTP API using persistent connections with the [HTTPClient gem](https://github.com/nahi/httpclient) managing servers, databases, and JSON document serialization using CouchDB's API endpoints so you don't have to.
+
+CouchRest is designed to provide a simple base for application and framework-specific object oriented APIs. CouchRest is Object-Mapper agnostic, the JSON objects provided by CouchDB are parsed and returned as Document objects providing a simple Hash-like interface.
+
+For more complete modelling support based on ActiveModel, please checkout CouchRest's sister project: [CouchRest Model](https://github.com/couchrest/couchrest_model).
 
 ## CouchDB Version
 
-Tested on latest stable release (1.6.X), but little has changed in the last few year and should work on older versions. Also known to work fine on [Cloudant](http://cloudant.com).
+Tested on latest stable release (1.6.X), but should work on older versions above 1.0. Also known to work on [Cloudant](http://cloudant.com).
 
 ## Install
 
     $ sudo gem install couchrest
 
-## Modelling
+## Basic Usage
 
-For more complete modelling support based on ActiveModel, please checkout CouchRest's sister project: [CouchRest Model](https://github.com/couchrest/couchrest_model).
+Getting started with CouchRest is easy. You can send requests directly to a URL using a [RestClient](https://github.com/rest-client/rest-client)-like interface:
+
+```ruby
+CouchRest.put("http://localhost:5984/testdb/doc", 'name' => 'test', 'date' => Date.current)
+```
+
+Or use the lean server and database orientated API to take advantage of persistent and reusable connections:
+
+```ruby
+server = CouchRest.new           # assumes localhost by default!
+db = server.database!('testdb')  # create db if it doesn't already exist
+
+# Save a document, with ID
+db.save_doc('_id' => 'doc', 'name' => 'test', 'date' => Date.current)
+
+# Fetch doc
+doc = db.get('doc')
+doc.inspect # #<CouchRest::Document _id: "doc", _rev: "1-defa304b36f9b3ef3ed606cc45d02fe2", name: "test", date: "2015-07-13">
+
+# Delete
+db.delete_doc(doc)
+```
 
 ## Running the Specs
 
@@ -32,9 +53,14 @@ the dependencies and then run the tests:
 To date, the couchrest specs have been shown to run on:
 
  * MRI Ruby 1.9.3 and later
- * JRuby
+ * JRuby 1.7.19
+ * Rubinius 2.5.7
+
+See the [Travis Build status](https://travis-ci.org/couchrest/couchrest) for more details.
 
 ## Docs
+
+Changes history: [history.txt](./history.txt)
 
 API: [http://rdoc.info/projects/couchrest/couchrest](http://rdoc.info/projects/couchrest/couchrest)
 

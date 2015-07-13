@@ -62,7 +62,7 @@ JAVASCRIPT
 
     # Provide information about the status of the design document.
     def info
-      CouchRest.get "#{database.root}/#{id}/_info"
+      database.connection.get "#{database.uri}/#{id}/_info"
     end
 
     def save

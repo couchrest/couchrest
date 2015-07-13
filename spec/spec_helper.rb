@@ -1,6 +1,7 @@
 require "bundler/setup"
 require "rubygems"
 require "rspec"
+require "webmock/rspec"
 
 require File.join(File.dirname(__FILE__), '..','lib','couchrest')
 # check the following file to see how to use the spec'd features.
@@ -13,9 +14,11 @@ unless defined?(FIXTURE_PATH)
   TESTDB    = 'couchrest-test'
   REPLICATIONDB = 'couchrest-test-replication'
   TEST_SERVER    = CouchRest.new COUCHHOST
-  TEST_SERVER.default_database = TESTDB
   DB = TEST_SERVER.database(TESTDB)
 end
+
+# Allows us to hack Specific request responses
+WebMock.disable_net_connect!(:allow_localhost => true)
 
 def reset_test_db!
   DB.recreate! rescue nil 
@@ -23,7 +26,9 @@ def reset_test_db!
 end
 
 RSpec.configure do |config|
-  config.before(:all) { reset_test_db! }
+  config.before(:all) do
+    reset_test_db!
+  end
   
   config.after(:all) do
     cr = TEST_SERVER
@@ -34,13 +39,13 @@ RSpec.configure do |config|
   end
 end
 
+# Check if lucene server is running on port 5985 (not 5984)
 def couchdb_lucene_available?
-  lucene_path = "http://localhost:5985/"
-  url = URI.parse(lucene_path)
+  url = URI "http://localhost:5985/"
   req = Net::HTTP::Get.new(url.path)
-  res = Net::HTTP.new(url.host, url.port).start { |http| http.request(req) }
+  Net::HTTP.new(url.host, url.port).start { |http| http.request(req) }
   true
- rescue Exception => e
+ rescue Exception
   false
 end
 
