@@ -20,6 +20,12 @@ describe CouchRest do
     CouchRest.new("http://mock")
   end
 
+  describe "version" do
+    it "should be there" do
+      expect(CouchRest::VERSION).to_not be_empty
+    end
+  end
+
   describe "getting info" do
     it "should list databases" do
       expect(@cr.databases).to be_an_instance_of(Array)
