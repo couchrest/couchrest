@@ -398,7 +398,7 @@ describe CouchRest::Database do
     it 'should be there' do
       doc = @db.get('mydocwithattachment')
       attachment = @db.fetch_attachment(doc, 'test.html')
-      expect(Base64.decode64(attachment)).to eq @attach
+      expect(attachment).to eq @attach
     end
   end
 
@@ -406,7 +406,7 @@ describe CouchRest::Database do
     before(:each) do
       @attach = "<html><head><title>My Doc</title></head><body><p>Has words.</p></body></html>"
       @attach2 = "<html><head><title>Other Doc</title></head><body><p>Has more words.</p></body></html>"
-      @doc = {
+      @data = {
         "_id" => "mydocwithattachment",
         "field" => ["some value"],
         "_attachments" => {
@@ -420,7 +420,7 @@ describe CouchRest::Database do
           }
         }
       }
-      @db.save_doc(@doc)
+      @db.save_doc(@data)
       @doc = @db.get("mydocwithattachment")
     end
     it "should save and be indicated" do
@@ -434,6 +434,11 @@ describe CouchRest::Database do
     it "should be there" do
       attachment = @db.fetch_attachment(@doc,"other.html")
       expect(attachment).to eq @attach2
+    end
+    it "should not re-encode document" do
+      @db.save_doc(@data)
+      attachment = @db.fetch_attachment(@data,"test.html")
+      expect(attachment).to eq @attach
     end
   end
   

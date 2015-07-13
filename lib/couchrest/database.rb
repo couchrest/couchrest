@@ -379,8 +379,8 @@ module CouchRest
 
     def encode_attachments(attachments)
       attachments.each do |k,v|
-        next if v['stub']
-        v['data'] = base64(v['data'])
+        next if v['stub'] || v['data'].frozen?
+        v['data'] = base64(v['data']).freeze
       end
       attachments
     end
