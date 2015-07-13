@@ -8,14 +8,16 @@ describe CouchRest::Database do
     @db = @cr.create_db(TESTDB) # rescue nil
   end
 
-  describe "database name including slash" do
-    it "should escape the name in the URI" do
-      db = @cr.database("foo/bar")
-      expect(db.name).to eq "foo/bar"
-      expect(db.root).to eq URI("#{COUCHHOST}/foo%2Fbar")
-      expect(db.uri).to eq URI("#{COUCHHOST}/foo%2Fbar")
-      expect(db.to_s).to eq "#{COUCHHOST}/foo%2Fbar"
-      expect(db.path).to  eq "/foo%2Fbar"
+  describe "#initialize" do
+    describe "database name including slash" do
+      it "should escape the name in the URI" do
+        db = @cr.database("foo/bar")
+        expect(db.name).to eq "foo/bar"
+        expect(db.root).to eq URI("#{COUCHHOST}/foo%2Fbar")
+        expect(db.uri).to eq URI("#{COUCHHOST}/foo%2Fbar")
+        expect(db.to_s).to eq "#{COUCHHOST}/foo%2Fbar"
+        expect(db.path).to  eq "/foo%2Fbar"
+      end
     end
   end
 
@@ -171,6 +173,13 @@ describe CouchRest::Database do
       end
       expect(rows.length).to eq 2
       expect(rows.first['doc']['another']).not_to be_empty
+    end
+    it "should accept a short design doc name" do
+      res = { 'rows' => [] }
+      db = CouchRest.new("http://mock").database('db')
+      stub_request(:get, "http://mock/db/_design/a/_view/test")
+        .to_return(:body => res.to_json)
+      expect(db.view('a/test')).to eql(res)
     end
   end
 
@@ -398,7 +407,7 @@ describe CouchRest::Database do
     it 'should be there' do
       doc = @db.get('mydocwithattachment')
       attachment = @db.fetch_attachment(doc, 'test.html')
-      expect(Base64.decode64(attachment)).to eq @attach
+      expect(attachment).to eq @attach
     end
   end
 
@@ -406,7 +415,7 @@ describe CouchRest::Database do
     before(:each) do
       @attach = "<html><head><title>My Doc</title></head><body><p>Has words.</p></body></html>"
       @attach2 = "<html><head><title>Other Doc</title></head><body><p>Has more words.</p></body></html>"
-      @doc = {
+      @data = {
         "_id" => "mydocwithattachment",
         "field" => ["some value"],
         "_attachments" => {
@@ -420,7 +429,7 @@ describe CouchRest::Database do
           }
         }
       }
-      @db.save_doc(@doc)
+      @db.save_doc(@data)
       @doc = @db.get("mydocwithattachment")
     end
     it "should save and be indicated" do
@@ -434,6 +443,11 @@ describe CouchRest::Database do
     it "should be there" do
       attachment = @db.fetch_attachment(@doc,"other.html")
       expect(attachment).to eq @attach2
+    end
+    it "should not re-encode document" do
+      @db.save_doc(@data)
+      attachment = @db.fetch_attachment(@data,"test.html")
+      expect(attachment).to eq @attach
     end
   end
   

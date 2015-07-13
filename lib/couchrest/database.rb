@@ -379,8 +379,8 @@ module CouchRest
 
     def encode_attachments(attachments)
       attachments.each do |k,v|
-        next if v['stub']
-        v['data'] = base64(v['data'])
+        next if v['stub'] || v['data'].frozen?
+        v['data'] = base64(v['data']).freeze
       end
       attachments
     end
@@ -392,7 +392,7 @@ module CouchRest
     # Convert a simplified view name into a complete view path. If
     # the name already starts with a "_" no alterations will be made.
     def name_to_view_path(name)
-      name =~ /^([^_].+?)\/(.*)$/ ? "_design/#{$1}/_view/#{$2}" : name
+      name =~ /^([^_].*?)\/(.*)$/ ? "_design/#{$1}/_view/#{$2}" : name
     end
   end
 end
