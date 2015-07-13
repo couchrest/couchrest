@@ -16,10 +16,6 @@ describe CouchRest do
     end
   end
 
-  let :mock_server do
-    CouchRest.new("http://mock")
-  end
-
   describe "version" do
     it "should be there" do
       expect(CouchRest::VERSION).to_not be_empty
@@ -34,17 +30,6 @@ describe CouchRest do
       expect(@cr.info["couchdb"]).to eq "Welcome"
       expect(@cr.info.class).to eq Hash   
     end
-  end
-
-  it "should restart" do
-    # we really do not need to perform a proper restart!
-    stub_request(:post, "http://mock/_restart")
-      .to_return(:body => "{\"ok\":true}")
-    mock_server.restart!
-  end
-
-  it "should provide one-time access to uuids" do
-    expect(@cr.next_uuid).not_to be_nil
   end
 
   describe "initializing a database" do
