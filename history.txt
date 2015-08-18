@@ -1,4 +1,9 @@
-== 2.0.0.rc1
+== 2.0.0.rc2
+
+* Minor changes
+  * Forcing HTTP basic connections when user+pass provided to avoid 401 (@samlown via @cloudant)
+
+== 2.0.0.rc1 - 2015-07-13
 
 * Major Changes
   * Refactoring to support persisitent HTTP connections with HTTPClient gem (@samlown)

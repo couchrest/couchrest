@@ -206,6 +206,7 @@ describe CouchRest::Connection do
         stub_request(:get, "http://user:pass@mock/db/test")
           .to_return(:body => doc.to_json)
         conn = CouchRest::Connection.new(URI "http://user:pass@mock")
+        expect(conn.http.www_auth.basic_auth.force_auth).to be_true
         conn.get("db/test")
       end
 

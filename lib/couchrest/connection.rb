@@ -112,6 +112,7 @@ module CouchRest
 
       # Authentication
       unless uri.user.to_s.empty?
+        http.force_basic_auth = true
         http.set_auth(uri.to_s, uri.user, uri.password)
       end
 
