@@ -90,7 +90,7 @@ module CouchRest
 
     # Send a HEAD request.
     def head(path, options = {})
-      options = options.merge(:raw => true) # No parsing!
+      options = options.merge(:head => true) # No parsing!
       execute('HEAD', path, options)
     end
 
@@ -164,7 +164,7 @@ module CouchRest
       else
         response = send_request(req)
         handle_response_code(response)
-        parse_body(response.body, options)
+        parse_response(response, options)
       end
     end
 
@@ -175,6 +175,14 @@ module CouchRest
 
     def handle_response_code(response)
       raise_response_error(response) unless SUCCESS_RESPONSE_CODES.include?(response.status)
+    end
+
+    def parse_response(response, opts)
+      if opts[:head]
+        opts[:raw] ? response.http_header.dump : response.headers
+      else
+        parse_body(response.body, opts)
+      end
     end
 
     def parse_body(body, opts)
