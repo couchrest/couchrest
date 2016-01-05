@@ -25,7 +25,9 @@ module CouchRest
   #  * `:payload` override the document or data sent in the message body (only PUT or POST).
   #  * `:headers` any additional headers (overrides :content_type and :accept)
   #  * `:timeout` (or `:read_timeout`) and `:open_timeout` the time in miliseconds to wait for the request, see the [Net HTTP Persistent documentation](http://docs.seattlerb.org/net-http-persistent/Net/HTTP/Persistent.html#attribute-i-read_timeout) for more details.
-  # * `:verify_ssl`, `:ssl_client_cert`, `:ssl_client_key`, and `:ssl_ca_file`, SSL handling methods.
+  #  * `:verify_ssl` verify ssl certificates (or not)
+  #  * `:ssl_client_cert`, `:ssl_client_key` parameters controlling ssl client certificate authentication
+  #  * `:ssl_ca_file` load additional CA certificates from a file (or directory)
   #
   # When :raw is true in PUT and POST requests, no attempt will be made to convert the document payload to JSON. This is
   # not normally necessary as IO and Tempfile objects will not be parsed anyway. The result of the request will
