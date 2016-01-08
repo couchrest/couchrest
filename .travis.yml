@@ -6,3 +6,5 @@ rvm:
   - jruby
   - rbx
 services: couchdb
+before_install:
+  - gem install bundler
