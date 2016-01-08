@@ -27,7 +27,7 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.7}
   s.summary = %q{Lean and RESTful interface to CouchDB.}
 
-  s.add_dependency("httpclient", ["~> 2.6.0"])
+  s.add_dependency("httpclient", ["~> 2.7"])
   s.add_dependency("mime-types", [">= 1.15"])
   s.add_dependency("multi_json", ["~> 1.7"])
   s.add_development_dependency("json", [">= 1.7.0"])
