@@ -64,22 +64,26 @@ describe CouchRest::Connection do
       conn = CouchRest::Connection.new(URI "http://user:pass@mock")
       expect(conn.http.www_auth.basic_auth.set?).to be_true
     end
-    
+
     describe "with SSL options" do
+
       it "should leave the default if nothing set" do
         default = HTTPClient.new.ssl_config.verify_mode
         conn = CouchRest::Connection.new(URI "https://localhost:5984")
         expect(conn.http.ssl_config.verify_mode).to eql(default)
       end
+
       it "should support disabling SSL verify mode" do
         conn = CouchRest::Connection.new(URI("https://localhost:5984"), :verify_ssl => false)
         expect(conn.http.ssl_config.verify_mode).to eql(OpenSSL::SSL::VERIFY_NONE)
       end
+
       it "should support enabling SSL verify mode" do
         conn = CouchRest::Connection.new(URI("https://localhost:5984"), :verify_ssl => true)
         expect(conn.http.ssl_config.verify_mode).to eql(OpenSSL::SSL::VERIFY_PEER)
       end
-      it "should support setting specific cert, key, and ca" do
+
+      it "should support setting specific client cert & key" do
         conn = CouchRest::Connection.new(URI("https://localhost:5984"),
           :ssl_client_cert => 'cert',
           :ssl_client_key  => 'key',
@@ -88,6 +92,29 @@ describe CouchRest::Connection do
         expect(conn.http.ssl_config.client_key).to eql('key')
       end
 
+      it "should support adding the ca to trust from a file" do
+        file = Tempfile.new(['server', '.pem'])
+        File.write(file.path, "-----BEGIN CERTIFICATE-----
+          MIIBJTCB0KADAgECAgEBMA0GCSqGSIb3DQEBCwUAMAAwHhcNMTYwMTA1MjMxMDUy
+          WhcNMTcwMTA0MjMxMDUyWjASMRAwDgYDVQQDDAdUZXN0IENBMFwwDQYJKoZIhvcN
+          AQEBBQADSwAwSAJBALR3qIUULyv07HPDu7a2X4Ego46/6kxlqU9fNbYwceufv1w8
+          hjq0LgyUMWKcuwEEEV4wTKPj/UrRtlcy8sNLfCcCAwEAAaMjMCEwDwYDVR0TAQH/
+          BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAQYwDQYJKoZIhvcNAQELBQADQQAjoQn/lPjh
+          aIHMGcbdqneSNMReMdAQtYrJ8Pg/vfhb1jKN/BsI9ks+I3pWTMxuZ49dVLDN4qSD
+          w4u+Rj2Ictaq
+          -----END CERTIFICATE-----".gsub(/^\s+/, ''))
+        conn = CouchRest::Connection.new(URI("https://localhost:5984"),
+          :ssl_ca_file => file.path
+        )
+        conn.http.ssl_config.cert_store_items.should include(file.path)
+      end
+
+      it "should support adding multiple ca certificates from a directory" do
+        conn = CouchRest::Connection.new(URI("https://localhost:5984"),
+          :ssl_ca_file => '.'
+        )
+        conn.http.ssl_config.cert_store_items.should include('.')
+      end
     end
 
     describe "with timeout options" do

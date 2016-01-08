@@ -25,7 +25,9 @@ module CouchRest
   #  * `:payload` override the document or data sent in the message body (only PUT or POST).
   #  * `:headers` any additional headers (overrides :content_type and :accept)
   #  * `:timeout` (or `:read_timeout`) and `:open_timeout` the time in miliseconds to wait for the request, see the [Net HTTP Persistent documentation](http://docs.seattlerb.org/net-http-persistent/Net/HTTP/Persistent.html#attribute-i-read_timeout) for more details.
-  # * `:verify_ssl`, `:ssl_client_cert`, `:ssl_client_key`, and `:ssl_ca_file`, SSL handling methods.
+  #  * `:verify_ssl` verify ssl certificates (or not)
+  #  * `:ssl_client_cert`, `:ssl_client_key` parameters controlling ssl client certificate authentication
+  #  * `:ssl_ca_file` load additional CA certificates from a file (or directory)
   #
   # When :raw is true in PUT and POST requests, no attempt will be made to convert the document payload to JSON. This is
   # not normally necessary as IO and Tempfile objects will not be parsed anyway. The result of the request will
@@ -38,7 +40,7 @@ module CouchRest
 
     HEADER_CONTENT_SYMBOL_MAP = {
       :content_type => 'Content-Type',
-      :accept       => 'Accept' 
+      :accept       => 'Accept'
     }
 
     DEFAULT_HEADERS = {
@@ -122,6 +124,7 @@ module CouchRest
       end
       http.ssl_config.client_cert = opts[:ssl_client_cert] if opts.include?(:ssl_client_cert)
       http.ssl_config.client_key  = opts[:ssl_client_key]  if opts.include?(:ssl_client_key)
+      http.ssl_config.set_trust_ca(opts[:ssl_ca_file]) if opts.include?(:ssl_ca_file)
 
       # Timeout options
       http.receive_timeout = opts[:timeout] if opts.include?(:timeout)
