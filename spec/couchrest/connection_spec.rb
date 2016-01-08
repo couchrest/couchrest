@@ -444,6 +444,26 @@ describe CouchRest::Connection do
           .to_return(:body => "")
         expect { mock_conn.head('db/test-head') }.to_not raise_error
       end
+      it "should returns headers hash" do
+        response_headers = { "Etag" => "document-version-number" }
+        stub_request(:head, "http://mock/db/test-head")
+        .to_return(
+            :body => "",
+            :headers => response_headers
+        )
+        expect(mock_conn.head('db/test-head')).to eq(response_headers)
+      end
+
+      it "should returns raw headers if opts[:raw] true" do
+        response_headers = { "Etag" => "document-version-number" }
+        stub_request(:head, "http://mock/db/test-head")
+        .to_return(
+            :body => "",
+            :headers => response_headers
+        )
+        expect(mock_conn.head('db/test-head', {raw: true})).to include("Etag: document-version-number" )
+      end
+
       it "should handle head request when document missing" do
         stub_request(:head, "http://mock/db/test-missing-head")
           .to_return(:status => 404)
