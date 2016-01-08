@@ -90,8 +90,9 @@ module CouchRest
 
     # == Retrieving and saving single documents
 
-    # GET a document from CouchDB, by id. Returns a Document or Design.
-    def get(id, params = {})
+    # GET a document from CouchDB, by id. Returns a Document, Design, or raises an exception
+    # if the document does not exist.
+    def get!(id, params = {})
       slug = escape_docid(id)
       url = CouchRest.paramify_url("#{path}/#{slug}", params)
       result = connection.get(url)
@@ -103,6 +104,14 @@ module CouchRest
       end
       doc.database = self
       doc
+    end
+
+    # GET the requested document by ID like `get!`, but returns nil if the document
+    # does not exist.
+    def get(*args)
+      get!(*args)
+    rescue CouchRest::NotFound
+      nil
     end
 
     # Save a document to CouchDB. This will use the <tt>_id</tt> field from

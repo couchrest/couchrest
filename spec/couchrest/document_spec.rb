@@ -227,7 +227,7 @@ describe CouchRest::Document do
       doc = CouchRest::Document.new({"_id" => "bulkdoc", "val" => 3})
       doc.database = @db
       doc.save(true)
-      expect(lambda { doc.database.get(doc["_id"]) }).to raise_error(CouchRest::NotFound)
+      expect(doc.database.get(doc["_id"])).to be_nil
       doc.database.bulk_save
       expect(doc.database.get(doc["_id"])["val"]).to eql doc["val"]
     end
@@ -267,7 +267,7 @@ describe CouchRest::Document do
     end
     it "should make it disappear" do
       @doc.destroy
-      expect(lambda{@db.get @resp['id']}).to raise_error
+      expect(@db.get @resp['id']).to be_nil
     end
     it "should error when there's no db" do
       @doc = CouchRest::Document.new("key" => [1,2,3], :more => "values")    
@@ -288,9 +288,9 @@ describe CouchRest::Document do
       @doc.destroy(true)
       expect(@doc['_id']).to be_nil
       expect(@doc['_rev']).to be_nil
-      expect(lambda{@db.get @resp['id']}).not_to raise_error
+      expect(@db.get @resp['id']).to_not be_nil
       @db.bulk_save
-      expect(lambda{@db.get @resp['id']}).to raise_error
+      expect(@db.get @resp['id']).to be_nil
     end
   end
 

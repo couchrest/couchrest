@@ -233,6 +233,17 @@ describe CouchRest::Database do
       expect(@db.get(@docid)['will-exist']).to eq 'here'
     end
   end
+
+  describe "GET (document by id) when the doc does not exist)" do
+   it "should provide nil" do
+      expect(@db.get('fooooobar')).to be_nil
+    end
+    it "should raise an exception" do
+      expect do
+        @db.get!('fooooobar')
+      end.to raise_error(CouchRest::NotFound)
+    end
+  end
   
   describe "POST (adding bulk documents)" do
     it "should add them without ids" do
@@ -277,9 +288,7 @@ describe CouchRest::Database do
 
     it "should empty the bulk save cache if no documents are given" do
       @db.save_doc({"_id" => "bulk_cache_1", "val" => "test"}, true)
-      expect do
-        @db.get('bulk_cache_1')
-      end.to raise_error(CouchRest::NotFound)
+      expect(@db.get('bulk_cache_1')).to be_nil
       @db.bulk_save
       expect(@db.get("bulk_cache_1")["val"]).to eq "test"
     end
@@ -584,12 +593,8 @@ describe CouchRest::Database do
       td2 = {"_id" => "td2", "val" => 4}
       @db.save_doc(td1, true)
       @db.save_doc(td2, true)
-      expect do
-        @db.get(td1["_id"])
-      end.to raise_error(CouchRest::NotFound)
-      expect do
-        @db.get(td2["_id"])
-      end.to raise_error(CouchRest::NotFound)
+      expect(@db.get(td1["_id"])).to be_nil
+      expect(@db.get(td2["_id"])).to be_nil
       td3 = {"_id" => "td3", "val" => "foo"}
       @db.save_doc(td3, true)
       expect(@db.get(td1["_id"])["val"]).to eq td1["val"]
@@ -602,9 +607,7 @@ describe CouchRest::Database do
       td2 = {"_id" => "steve", "val" => 3}
       @db.bulk_save_cache_limit = 50
       @db.save_doc(td1, true)
-      expect do
-        @db.get(td1["_id"])
-      end.to raise_error(CouchRest::NotFound)
+      expect(@db.get(td1["_id"])).to be_nil
       @db.save_doc(td2)
       expect(@db.get(td1["_id"])["val"]).to eq td1["val"]
       expect(@db.get(td2["_id"])["val"]).to eq td2["val"]
@@ -621,12 +624,12 @@ describe CouchRest::Database do
       doc = @db.get(@r['id'])
       expect(doc['and']).to eq 'spain'
       @db.delete_doc doc
-      expect(lambda{@db.get @r['id']}).to raise_error
+      expect(@db.get(@r['id'])).to be_nil 
     end
     it "should work with uri id" do
       doc = @db.get(@docid)
       @db.delete_doc doc
-      expect(lambda{@db.get @docid}).to raise_error
+      expect(@db.get @docid).to be_nil
     end
     it "should fail without an _id" do
       expect(lambda{@db.delete_doc({"not"=>"a real doc"})}).to raise_error(ArgumentError)
@@ -634,9 +637,9 @@ describe CouchRest::Database do
     it "should defer actual deletion when using bulk save" do
       doc = @db.get(@docid)
       @db.delete_doc doc, true
-      expect(lambda{@db.get @docid}).not_to raise_error
+      expect(@db.get @docid).to_not be_nil
       @db.bulk_save
-      expect(lambda{@db.get @docid}).to raise_error
+      expect(@db.get @docid).to be_nil
     end
     
   end
