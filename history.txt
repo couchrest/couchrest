@@ -1,4 +1,10 @@
-== 2.0.0.rc2
+== 2.0.0.rc3
+
+* Minor changes
+  * Updating HTTPClient dependency to > 2.7 for Ruby 2.3 support. (@samlown)
+  * Added `:ssl_ca_file` configuration option (@joelnb)
+
+== 2.0.0.rc2 - 2015-08-18
 
 * Minor changes
   * Forcing HTTP basic connections when user+pass provided to avoid 401 (@samlown via @cloudant)
