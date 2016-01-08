@@ -16,10 +16,10 @@ module CouchRest
     # created connections.
     attr_reader :connection_options
 
-    def initialize(server = 'http://127.0.0.1:5984', uuid_batch_count = 1000, connection_options = {})
+    def initialize(server = 'http://127.0.0.1:5984', options = {})
       @uri = prepare_uri(server).freeze
-      @uuid_batch_count = uuid_batch_count
-      @connection_options = connection_options
+      @uuid_batch_count = options.delete(:uuid_batch_count) || 1000
+      @connection_options = options
     end
 
     # Lazy load the connection for the current thread
