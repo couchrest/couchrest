@@ -256,6 +256,13 @@ describe CouchRest::Database do
       
       @db.bulk_save(docs)
     end
+
+    it "should allow UUID assignment to be disabled" do
+      expect(@db.connection).to_not receive(:next_uuid)
+      docs = [{'key' => 'value'}, {'_id' => 'totally-uniq'}]
+      expect(@db.connection).to receive(:post).with("/couchrest-test/_bulk_docs", {:docs => docs})
+      @db.bulk_save(docs, :use_uuids => false)
+    end
     
     it "should add them with uniq ids" do
       rs = @db.bulk_save([
@@ -281,7 +288,7 @@ describe CouchRest::Database do
       docs = [{"_id" => "oneB", "wild" => "and random"}, {"_id" => "twoB", "mild" => "yet local"}]
       expect(@db.connection).to receive(:post).with("/couchrest-test/_bulk_docs", {:all_or_nothing => true, :docs => docs})
       
-      @db.bulk_save(docs, false, true)
+      @db.bulk_save(docs, :all_or_nothing => true)
     end
 
     it "should raise an error that is useful for recovery" do

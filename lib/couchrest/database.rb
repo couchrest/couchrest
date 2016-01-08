@@ -175,12 +175,13 @@ module CouchRest
     # missing ids, supply one from the uuid cache.
     #
     # If called with no arguments, bulk saves the cache of documents to be bulk saved.
-    def bulk_save(docs = nil, use_uuids = true, all_or_nothing = false)
+    def bulk_save(docs = nil, opts = {})
+      opts = { :use_uuids => true, :all_or_nothing => false }.update(opts)
       if docs.nil?
         docs = @bulk_save_cache
         @bulk_save_cache = []
       end
-      if (use_uuids) 
+      if opts[:use_uuids]
         ids, noids = docs.partition{|d|d['_id']}
         uuid_count = [noids.length, @server.uuid_batch_count].max
         noids.each do |doc|
@@ -189,7 +190,7 @@ module CouchRest
         end
       end
       request_body = {:docs => docs}
-      if all_or_nothing
+      if opts[:all_or_nothing]
         request_body[:all_or_nothing] = true
       end
       connection.post "#{path}/_bulk_docs", request_body

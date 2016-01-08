@@ -3,6 +3,8 @@
 * Minor changes
   * Updating HTTPClient dependency to > 2.7 for Ruby 2.3 support. (@samlown)
   * Added `:ssl_ca_file` configuration option (@joelnb)
+  * Return headers content for HEAD requests (@solenko)
+  * Changing to options hash for bulk_save (@samlown via @matthiasjakel)
 
 == 2.0.0.rc2 - 2015-08-18
 
