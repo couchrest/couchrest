@@ -95,13 +95,26 @@ describe CouchRest::Connection do
       it "should support adding the ca to trust from a file" do
         file = Tempfile.new(['server', '.pem'])
         File.write(file.path, "-----BEGIN CERTIFICATE-----
-          MIIBJTCB0KADAgECAgEBMA0GCSqGSIb3DQEBCwUAMAAwHhcNMTYwMTA1MjMxMDUy
-          WhcNMTcwMTA0MjMxMDUyWjASMRAwDgYDVQQDDAdUZXN0IENBMFwwDQYJKoZIhvcN
-          AQEBBQADSwAwSAJBALR3qIUULyv07HPDu7a2X4Ego46/6kxlqU9fNbYwceufv1w8
-          hjq0LgyUMWKcuwEEEV4wTKPj/UrRtlcy8sNLfCcCAwEAAaMjMCEwDwYDVR0TAQH/
-          BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAQYwDQYJKoZIhvcNAQELBQADQQAjoQn/lPjh
-          aIHMGcbdqneSNMReMdAQtYrJ8Pg/vfhb1jKN/BsI9ks+I3pWTMxuZ49dVLDN4qSD
-          w4u+Rj2Ictaq
+          MIIDrTCCAxagAwIBAgIBADANBgkqhkiG9w0BAQQFADCBnDEbMBkGA1UEChMSVGhl
+          IFNhbXBsZSBDb21wYW55MRQwEgYDVQQLEwtDQSBEaXZpc2lvbjEcMBoGCSqGSIb3
+          DQEJARYNY2FAc2FtcGxlLmNvbTETMBEGA1UEBxMKTWV0cm9wb2xpczERMA8GA1UE
+          CBMITmV3IFlvcmsxCzAJBgNVBAYTAlVTMRQwEgYDVQQDEwtUU0MgUm9vdCBDQTAe
+          Fw0wMTEyMDgwNDI3MDVaFw0wMjEyMDgwNDI3MDVaMIGcMRswGQYDVQQKExJUaGUg
+          U2FtcGxlIENvbXBhbnkxFDASBgNVBAsTC0NBIERpdmlzaW9uMRwwGgYJKoZIhvcN
+          AQkBFg1jYUBzYW1wbGUuY29tMRMwEQYDVQQHEwpNZXRyb3BvbGlzMREwDwYDVQQI
+          EwhOZXcgWW9yazELMAkGA1UEBhMCVVMxFDASBgNVBAMTC1RTQyBSb290IENBMIGf
+          MA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDaiAwfKB6ZBtnTRTIo6ddomt0S9ec0
+          NcuvtJogt0s9dXpHowh98FCDjnLtCi8du6LDTZluhlOtTFARPlV/LVnpsbyMCXMs
+          G2qpdjJop+XIBdvoCz2HpGXjUmym8WLqt+coWwJqUSwiEba74JG93v7TU+Xcvc00
+          5MWnxmKZzD/R3QIDAQABo4H8MIH5MAwGA1UdEwQFMAMBAf8wHQYDVR0OBBYEFG/v
+          yytrBtEquMX2dreysix/MlPMMIHJBgNVHSMEgcEwgb6AFG/vyytrBtEquMX2drey
+          six/MlPMoYGipIGfMIGcMRswGQYDVQQKExJUaGUgU2FtcGxlIENvbXBhbnkxFDAS
+          BgNVBAsTC0NBIERpdmlzaW9uMRwwGgYJKoZIhvcNAQkBFg1jYUBzYW1wbGUuY29t
+          MRMwEQYDVQQHEwpNZXRyb3BvbGlzMREwDwYDVQQIEwhOZXcgWW9yazELMAkGA1UE
+          BhMCVVMxFDASBgNVBAMTC1RTQyBSb290IENBggEAMA0GCSqGSIb3DQEBBAUAA4GB
+          ABclymJfsPOUazNQO8aIaxwVbXWS+8AFEkMMRx6O68ICAMubQBvs8Buz3ALXhqYe
+          FS5G13pW2ZnAlSdTkSTKkE5wGZ1RYSfyiEKXb+uOKhDN9LnajDzaMPkNDU2NDXDz
+          SqHk9ZiE1boQaMzjNLu+KabTLpmL9uXvFA/i+gdenFHv
           -----END CERTIFICATE-----".gsub(/^\s+/, ''))
         conn = CouchRest::Connection.new(URI("https://localhost:5984"),
           :ssl_ca_file => file.path
