@@ -3,7 +3,7 @@ require File.expand_path("../../spec_helper", __FILE__)
 class Video < CouchRest::Document; end
 
 describe CouchRest::Document do
-  
+
   before(:all) do
     @couch = CouchRest.new
     @db    = @couch.database!(TESTDB)
@@ -73,18 +73,26 @@ describe CouchRest::Document do
     end
   end
 
-  describe "#has_key?" do
+  describe "#key?" do
     before :each do
       @doc = CouchRest::Document.new
     end
     it "should confirm existance of key" do
       @doc[:test] = 'example'
-      expect(@doc.has_key?('test')).to be_true
-      expect(@doc.has_key?(:test)).to be_true
+      expect(@doc.key?('test')).to be_true
+      expect(@doc.key?(:test)).to be_true
     end
     it "should deny existance of key" do
-      expect(@doc.has_key?(:bardom)).to be_false
-      expect(@doc.has_key?('bardom')).to be_false
+      expect(@doc.key?(:bardom)).to be_false
+      expect(@doc.key?('bardom')).to be_false
+    end
+  end
+
+  describe "#has_key?" do
+    it 'calls #key?' do
+      @doc = CouchRest::Document.new
+      expect(@doc).to receive(:key?).with(:test)
+      @doc.has_key? :test
     end
   end
 
@@ -160,7 +168,7 @@ describe CouchRest::Document do
       expect(Video.new.database).to eql @db
       Video.use_database nil
     end
-    
+
     it "should be overwritten by instance" do
       db = @couch.database('test')
       article = Video.new
@@ -173,7 +181,7 @@ describe CouchRest::Document do
 
   describe  "new" do
     before(:each) do
-      @doc = CouchRest::Document.new("key" => [1,2,3], :more => "values")    
+      @doc = CouchRest::Document.new("key" => [1,2,3], :more => "values")
     end
     it "should create itself from a Hash" do
       expect(@doc["key"]).to eql [1,2,3]
@@ -187,22 +195,22 @@ describe CouchRest::Document do
       @doc.id = 1
       expect(@doc.id).to eql(1)
     end
-    
+
     it "should freak out when saving without a database" do
       expect(lambda{@doc.save}).to raise_error(ArgumentError)
     end
-    
+
   end
 
   # move to database spec
   describe  "saving using a database" do
     before(:all) do
-      @doc = CouchRest::Document.new("key" => [1,2,3], :more => "values")    
-      @db = reset_test_db!    
+      @doc = CouchRest::Document.new("key" => [1,2,3], :more => "values")
+      @db = reset_test_db!
       @resp = @db.save_doc(@doc)
     end
     it "should apply the database" do
-      expect(@doc.database).to eql @db    
+      expect(@doc.database).to eql @db
     end
     it "should get id and rev" do
       expect(@doc.id).to eql @resp["id"]
@@ -251,7 +259,7 @@ describe CouchRest::Document do
       @doc["more"] = "keys"
       @doc.save
       expect(@db.get(@resp['id'])["more"]).to eql "keys"
-      @doc["more"] = "these keys"    
+      @doc["more"] = "these keys"
       @doc.save
       expect(@db.get(@resp['id'])["more"]).to eql "these keys"
     end
@@ -270,7 +278,7 @@ describe CouchRest::Document do
       expect(@db.get @resp['id']).to be_nil
     end
     it "should error when there's no db" do
-      @doc = CouchRest::Document.new("key" => [1,2,3], :more => "values")    
+      @doc = CouchRest::Document.new("key" => [1,2,3], :more => "values")
       expect(lambda{@doc.destroy}).to raise_error(ArgumentError)
     end
   end
