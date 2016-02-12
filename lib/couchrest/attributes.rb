@@ -12,10 +12,10 @@ module CouchRest
   module Attributes
     extend Forwardable
 
-    # Initialize a new CouchRest Document and prepare 
+    # Initialize a new CouchRest Document and prepare
     # a hidden attributes hash.
     #
-    # When inherting a Document, it is essential that the 
+    # When inherting a Document, it is essential that the
     # super method is called before you own changes to ensure
     # that the attributes hash has been initialized before
     # you attempt to use it.
@@ -34,8 +34,14 @@ module CouchRest
     def [](key)
       _attributes[key.to_s]
     end
-    def has_key?(key)
+    # key? is preferred over has_key?
+    def key?(key)
       _attributes.has_key?(key.to_s)
+    end
+    # has_key? is deprecated for Hash, key? replaces it
+    # https://github.com/bbatsov/ruby-style-guide#hash-key
+    def has_key?(key)
+      key?(key)
     end
     def delete(key)
       _attributes.delete(key.to_s)
