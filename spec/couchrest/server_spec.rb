@@ -1,7 +1,7 @@
 require File.expand_path("../../spec_helper", __FILE__)
 
 describe CouchRest::Server do
-  
+
   let :server do
     CouchRest::Server.new(COUCHHOST)
   end
@@ -11,6 +11,7 @@ describe CouchRest::Server do
   end
 
   describe "#initialize" do
+
     it "should prepare frozen URI object" do
       expect(server.uri).to be_a(URI)
       expect(server.uri).to be_frozen
@@ -21,6 +22,27 @@ describe CouchRest::Server do
       server = CouchRest::Server.new(COUCHHOST + "/some/path?q=1#fragment")
       expect(server.uri.to_s).to eql(COUCHHOST)
     end
+
+    it "should set the uuid_batch_count if provided" do
+      server = CouchRest::Server.new(COUCHHOST, :uuid_batch_count => 5000)
+      expect(server.uuid_batch_count).to eql(5000)
+    end
+
+    it "should not treat uuid_batch_count as a connection option" do
+      server = CouchRest::Server.new(COUCHHOST, :uuid_batch_count => 5000)
+      expect(server.connection_options).not_to include(:uuid_batch_count)
+    end
+
+    it "should set a default for uuid_batch_count" do
+      expect(server.uuid_batch_count).not_to eql(nil)
+      expect(server.uuid_batch_count).to be_a(Integer)
+    end
+
+    it "should store extra connection options" do
+      server = CouchRest::Server.new(COUCHHOST, :verify_ssl => true)
+      expect(server.connection_options[:verify_ssl]).to eql(true)
+    end
+
   end
 
   describe :connection do
@@ -82,8 +104,7 @@ describe CouchRest::Server do
   describe :restart do
     it "should send restart request" do
       # we really do not need to perform a proper restart!
-      stub_request(:post, "http://mock/_restart")
-        .to_return(:body => "{\"ok\":true}")
+      stub_request(:post, "http://mock/_restart").to_return(:body => "{\"ok\":true}")
       mock_server.restart!
     end
   end
