@@ -18,6 +18,19 @@ Tested on latest stable release (1.6.X), but should work on older versions above
 
 ## Basic Usage
 
+
+```ruby
+CouchRest.configure do |config|
+  config.server_url = "http://localhost:5984"
+
+  config.connection.timeout = 1000
+  config.connection.open_timeout = 2000
+  config.connection.read_timeout = 3000
+end
+
+server = CouchRest.new # should use configured server and connection settings.
+```
+
 Getting started with CouchRest is easy. You can send requests directly to a URL using a [RestClient](https://github.com/rest-client/rest-client)-like interface:
 
 ```ruby

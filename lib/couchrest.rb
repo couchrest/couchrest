@@ -46,6 +46,31 @@ module CouchRest
   # the get, post, put, delete and copy
   CouchRest.extend(::CouchRest::RestAPI)
 
+  class << self
+    attr_reader :configuration
+
+    def configuration
+      @configuration ||= Configuration.new
+    end
+  end
+
+  def self.configure
+    yield(configuration)
+  end
+
+  ConnectionSettings = Struct.new(:timeout, :read_timeout, :open_timeout)
+
+  class Configuration
+    DEFAULT_URL = "http://localhost:5984"
+
+    attr_accessor :server_url, :connection
+
+    def initialize
+      @connection = ConnectionSettings.new
+      @server_url = DEFAULT_URL
+    end
+  end
+
   # The CouchRest module methods handle the basic JSON serialization
   # and deserialization, as well as query parameters. The module also includes
   # some helpers for tasks like instantiating a new Database or Server instance.
