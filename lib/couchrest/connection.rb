@@ -107,9 +107,15 @@ module CouchRest
       uri
     end
 
+    def verify_ssl(opts)
+      opts.fetch(:verify_ssl) { CouchRest.configuration.connection.verify_ssl }
+    end
+
     # Take a look at the options povided and try to apply them to the HTTP conneciton.
     # We try to maintain RestClient compatability as this is what we used before.
     def prepare_http_connection(opts)
+      connection_configuration = CouchRest.configuration.connection
+
       @http = HTTPClient.new(opts[:proxy] || self.class.proxy)
 
       # Authentication
@@ -119,17 +125,19 @@ module CouchRest
       end
 
       # SSL Certificate option mapping
-      if opts.include?(:verify_ssl)
-        http.ssl_config.verify_mode = opts[:verify_ssl] ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
+      unless verify_ssl(opts).nil?
+        http.ssl_config.verify_mode = verify_ssl(opts) ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
       end
-      http.ssl_config.client_cert = opts[:ssl_client_cert] if opts.include?(:ssl_client_cert)
-      http.ssl_config.client_key  = opts[:ssl_client_key]  if opts.include?(:ssl_client_key)
-      http.ssl_config.set_trust_ca(opts[:ssl_ca_file]) if opts.include?(:ssl_ca_file)
+      http.ssl_config.client_cert = opts.fetch(:ssl_client_cert) { connection_configuration.ssl_client_cert }
+      http.ssl_config.client_key  = opts.fetch(:ssl_client_key) { connection_configuration.ssl_client_key }
+
+      ssl_ca_file = opts.fetch(:ssl_ca_file) { connection_configuration.ssl_ca_file }
+      http.ssl_config.set_trust_ca(ssl_ca_file) unless ssl_ca_file.nil?
 
       # Timeout options
-      http.receive_timeout = opts[:timeout] if opts.include?(:timeout)
-      http.connect_timeout = opts[:open_timeout] if opts.include?(:open_timeout)
-      http.send_timeout    = opts[:read_timeout] if opts.include?(:read_timeout)
+      http.receive_timeout = opts.fetch(:timeout) { connection_configuration.timeout }
+      http.connect_timeout = opts.fetch(:open_timeout) { connection_configuration.open_timeout }
+      http.send_timeout    = opts.fetch(:read_timeout) { connection_configuration.read_timeout }
 
       http
     end

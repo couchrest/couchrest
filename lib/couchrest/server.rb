@@ -12,7 +12,7 @@ module CouchRest
     # saving new documents. See also #next_uuid.
     attr_reader :uuids
 
-    def initialize(server = 'http://127.0.0.1:5984', uuid_batch_count = 1000)
+    def initialize(server = CouchRest::Configuration::DEFAULT_URL, uuid_batch_count = CouchRest::Configuration::DEFAULT_UUID_BATCH_COUNT)
       @uri = prepare_uri(server).freeze
       @uuid_batch_count = uuid_batch_count
     end
