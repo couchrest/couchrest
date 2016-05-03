@@ -23,6 +23,11 @@ Tested on latest stable release (1.6.X), but should work on older versions above
 CouchRest.configure do |config|
   config.server_url = "http://localhost:5984"
 
+  config.connection.ssl_client_cert = 'cert'
+  config.connection.ssl_client_key = 'cert-key'
+  config.connection.ssl_ca_file = 'ca-file'
+  config.connection.verify_ssl = nil            # true/false
+
   config.connection.timeout = 1000
   config.connection.open_timeout = 2000
   config.connection.read_timeout = 3000

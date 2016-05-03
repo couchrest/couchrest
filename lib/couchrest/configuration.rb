@@ -14,11 +14,12 @@ module CouchRest
     DEFAULT_URL = 'http://127.0.0.1:5984'
     DEFAULT_UUID_BATCH_COUNT = 1000
 
-    attr_accessor :server_url, :connection
+    attr_accessor :server_url, :uuid_batch_count, :connection
 
     def initialize
       @connection = ConnectionSettings.new
       @server_url = DEFAULT_URL
+      @uuid_batch_count = DEFAULT_UUID_BATCH_COUNT
     end
   end
 end

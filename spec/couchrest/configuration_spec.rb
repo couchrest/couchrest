@@ -21,4 +21,8 @@ describe 'Configuration' do
 
     expect(CouchRest.configuration.server_url).to eq('http://www.example.com')
   end
+
+  after do
+    CouchRest.instance_variable_set('@configuration', CouchRest::Configuration.new)
+  end
 end
