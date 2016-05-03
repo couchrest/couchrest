@@ -34,5 +34,4 @@ Gem::Specification.new do |s|
   s.add_development_dependency("rspec", "~> 2.14.1")
   s.add_development_dependency("rake")
   s.add_development_dependency("webmock")
-  s.add_development_dependency("mime-types", "2.6.2") # Avoid Errors with 3.0 series
 end
