@@ -26,12 +26,17 @@ module CouchRest
     # Lazy load the connection for the current thread
     def connection
       conns = (Thread.current['couchrest.connections'] ||= {})
-      conns[uri.to_s] ||= Connection.new(uri)
+      conns[uri.to_s] ||= ConnectionPool.new(
+        :timeout => CouchRest.configuration.pool.timeout,
+        :size => CouchRest.configuration.pool.size) do
+
+        Connection.new(uri)
+      end
     end
 
     # Lists all databases on the server
     def databases
-      connection.get "_all_dbs"
+      connection.with { |conn| conn.get "_all_dbs" }
     end
 
     # Returns a CouchRest::Database for the given name
@@ -41,7 +46,7 @@ module CouchRest
 
     # Creates the database if it doesn't exist
     def database!(name)
-      connection.head name # Check if the URL is valid
+      connection.with { |conn| conn.head name } # Check if the URL is valid
       database(name)
     rescue CouchRest::NotFound # Thrown if the HTTP HEAD fails
       create_db(name)
@@ -49,24 +54,24 @@ module CouchRest
 
     # GET the welcome message
     def info
-      connection.get ""
+      connection.with { |conn| conn.get "" }
     end
 
     # Create a database
     def create_db(name)
-      connection.put name
+      connection.with { |conn| conn.put name }
       database(name)
     end
 
     # Restart the CouchDB instance
     def restart!
-      connection.post "_restart"
+      connection.with { |conn| conn.post "_restart" }
     end
 
     # Retrive an unused UUID from CouchDB. Server instances manage caching a list of unused UUIDs.
     def next_uuid(count = @uuid_batch_count)
       if uuids.nil? || uuids.empty?
-        @uuids = connection.get("_uuids?count=#{count}")["uuids"]
+        @uuids = connection.with { |conn| conn.get("_uuids?count=#{count}")["uuids"] }
       end
       uuids.pop
     end

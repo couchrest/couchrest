@@ -15,6 +15,7 @@
 require 'multi_json'
 require 'mime/types'
 require 'httpclient'
+require 'connection_pool'
 
 $:.unshift File.dirname(__FILE__) unless
  $:.include?(File.dirname(__FILE__)) ||

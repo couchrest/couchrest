@@ -6,7 +6,7 @@ module CouchRest
 
     # Server object we'll use to communicate with.
     attr_reader :server
-    
+
     # Name of the database of we're using.
     attr_reader :name
 
@@ -37,7 +37,7 @@ module CouchRest
 
     # A URI object for the exact location of this database
     def uri
-      server.uri + path 
+      server.uri + path
     end
     alias root uri
 
@@ -48,12 +48,12 @@ module CouchRest
 
     # GET the database info from CouchDB
     def info
-      connection.get path
+      connection.with { |conn| conn.get path }
     end
 
     # Compact the database, removing old document revisions and optimizing space use.
     def compact!
-      connection.post "#{path}/_compact"
+      connection.with { |conn| conn.post "#{path}/_compact" }
     end
 
     # Create the database
@@ -84,7 +84,7 @@ module CouchRest
     # DELETE the database itself. This is not undoable and could be rather
     # catastrophic. Use with care!
     def delete!
-      connection.delete path
+      connection.with { |conn| conn.delete path }
     end
 
 
@@ -95,7 +95,7 @@ module CouchRest
     def get!(id, params = {})
       slug = escape_docid(id)
       url = CouchRest.paramify_url("#{path}/#{slug}", params)
-      result = connection.get(url)
+      result = connection.with { |conn| conn.get(url) }
       return result unless result.is_a?(Hash)
       doc = if /^_design/ =~ result["_id"]
         Design.new(result)
@@ -152,15 +152,15 @@ module CouchRest
         begin
           doc_path = "#{path}/#{slug}"
           doc_path << "?batch=ok" if batch
-          connection.put doc_path, doc
+          connection.with { |conn| conn.put doc_path, doc }
         rescue CouchRest::NotFound
           puts "resource not found when saving even though an id was passed"
           slug = doc['_id'] = server.next_uuid
-          connection.put "#{path}/#{slug}", doc
+          connection.with { |conn| conn.put "#{path}/#{slug}", doc }
         end
       else
         slug = doc['_id'] = @server.next_uuid
-        connection.put "#{path}/#{slug}", doc
+        connection.with { |conn| conn.put "#{path}/#{slug}", doc }
       end
       if result['ok']
         doc['_id'] = result['id']
@@ -202,7 +202,7 @@ module CouchRest
       if opts[:all_or_nothing]
         request_body[:all_or_nothing] = true
       end
-      connection.post "#{path}/_bulk_docs", request_body
+      connection.with { |conn| conn.post "#{path}/_bulk_docs", request_body }
     end
     alias :bulk_delete :bulk_save
 
@@ -218,8 +218,8 @@ module CouchRest
         return bulk_save if @bulk_save_cache.length >= @bulk_save_cache_limit
         return {'ok' => true} # Mimic the non-deferred version
       end
-      slug = escape_docid(doc['_id'])        
-      connection.delete "#{path}/#{slug}?rev=#{doc['_rev']}"
+      slug = escape_docid(doc['_id'])
+      connection.with { |conn| conn.delete "#{path}/#{slug}?rev=#{doc['_rev']}" }
     end
 
     # COPY an existing document to a new id. If the destination id currently exists, a rev must be provided.
@@ -233,7 +233,7 @@ module CouchRest
       else
         dest
       end
-      connection.copy "#{path}/#{slug}", destination
+      connection.with { |conn| conn.copy "#{path}/#{slug}", destination }
     end
 
     # Updates the given doc by yielding the current state of the doc
@@ -281,9 +281,9 @@ module CouchRest
       req_path = CouchRest.paramify_url("#{path}/#{view_path}", params)
 
       if payload.empty?
-        connection.get req_path, opts, &block
+        connection.with { |conn| conn.get req_path, opts, &block }
       else
-        connection.post req_path, payload, opts, &block
+        connection.with { |conn| conn.post req_path, payload, opts, &block }
       end
     end
 
@@ -330,27 +330,27 @@ module CouchRest
 
     # GET an attachment directly from CouchDB
     def fetch_attachment(doc, name)
-      connection.get path_for_attachment(doc, name), :raw => true
+      connection.with { |conn| conn.get path_for_attachment(doc, name), :raw => true }
     end
 
     # PUT an attachment directly to CouchDB, expects an IO object, or a string
     # that will be converted to a StringIO in the 'file' parameter.
     def put_attachment(doc, name, file, options = {})
       file = StringIO.new(file) if file.is_a?(String)
-      connection.put path_for_attachment(doc, name), file, options
+      connection.with { |conn| conn.put path_for_attachment(doc, name), file, options }
     end
 
     # DELETE an attachment directly from CouchDB
     def delete_attachment(doc, name, force=false)
       attach_path = path_for_attachment(doc, name)
       begin
-        connection.delete(attach_path)
+        connection.with { |conn| conn.delete(attach_path) }
       rescue Exception => error
         if force
           # get over a 409
           doc = get(doc['_id'])
           attach_path = path_for_attachment(doc, name)
-          connection.delete(attach_path)
+          connection.with { |conn| conn.delete(attach_path) }
         else
           error
         end
@@ -371,9 +371,9 @@ module CouchRest
       end
       payload[:continuous] = continuous
       payload[:doc_ids] = doc_ids if doc_ids
-      
+
       # Use a short lived request here
-      connection.post "_replicate", payload
+      connection.with { |conn| conn.post "_replicate", payload }
     end
 
     def path_for_attachment(doc, name)
@@ -384,7 +384,7 @@ module CouchRest
     end
 
     def escape_docid id
-      /^_design\/(.*)/ =~ id ? "_design/#{CGI.escape($1)}" : CGI.escape(id) 
+      /^_design\/(.*)/ =~ id ? "_design/#{CGI.escape($1)}" : CGI.escape(id)
     end
 
     def encode_attachments(attachments)
