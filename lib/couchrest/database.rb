@@ -203,7 +203,7 @@ module CouchRest
         request_body[:all_or_nothing] = true
       end
       results = connection.post "#{path}/_bulk_docs", request_body
-      docs_by_id = Hash[docs.map { |doc| [doc['_id'], doc] }]
+      docs_by_id = Hash[docs.map { |doc| [doc['_id'], doc] }] unless docs.nil?
       results.each { |r| docs_by_id[r['id']]['_rev'] = r['rev'] if r['ok'] } unless results.nil?
       results
     end
