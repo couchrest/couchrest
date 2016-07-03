@@ -204,9 +204,7 @@ module CouchRest
       end
       results = connection.post "#{path}/_bulk_docs", request_body
       docs_by_id = Hash[docs.map { |doc| [doc['_id'], doc] }]
-      results.each do |r|
-        docs_by_id[r['id']]['_rev'] = r['rev'] if r['ok']
-      end
+      results.each { |r| docs_by_id[r['id']]['_rev'] = r['rev'] if r['ok'] } unless results.nil?
       results
     end
     alias :bulk_delete :bulk_save
