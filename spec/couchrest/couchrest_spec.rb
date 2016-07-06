@@ -6,7 +6,7 @@ describe CouchRest do
     @cr = CouchRest.new(COUCHHOST)
     begin
       @db = @cr.database(TESTDB)
-      @db.delete! rescue nil      
+      @db.delete! rescue nil
     end
   end
 
@@ -28,7 +28,7 @@ describe CouchRest do
     end
     it "should get info" do
       expect(@cr.info["couchdb"]).to eq "Welcome"
-      expect(@cr.info.class).to eq Hash   
+      expect(@cr.info.class).to eq Hash
     end
   end
 
@@ -129,7 +129,7 @@ describe CouchRest do
     #    end
     it "should not create the database automatically" do
       db = CouchRest.database "http://127.0.0.1:5984/couchrest-test"
-      expect(lambda{db.info}).to raise_error(CouchRest::NotFound)      
+      expect(lambda{db.info}).to raise_error(CouchRest::NotFound)
     end
   end
 

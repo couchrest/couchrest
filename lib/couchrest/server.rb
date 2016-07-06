@@ -3,7 +3,7 @@ module CouchRest
 
     # URI object of the link to the server we're using.
     attr_reader :uri
-    
+
     # Number of UUIDs to fetch from the server when preparing to save new
     # documents. Set to 1000 by default.
     attr_reader :uuid_batch_count
@@ -12,15 +12,20 @@ module CouchRest
     # saving new documents. See also #next_uuid.
     attr_reader :uuids
 
-    def initialize(server = 'http://127.0.0.1:5984', uuid_batch_count = 1000)
+    # Accessor for the current connection options which will be passed to all
+    # created connections.
+    attr_reader :connection_options
+
+    def initialize(server = 'http://127.0.0.1:5984', options = {})
       @uri = prepare_uri(server).freeze
-      @uuid_batch_count = uuid_batch_count
+      @uuid_batch_count = options.delete(:uuid_batch_count) || 1000
+      @connection_options = options
     end
 
     # Lazy load the connection for the current thread
     def connection
       conns = (Thread.current['couchrest.connections'] ||= {})
-      conns[uri.to_s] ||= Connection.new(uri)
+      conns[uri.to_s] ||= Connection.new(uri, @connection_options)
     end
 
     # Lists all databases on the server
