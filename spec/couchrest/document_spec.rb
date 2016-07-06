@@ -239,6 +239,25 @@ describe CouchRest::Document do
       doc.database.bulk_save
       expect(doc.database.get(doc["_id"])["val"]).to eql doc["val"]
     end
+
+    it "should update the revisions of the saved documents" do
+      doc = CouchRest::Document.new({"_id" => "bulkdoc1", "val" => 3})
+      doc.database = @db
+      doc.save(true)
+      doc.database.bulk_save
+      expect(doc.database.get(doc["_id"])["_rev"]).to eql doc["_rev"]
+    end
+
+    it "should not update the revisions of documents that aren't saved successfully" do
+      doc1 = CouchRest::Document.new({"_id" => "bulkdoc", "val" => 3})
+      doc2 = CouchRest::Document.new({"_id" => "bulkdoc2", "val" => 3})
+      doc1.database = @db
+      doc2.database = @db
+      doc1.save(true)
+      doc2.save(true)
+      @db.bulk_save
+      expect(doc1["_rev"]).to be_nil
+    end
   end
 
   describe "getting from a database" do
