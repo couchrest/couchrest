@@ -6,6 +6,7 @@
   * Support for disabling persistent connections (@samlown)
   * Escaping database names (@samlown)
   * Upgrading to HTTPClient 2.8 series (@samlown)
+  * Removing Ruby < 2.0 support (@samlown)
 
 == 2.0.0.rc3 - 2016-01-08
 
