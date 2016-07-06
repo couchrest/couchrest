@@ -6,8 +6,12 @@ describe CouchRest::Server do
     CouchRest::Server.new(COUCHHOST)
   end
 
+  let :mock_url do
+    "http://mock"
+  end
+
   let :mock_server do
-    CouchRest::Server.new("http://mock")
+    CouchRest::Server.new(mock_url)
   end
 
   describe "#initialize" do
@@ -21,6 +25,24 @@ describe CouchRest::Server do
       server = CouchRest::Server.new(COUCHHOST + "/some/path?q=1#fragment")
       expect(server.uri.to_s).to eql(COUCHHOST)
     end
+
+    it "should set default uuid batch count" do
+      expect(server.uuid_batch_count).to eql(1000)
+    end
+
+    it "should set uuid batch count" do
+      server = CouchRest::Server.new(mock_url, 1234)
+      expect(server.uuid_batch_count).to eql(1234)
+      server = CouchRest::Server.new(mock_url, :uuid_batch_count => 1235)
+      expect(server.uuid_batch_count).to eql(1235)
+    end
+
+    it "should set connection options" do
+      server = CouchRest::Server.new(mock_url)
+      expect(server.connection_options).to be_empty
+      server = CouchRest::Server.new(mock_url, :persistent => false)
+      expect(server.connection_options[:persistent]).to be_false
+    end
   end
 
   describe :connection do
@@ -32,7 +54,32 @@ describe CouchRest::Server do
     it "should cache connection in current thread" do
       server.connection # instantiate
       conns = Thread.current['couchrest.connections']
-      expect(server.connection).to eql(conns[COUCHHOST])
+      expect(server.connection).to eql(conns[COUCHHOST + "##{{}.hash}"])
+    end
+
+    it "should cache connection in current thread with options" do
+      Thread.current['couchrest.connections'] = {}
+      srv = CouchRest::Server.new(mock_url, :persistent => false)
+      srv.connection # instantiate
+      conns = Thread.current['couchrest.connections']
+      expect(srv.connection.object_id).to eql(conns[conns.keys.last].object_id)
+      expect(conns.length).to eql(1)
+    end
+
+    it "should not cache connection in current thread with different options" do
+      conns = Thread.current['couchrest.connections'] = {}
+      srv = CouchRest::Server.new(mock_url, :persistent => true)
+      srv.connection # init
+      srv2 = CouchRest::Server.new(mock_url, :persistent => false)
+      srv2.connection # init
+      expect(conns.length).to eql(2)
+      expect(srv.connection.object_id).to_not eql(srv2.connection.object_id)
+    end
+
+    it "should pass configuration options to the connection" do
+      expect(mock_server.connection.options[:persistent]).to be_true
+      srv = CouchRest::Server.new(mock_url, :persistent => false)
+      expect(srv.connection.options[:persistent]).to be_false
     end
 
   end

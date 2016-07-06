@@ -26,7 +26,7 @@ module CouchRest
     def initialize(server, name)
       @name     = name
       @server   = server
-      @path     = "/#{name.gsub('/','%2F')}"
+      @path     = "/#{CGI.escape(name)}"
       @bulk_save_cache = []
       @bulk_save_cache_limit = 500  # must be smaller than the uuid count
     end

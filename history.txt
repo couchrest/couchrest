@@ -1,4 +1,13 @@
-== 2.0.0.rc3
+== 2.0.0 - 2016-07-06
+
+* Minor changes
+  * Update the revisions when bulk saving (@ellneal)
+  * Pass connection options via Server, with improved connection caching (@samlown)
+  * Support for disabling persistent connections (@samlown)
+  * Escaping database names (@samlown)
+  * Upgrading to HTTPClient 2.8 series (@samlown)
+
+== 2.0.0.rc3 - 2016-01-08
 
 * Major Changes
   * At the risk of causing chaos, `Database#get` now returns nil for 404 (@samlown)

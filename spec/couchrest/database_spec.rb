@@ -11,12 +11,12 @@ describe CouchRest::Database do
   describe "#initialize" do
     describe "database name including slash" do
       it "should escape the name in the URI" do
-        db = @cr.database("foo/bar")
-        expect(db.name).to eq "foo/bar"
-        expect(db.root).to eq URI("#{COUCHHOST}/foo%2Fbar")
-        expect(db.uri).to eq URI("#{COUCHHOST}/foo%2Fbar")
-        expect(db.to_s).to eq "#{COUCHHOST}/foo%2Fbar"
-        expect(db.path).to  eq "/foo%2Fbar"
+        db = @cr.database("foo/bar some")
+        expect(db.name).to eq "foo/bar some"
+        expect(db.root).to eq URI("#{COUCHHOST}/foo%2Fbar+some")
+        expect(db.uri).to eq URI("#{COUCHHOST}/foo%2Fbar+some")
+        expect(db.to_s).to eq "#{COUCHHOST}/foo%2Fbar+some"
+        expect(db.path).to eq "/foo%2Fbar+some"
       end
     end
   end
