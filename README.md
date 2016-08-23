@@ -12,6 +12,14 @@ For more complete modelling support based on ActiveModel, please checkout CouchR
 
 Tested on latest stable release (1.6.X), but should work on older versions above 1.0. Also known to work on [Cloudant](http://cloudant.com).
 
+### Performance with Persistent Connections
+
+When connecting to a CouchDB 1.X server from a Linux system, you may see a big drop in performance due to the change in library to HTTPClient using persistent connections. The issue is caused by the NOWAIT TCP configuration option causing sockets to hang as they wait for more information. The fix is a [simple configuration change](http://docs.couchdb.org/en/1.6.1/maintenance/performance.html#network):
+
+```bash
+curl -X PUT "http://localhost:5984/_config/httpd/socket_options" -d '"[{nodelay, true}]"'
+```
+
 ## Install
 
     $ sudo gem install couchrest
