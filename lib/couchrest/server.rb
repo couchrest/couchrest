@@ -12,15 +12,27 @@ module CouchRest
     # saving new documents. See also #next_uuid.
     attr_reader :uuids
 
-    def initialize(server = 'http://127.0.0.1:5984', uuid_batch_count = 1000)
+    # The connection options we should use to connect with
+    attr_reader :connection_options
+
+    def initialize(server = 'http://127.0.0.1:5984', opts = {})
       @uri = prepare_uri(server).freeze
-      @uuid_batch_count = uuid_batch_count
+      if opts.is_a?(Integer)
+        # Backwards compatibility
+        @uuid_batch_count = opts
+        @connection_options = {}
+      else
+        @uuid_batch_count = opts.delete(:uuid_batch_count)
+        @connection_options = opts
+      end
+      @uuid_batch_count ||= 1000
     end
 
     # Lazy load the connection for the current thread
     def connection
       conns = (Thread.current['couchrest.connections'] ||= {})
-      conns[uri.to_s] ||= Connection.new(uri)
+      key = "#{uri.to_s}##{connection_options.hash}"
+      conns[key] ||= Connection.new(uri, connection_options)
     end
 
     # Lists all databases on the server

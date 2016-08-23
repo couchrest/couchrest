@@ -5,27 +5,29 @@ module CouchRest
   # Handle connections to the CouchDB server and provide a set of HTTP based methods to
   # perform requests.
   #
-  # All connection are persistent. A connection cannot be re-used to connect to other servers.
+  # All connections are persistent, unless configured otherwise. A connection cannot be re-used to connect to other servers.
   #
   # Six types of REST requests are supported: get, put, post, delete, copy and head.
   #
-  # Requests that do not have a payload, get, delete and copy, accept the URI and options parameters,
-  # where as put and post both expect a document as the second parameter.
+  # Requests that do not have a payload like GET, DELETE and COPY, accept the URI and options parameters.
+  # PUT and POST both expect a document as the second parameter.
   #
-  # The API will share the options between the Net::HTTP connection and JSON parser.
+  # The API will share the options between the HTTP connection and JSON parser.
   #
-  # The following options will be recognised as header options and automatically added
-  # to the header hash:
+  # When initializing a connection, the following options are available:
   #
-  #  * `:content_type`, type of content to be sent, especially useful when sending files as this will set the file type. The default is :json.
-  #  * `:accept`, the content type to accept in the response. This should pretty much always be `:json`.
+  #  * `:persistent` true by default, forces the HTTP connection to be persistent to ensure each request attempts to use the same TCP socket, especially important for SSL connections.
+  #  * `:timeout` (or `:read_timeout`) and `:open_timeout` the time in miliseconds to wait for the request, see the [Net HTTP Persistent documentation](http://docs.seattlerb.org/net-http-persistent/Net/HTTP/Persistent.html#attribute-i-read_timeout) for more details.
+  #  * `:verify_ssl` verify ssl certificates (or not)
+  #  * `:ssl_client_cert`, `:ssl_client_key` parameters controlling ssl client certificate authentication
+  #  * `:ssl_ca_file` load additional CA certificates from a file (or directory)
   #
   # The following request options are supported:
   #
+  #  * `:content_type`, type of content to be sent, especially useful when sending files as this will set the file type. The default is :json.
+  #  * `:accept`, the content type to accept in the response. This should pretty much always be `:json`.
   #  * `:payload` override the document or data sent in the message body (only PUT or POST).
-  #  * `:headers` any additional headers (overrides :content_type and :accept)
-  #  * `:timeout` (or `:read_timeout`) and `:open_timeout` the time in miliseconds to wait for the request, see the [Net HTTP Persistent documentation](http://docs.seattlerb.org/net-http-persistent/Net/HTTP/Persistent.html#attribute-i-read_timeout) for more details.
-  # * `:verify_ssl`, `:ssl_client_cert`, `:ssl_client_key`, and `:ssl_ca_file`, SSL handling methods.
+  #  * `:headers` any additional headers (overrides :content_type and :accept if provided).
   #
   # When :raw is true in PUT and POST requests, no attempt will be made to convert the document payload to JSON. This is
   # not normally necessary as IO and Tempfile objects will not be parsed anyway. The result of the request will
@@ -38,7 +40,7 @@ module CouchRest
 
     HEADER_CONTENT_SYMBOL_MAP = {
       :content_type => 'Content-Type',
-      :accept       => 'Accept' 
+      :accept       => 'Accept'
     }
 
     DEFAULT_HEADERS = {
@@ -52,12 +54,13 @@ module CouchRest
 
     SUCCESS_RESPONSE_CODES = [200, 201, 202, 204]
 
-    attr_reader :uri, :http, :last_response
+    attr_reader :uri, :last_response, :options
 
     def initialize(uri, options = {})
       raise "CouchRest::Connection.new requires URI::HTTP(S) parameter" unless uri.is_a?(URI::HTTP)
       @uri = clean_uri(uri)
-      prepare_http_connection(options)
+      @options = options.dup
+      @options[:persistent] = true if @options[:persistent].nil?
     end
 
     # Send a GET request.
@@ -90,8 +93,14 @@ module CouchRest
 
     # Send a HEAD request.
     def head(path, options = {})
-      options = options.merge(:raw => true) # No parsing!
+      options = options.merge(:head => true) # No parsing!
       execute('HEAD', path, options)
+    end
+
+    # Special accessor that will either return the last used http
+    # connection or prepare a new one if none available.
+    def http
+      @http || prepare_http_connection
     end
 
     protected
@@ -106,31 +115,42 @@ module CouchRest
     end
 
     # Take a look at the options povided and try to apply them to the HTTP conneciton.
-    # We try to maintain RestClient compatability as this is what we used before.
-    def prepare_http_connection(opts)
-      @http = HTTPClient.new(opts[:proxy] || self.class.proxy)
+    def prepare_http_connection
+      conn = @http
+      if conn.nil? || !options[:persistent]
+        conn = HTTPClient.new(options[:proxy] || self.class.proxy)
+        set_http_connection_options(conn, options)
+        @http = conn # Always set to last used connection
+      end
+      conn
+    end
 
+    # Prepare the http connection options for HTTPClient.
+    # We try to maintain RestClient compatability in option names as this is what we used before.
+    def set_http_connection_options(conn, opts)
       # Authentication
       unless uri.user.to_s.empty?
-        http.set_auth(uri.to_s, uri.user, uri.password)
+        conn.force_basic_auth = true
+        conn.set_auth(uri.to_s, uri.user, uri.password)
       end
 
       # SSL Certificate option mapping
       if opts.include?(:verify_ssl)
-        http.ssl_config.verify_mode = opts[:verify_ssl] ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
+        conn.ssl_config.verify_mode = opts[:verify_ssl] ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
       end
-      http.ssl_config.client_cert = opts[:ssl_client_cert] if opts.include?(:ssl_client_cert)
-      http.ssl_config.client_key  = opts[:ssl_client_key]  if opts.include?(:ssl_client_key)
+      conn.ssl_config.client_cert = opts[:ssl_client_cert] if opts.include?(:ssl_client_cert)
+      conn.ssl_config.client_key  = opts[:ssl_client_key]  if opts.include?(:ssl_client_key)
+      conn.ssl_config.set_trust_ca(opts[:ssl_ca_file]) if opts.include?(:ssl_ca_file)
 
       # Timeout options
-      http.receive_timeout = opts[:timeout] if opts.include?(:timeout)
-      http.connect_timeout = opts[:open_timeout] if opts.include?(:open_timeout)
-      http.send_timeout    = opts[:read_timeout] if opts.include?(:read_timeout)
-
-      http
+      conn.receive_timeout = opts[:timeout] if opts.include?(:timeout)
+      conn.connect_timeout = opts[:open_timeout] if opts.include?(:open_timeout)
+      conn.send_timeout    = opts[:read_timeout] if opts.include?(:read_timeout)
     end
 
     def execute(method, path, options, payload = nil, &block)
+      conn = prepare_http_connection
+
       req = {
         :method => method,
         :uri    => uri + path
@@ -147,33 +167,41 @@ module CouchRest
         req[:body] = payload_from_doc(req, payload, options)
       end
 
-      send_and_parse_response(req, options, &block)
+      send_and_parse_response(conn, req, options, &block)
     end
 
-    def send_and_parse_response(req, options, &block)
+    def send_and_parse_response(conn, req, opts, &block)
       if block_given?
-        parser = CouchRest::StreamRowParser.new(options[:continuous] ? :feed : :array)
-        response = send_request(req) do |chunk|
+        parser = CouchRest::StreamRowParser.new(opts[:continuous] ? :feed : :array)
+        response = send_request(conn, req) do |chunk|
           parser.parse(chunk) do |doc|
-            block.call(parse_body(doc, options))
+            block.call(parse_body(doc, opts))
           end
         end
         handle_response_code(response)
-        parse_body(parser.header, options)
+        parse_body(parser.header, opts)
       else
-        response = send_request(req)
+        response = send_request(conn, req)
         handle_response_code(response)
-        parse_body(response.body, options)
+        parse_response(response, opts)
       end
     end
 
     # Send request, and leave a reference to the response for debugging purposes
-    def send_request(req, &block)
-      @last_response = http.request(req.delete(:method), req.delete(:uri), req, &block)
+    def send_request(conn, req, &block)
+      @last_response = conn.request(req.delete(:method), req.delete(:uri), req, &block)
     end
 
     def handle_response_code(response)
       raise_response_error(response) unless SUCCESS_RESPONSE_CODES.include?(response.status)
+    end
+
+    def parse_response(response, opts)
+      if opts[:head]
+        opts[:raw] ? response.http_header.dump : response.headers
+      else
+        parse_body(response.body, opts)
+      end
     end
 
     def parse_body(body, opts)

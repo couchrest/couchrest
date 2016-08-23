@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.authors = ["J. Chris Anderson", "Matt Aimonetti", "Marcos Tapajos", "Will Leinweber", "Sam Lown"]
   s.date = File.mtime('VERSION')
   s.description = %q{CouchRest provides a simple interface on top of CouchDB's RESTful HTTP API, as well as including some utility scripts for managing views and attachments.}
-  s.email = %q{jchris@apache.org}
+  s.email = %q{me@samlown.com}
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
@@ -21,17 +21,19 @@ Gem::Specification.new do |s|
     "README.md",
     "THANKS.md"
   ]
+
   s.homepage = %q{http://github.com/couchrest/couchrest}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.7}
   s.summary = %q{Lean and RESTful interface to CouchDB.}
 
-  s.add_dependency("httpclient", ["~> 2.6.0"])
-  s.add_dependency("mime-types", [">= 1.15"])
-  s.add_dependency("multi_json", ["~> 1.7"])
-  s.add_development_dependency("json", [">= 1.7.0"])
-  s.add_development_dependency("rspec", "~> 2.14.1")
-  s.add_development_dependency("rake")
-  s.add_development_dependency("webmock")
+  s.add_dependency "httpclient", ["~> 2.8"]
+  s.add_dependency "multi_json", ["~> 1.7"]
+  s.add_dependency "mime-types", [">= 1.15"]
+
+  s.add_development_dependency "bundler", "~> 1.3"
+  # s.add_development_dependency "json", ">= 2.0.1"
+  s.add_development_dependency "rspec", "~> 2.14.1"
+  s.add_development_dependency "rake"
+  s.add_development_dependency "webmock"
 end

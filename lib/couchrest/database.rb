@@ -26,7 +26,7 @@ module CouchRest
     def initialize(server, name)
       @name     = name
       @server   = server
-      @path     = "/#{name.gsub('/','%2F')}"
+      @path     = "/#{CGI.escape(name)}"
       @bulk_save_cache = []
       @bulk_save_cache_limit = 500  # must be smaller than the uuid count
     end
@@ -90,8 +90,9 @@ module CouchRest
 
     # == Retrieving and saving single documents
 
-    # GET a document from CouchDB, by id. Returns a Document or Design.
-    def get(id, params = {})
+    # GET a document from CouchDB, by id. Returns a Document, Design, or raises an exception
+    # if the document does not exist.
+    def get!(id, params = {})
       slug = escape_docid(id)
       url = CouchRest.paramify_url("#{path}/#{slug}", params)
       result = connection.get(url)
@@ -103,6 +104,14 @@ module CouchRest
       end
       doc.database = self
       doc
+    end
+
+    # GET the requested document by ID like `get!`, but returns nil if the document
+    # does not exist.
+    def get(*args)
+      get!(*args)
+    rescue CouchRest::NotFound
+      nil
     end
 
     # Save a document to CouchDB. This will use the <tt>_id</tt> field from
@@ -175,12 +184,13 @@ module CouchRest
     # missing ids, supply one from the uuid cache.
     #
     # If called with no arguments, bulk saves the cache of documents to be bulk saved.
-    def bulk_save(docs = nil, use_uuids = true, all_or_nothing = false)
+    def bulk_save(docs = nil, opts = {})
+      opts = { :use_uuids => true, :all_or_nothing => false }.update(opts)
       if docs.nil?
         docs = @bulk_save_cache
         @bulk_save_cache = []
       end
-      if (use_uuids) 
+      if opts[:use_uuids]
         ids, noids = docs.partition{|d|d['_id']}
         uuid_count = [noids.length, @server.uuid_batch_count].max
         noids.each do |doc|
@@ -189,10 +199,13 @@ module CouchRest
         end
       end
       request_body = {:docs => docs}
-      if all_or_nothing
+      if opts[:all_or_nothing]
         request_body[:all_or_nothing] = true
       end
-      connection.post "#{path}/_bulk_docs", request_body
+      results = connection.post "#{path}/_bulk_docs", request_body
+      docs_by_id = Hash[docs.map { |doc| [doc['_id'], doc] }] unless docs.nil?
+      results.each { |r| docs_by_id[r['id']]['_rev'] = r['rev'] if r['ok'] } unless results.nil?
+      results
     end
     alias :bulk_delete :bulk_save
 
@@ -379,8 +392,8 @@ module CouchRest
 
     def encode_attachments(attachments)
       attachments.each do |k,v|
-        next if v['stub']
-        v['data'] = base64(v['data'])
+        next if v['stub'] || v['data'].frozen?
+        v['data'] = base64(v['data']).freeze
       end
       attachments
     end
@@ -392,7 +405,7 @@ module CouchRest
     # Convert a simplified view name into a complete view path. If
     # the name already starts with a "_" no alterations will be made.
     def name_to_view_path(name)
-      name =~ /^([^_].+?)\/(.*)$/ ? "_design/#{$1}/_view/#{$2}" : name
+      name =~ /^([^_].*?)\/(.*)$/ ? "_design/#{$1}/_view/#{$2}" : name
     end
   end
 end

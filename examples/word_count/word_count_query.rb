@@ -6,7 +6,7 @@ db = couch.database('word-count-example')
 
 puts "Now that we've parsed all those books into CouchDB, the queries we can run are incredibly flexible."
 puts "\nThe simplest query we can run is the total word count for all words in all documents:"
-puts "this will take a few minutes the first time. if it times out, just rerun this script in a few few minutes."
+puts "this will take a few minutes the first time. if it times out, just rerun this script in a few minutes."
 puts db.view('word_count/words').inspect
 
 puts "\nWe can also narrow the query down to just one word, across all documents. Here is the count for 'flight' in all three books:"

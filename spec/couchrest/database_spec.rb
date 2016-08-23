@@ -8,14 +8,16 @@ describe CouchRest::Database do
     @db = @cr.create_db(TESTDB) # rescue nil
   end
 
-  describe "database name including slash" do
-    it "should escape the name in the URI" do
-      db = @cr.database("foo/bar")
-      expect(db.name).to eq "foo/bar"
-      expect(db.root).to eq URI("#{COUCHHOST}/foo%2Fbar")
-      expect(db.uri).to eq URI("#{COUCHHOST}/foo%2Fbar")
-      expect(db.to_s).to eq "#{COUCHHOST}/foo%2Fbar"
-      expect(db.path).to  eq "/foo%2Fbar"
+  describe "#initialize" do
+    describe "database name including slash" do
+      it "should escape the name in the URI" do
+        db = @cr.database("foo/bar some")
+        expect(db.name).to eq "foo/bar some"
+        expect(db.root).to eq URI("#{COUCHHOST}/foo%2Fbar+some")
+        expect(db.uri).to eq URI("#{COUCHHOST}/foo%2Fbar+some")
+        expect(db.to_s).to eq "#{COUCHHOST}/foo%2Fbar+some"
+        expect(db.path).to eq "/foo%2Fbar+some"
+      end
     end
   end
 
@@ -172,6 +174,13 @@ describe CouchRest::Database do
       expect(rows.length).to eq 2
       expect(rows.first['doc']['another']).not_to be_empty
     end
+    it "should accept a short design doc name" do
+      res = { 'rows' => [] }
+      db = CouchRest.new("http://mock").database('db')
+      stub_request(:get, "http://mock/db/_design/a/_view/test")
+        .to_return(:body => res.to_json)
+      expect(db.view('a/test')).to eql(res)
+    end
   end
 
   describe "#changes" do
@@ -224,6 +233,17 @@ describe CouchRest::Database do
       expect(@db.get(@docid)['will-exist']).to eq 'here'
     end
   end
+
+  describe "GET (document by id) when the doc does not exist)" do
+   it "should provide nil" do
+      expect(@db.get('fooooobar')).to be_nil
+    end
+    it "should raise an exception" do
+      expect do
+        @db.get!('fooooobar')
+      end.to raise_error(CouchRest::NotFound)
+    end
+  end
   
   describe "POST (adding bulk documents)" do
     it "should add them without ids" do
@@ -247,6 +267,13 @@ describe CouchRest::Database do
       
       @db.bulk_save(docs)
     end
+
+    it "should allow UUID assignment to be disabled" do
+      expect(@db.connection).to_not receive(:next_uuid)
+      docs = [{'key' => 'value'}, {'_id' => 'totally-uniq'}]
+      expect(@db.connection).to receive(:post).with("/couchrest-test/_bulk_docs", {:docs => docs})
+      @db.bulk_save(docs, :use_uuids => false)
+    end
     
     it "should add them with uniq ids" do
       rs = @db.bulk_save([
@@ -261,9 +288,7 @@ describe CouchRest::Database do
 
     it "should empty the bulk save cache if no documents are given" do
       @db.save_doc({"_id" => "bulk_cache_1", "val" => "test"}, true)
-      expect do
-        @db.get('bulk_cache_1')
-      end.to raise_error(CouchRest::NotFound)
+      expect(@db.get('bulk_cache_1')).to be_nil
       @db.bulk_save
       expect(@db.get("bulk_cache_1")["val"]).to eq "test"
     end
@@ -272,7 +297,7 @@ describe CouchRest::Database do
       docs = [{"_id" => "oneB", "wild" => "and random"}, {"_id" => "twoB", "mild" => "yet local"}]
       expect(@db.connection).to receive(:post).with("/couchrest-test/_bulk_docs", {:all_or_nothing => true, :docs => docs})
       
-      @db.bulk_save(docs, false, true)
+      @db.bulk_save(docs, :all_or_nothing => true)
     end
 
     it "should raise an error that is useful for recovery" do
@@ -398,7 +423,7 @@ describe CouchRest::Database do
     it 'should be there' do
       doc = @db.get('mydocwithattachment')
       attachment = @db.fetch_attachment(doc, 'test.html')
-      expect(Base64.decode64(attachment)).to eq @attach
+      expect(attachment).to eq @attach
     end
   end
 
@@ -406,7 +431,7 @@ describe CouchRest::Database do
     before(:each) do
       @attach = "<html><head><title>My Doc</title></head><body><p>Has words.</p></body></html>"
       @attach2 = "<html><head><title>Other Doc</title></head><body><p>Has more words.</p></body></html>"
-      @doc = {
+      @data = {
         "_id" => "mydocwithattachment",
         "field" => ["some value"],
         "_attachments" => {
@@ -420,7 +445,7 @@ describe CouchRest::Database do
           }
         }
       }
-      @db.save_doc(@doc)
+      @db.save_doc(@data)
       @doc = @db.get("mydocwithattachment")
     end
     it "should save and be indicated" do
@@ -434,6 +459,11 @@ describe CouchRest::Database do
     it "should be there" do
       attachment = @db.fetch_attachment(@doc,"other.html")
       expect(attachment).to eq @attach2
+    end
+    it "should not re-encode document" do
+      @db.save_doc(@data)
+      attachment = @db.fetch_attachment(@data,"test.html")
+      expect(attachment).to eq @attach
     end
   end
   
@@ -563,12 +593,8 @@ describe CouchRest::Database do
       td2 = {"_id" => "td2", "val" => 4}
       @db.save_doc(td1, true)
       @db.save_doc(td2, true)
-      expect do
-        @db.get(td1["_id"])
-      end.to raise_error(CouchRest::NotFound)
-      expect do
-        @db.get(td2["_id"])
-      end.to raise_error(CouchRest::NotFound)
+      expect(@db.get(td1["_id"])).to be_nil
+      expect(@db.get(td2["_id"])).to be_nil
       td3 = {"_id" => "td3", "val" => "foo"}
       @db.save_doc(td3, true)
       expect(@db.get(td1["_id"])["val"]).to eq td1["val"]
@@ -581,9 +607,7 @@ describe CouchRest::Database do
       td2 = {"_id" => "steve", "val" => 3}
       @db.bulk_save_cache_limit = 50
       @db.save_doc(td1, true)
-      expect do
-        @db.get(td1["_id"])
-      end.to raise_error(CouchRest::NotFound)
+      expect(@db.get(td1["_id"])).to be_nil
       @db.save_doc(td2)
       expect(@db.get(td1["_id"])["val"]).to eq td1["val"]
       expect(@db.get(td2["_id"])["val"]).to eq td2["val"]
@@ -600,12 +624,12 @@ describe CouchRest::Database do
       doc = @db.get(@r['id'])
       expect(doc['and']).to eq 'spain'
       @db.delete_doc doc
-      expect(lambda{@db.get @r['id']}).to raise_error
+      expect(@db.get(@r['id'])).to be_nil 
     end
     it "should work with uri id" do
       doc = @db.get(@docid)
       @db.delete_doc doc
-      expect(lambda{@db.get @docid}).to raise_error
+      expect(@db.get @docid).to be_nil
     end
     it "should fail without an _id" do
       expect(lambda{@db.delete_doc({"not"=>"a real doc"})}).to raise_error(ArgumentError)
@@ -613,9 +637,9 @@ describe CouchRest::Database do
     it "should defer actual deletion when using bulk save" do
       doc = @db.get(@docid)
       @db.delete_doc doc, true
-      expect(lambda{@db.get @docid}).not_to raise_error
+      expect(@db.get @docid).to_not be_nil
       @db.bulk_save
-      expect(lambda{@db.get @docid}).to raise_error
+      expect(@db.get @docid).to be_nil
     end
     
   end

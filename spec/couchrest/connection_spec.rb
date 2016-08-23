@@ -64,22 +64,26 @@ describe CouchRest::Connection do
       conn = CouchRest::Connection.new(URI "http://user:pass@mock")
       expect(conn.http.www_auth.basic_auth.set?).to be_true
     end
-    
+
     describe "with SSL options" do
+
       it "should leave the default if nothing set" do
         default = HTTPClient.new.ssl_config.verify_mode
         conn = CouchRest::Connection.new(URI "https://localhost:5984")
         expect(conn.http.ssl_config.verify_mode).to eql(default)
       end
+
       it "should support disabling SSL verify mode" do
         conn = CouchRest::Connection.new(URI("https://localhost:5984"), :verify_ssl => false)
         expect(conn.http.ssl_config.verify_mode).to eql(OpenSSL::SSL::VERIFY_NONE)
       end
+
       it "should support enabling SSL verify mode" do
         conn = CouchRest::Connection.new(URI("https://localhost:5984"), :verify_ssl => true)
         expect(conn.http.ssl_config.verify_mode).to eql(OpenSSL::SSL::VERIFY_PEER)
       end
-      it "should support setting specific cert, key, and ca" do
+
+      it "should support setting specific client cert & key" do
         conn = CouchRest::Connection.new(URI("https://localhost:5984"),
           :ssl_client_cert => 'cert',
           :ssl_client_key  => 'key',
@@ -88,6 +92,42 @@ describe CouchRest::Connection do
         expect(conn.http.ssl_config.client_key).to eql('key')
       end
 
+      it "should support adding the ca to trust from a file" do
+        file = Tempfile.new(['server', '.pem'])
+        File.write(file.path, "-----BEGIN CERTIFICATE-----
+          MIIDrTCCAxagAwIBAgIBADANBgkqhkiG9w0BAQQFADCBnDEbMBkGA1UEChMSVGhl
+          IFNhbXBsZSBDb21wYW55MRQwEgYDVQQLEwtDQSBEaXZpc2lvbjEcMBoGCSqGSIb3
+          DQEJARYNY2FAc2FtcGxlLmNvbTETMBEGA1UEBxMKTWV0cm9wb2xpczERMA8GA1UE
+          CBMITmV3IFlvcmsxCzAJBgNVBAYTAlVTMRQwEgYDVQQDEwtUU0MgUm9vdCBDQTAe
+          Fw0wMTEyMDgwNDI3MDVaFw0wMjEyMDgwNDI3MDVaMIGcMRswGQYDVQQKExJUaGUg
+          U2FtcGxlIENvbXBhbnkxFDASBgNVBAsTC0NBIERpdmlzaW9uMRwwGgYJKoZIhvcN
+          AQkBFg1jYUBzYW1wbGUuY29tMRMwEQYDVQQHEwpNZXRyb3BvbGlzMREwDwYDVQQI
+          EwhOZXcgWW9yazELMAkGA1UEBhMCVVMxFDASBgNVBAMTC1RTQyBSb290IENBMIGf
+          MA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDaiAwfKB6ZBtnTRTIo6ddomt0S9ec0
+          NcuvtJogt0s9dXpHowh98FCDjnLtCi8du6LDTZluhlOtTFARPlV/LVnpsbyMCXMs
+          G2qpdjJop+XIBdvoCz2HpGXjUmym8WLqt+coWwJqUSwiEba74JG93v7TU+Xcvc00
+          5MWnxmKZzD/R3QIDAQABo4H8MIH5MAwGA1UdEwQFMAMBAf8wHQYDVR0OBBYEFG/v
+          yytrBtEquMX2dreysix/MlPMMIHJBgNVHSMEgcEwgb6AFG/vyytrBtEquMX2drey
+          six/MlPMoYGipIGfMIGcMRswGQYDVQQKExJUaGUgU2FtcGxlIENvbXBhbnkxFDAS
+          BgNVBAsTC0NBIERpdmlzaW9uMRwwGgYJKoZIhvcNAQkBFg1jYUBzYW1wbGUuY29t
+          MRMwEQYDVQQHEwpNZXRyb3BvbGlzMREwDwYDVQQIEwhOZXcgWW9yazELMAkGA1UE
+          BhMCVVMxFDASBgNVBAMTC1RTQyBSb290IENBggEAMA0GCSqGSIb3DQEBBAUAA4GB
+          ABclymJfsPOUazNQO8aIaxwVbXWS+8AFEkMMRx6O68ICAMubQBvs8Buz3ALXhqYe
+          FS5G13pW2ZnAlSdTkSTKkE5wGZ1RYSfyiEKXb+uOKhDN9LnajDzaMPkNDU2NDXDz
+          SqHk9ZiE1boQaMzjNLu+KabTLpmL9uXvFA/i+gdenFHv
+          -----END CERTIFICATE-----".gsub(/^\s+/, ''))
+        conn = CouchRest::Connection.new(URI("https://localhost:5984"),
+          :ssl_ca_file => file.path
+        )
+        conn.http.ssl_config.cert_store_items.should include(file.path)
+      end
+
+      it "should support adding multiple ca certificates from a directory" do
+        conn = CouchRest::Connection.new(URI("https://localhost:5984"),
+          :ssl_ca_file => '.'
+        )
+        conn.http.ssl_config.cert_store_items.should include('.')
+      end
     end
 
     describe "with timeout options" do
@@ -117,8 +157,11 @@ describe CouchRest::Connection do
     let :conn do
       CouchRest::Connection.new(uri)
     end
+    let :mock_uri do
+      URI "http://mock/db/test-doc"
+    end
     let :mock_conn do
-      CouchRest::Connection.new(URI "http://mock")
+      CouchRest::Connection.new(mock_uri)
     end
 
     describe :get do
@@ -127,6 +170,29 @@ describe CouchRest::Connection do
         DB.save_doc(doc)
         res = conn.get(uri.path)
         expect(res['name']).to eql(doc['name'])
+      end
+
+      context "persistency" do
+        before :each do
+          stub_request(:get, "http://mock/db/test-doc")
+            .to_return(:body => doc.to_json)
+        end
+
+        it "should have persistency enabled by default" do
+          conn = CouchRest::Connection.new(mock_uri)
+          expect(conn.options[:persistent]).to be_true
+          http1 = conn.http
+          conn.get(mock_uri.path)
+          expect(conn.http.object_id).to eql(http1.object_id)
+        end
+
+        it "should disable persistency" do
+          conn = CouchRest::Connection.new(mock_uri, :persistent => false)
+          expect(conn.options[:persistent]).to be_false
+          http1 = conn.http
+          conn.get(mock_uri.path)
+          expect(conn.http.object_id).to_not eql(http1.object_id)
+        end
       end
 
       it "should raise exception if document missing" do
@@ -206,6 +272,7 @@ describe CouchRest::Connection do
         stub_request(:get, "http://user:pass@mock/db/test")
           .to_return(:body => doc.to_json)
         conn = CouchRest::Connection.new(URI "http://user:pass@mock")
+        expect(conn.http.www_auth.basic_auth.force_auth).to be_true
         conn.get("db/test")
       end
 
@@ -416,6 +483,26 @@ describe CouchRest::Connection do
           .to_return(:body => "")
         expect { mock_conn.head('db/test-head') }.to_not raise_error
       end
+      it "should returns headers hash" do
+        response_headers = { "Etag" => "document-version-number" }
+        stub_request(:head, "http://mock/db/test-head")
+        .to_return(
+            :body => "",
+            :headers => response_headers
+        )
+        expect(mock_conn.head('db/test-head')).to eq(response_headers)
+      end
+
+      it "should returns raw headers if opts[:raw] true" do
+        response_headers = { "Etag" => "document-version-number" }
+        stub_request(:head, "http://mock/db/test-head")
+        .to_return(
+            :body => "",
+            :headers => response_headers
+        )
+        expect(mock_conn.head('db/test-head', {raw: true})).to include("Etag: document-version-number" )
+      end
+
       it "should handle head request when document missing" do
         stub_request(:head, "http://mock/db/test-missing-head")
           .to_return(:status => 404)

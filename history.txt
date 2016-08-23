@@ -1,10 +1,37 @@
-== 2.0.0.beta1
+== 2.0.0 - 2016-07-06
+
+* Minor changes
+  * Update the revisions when bulk saving (@ellneal)
+  * Pass connection options via Server, with improved connection caching (@samlown)
+  * Support for disabling persistent connections (@samlown)
+  * Escaping database names (@samlown)
+  * Upgrading to HTTPClient 2.8 series (@samlown)
+  * Removing Ruby < 2.0 support (@samlown)
+
+== 2.0.0.rc3 - 2016-01-08
+
+* Major Changes
+  * At the risk of causing chaos, `Database#get` now returns nil for 404 (@samlown)
+
+* Minor changes
+  * Updating HTTPClient dependency to > 2.7 for Ruby 2.3 support. (@samlown)
+  * Added `:ssl_ca_file` configuration option (@joelnb)
+  * Return headers content for HEAD requests (@solenko)
+  * Changing to options hash for bulk_save (@samlown via @matthiasjakel)
+
+== 2.0.0.rc2 - 2015-08-18
+
+* Minor changes
+  * Forcing HTTP basic connections when user+pass provided to avoid 401 (@samlown via @cloudant)
+
+== 2.0.0.rc1 - 2015-07-13
 
 * Major Changes
   * Refactoring to support persisitent HTTP connections with HTTPClient gem (@samlown)
   * Using Ruby's URI object consistently. (@samlown)
   * Removing concepts of `Server#available_databases` and `Server#default_databases` (@samlown)
   * Removing the `Streamer` class, added support for built-in streamer (@samlown)
+  * Fixing inline attachment Base64 re-encoding issue (@samlown) Issue#37
 
 == 1.2.1 - 2015-06-25
 
