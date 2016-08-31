@@ -192,9 +192,8 @@ module CouchRest
       end
       if opts[:use_uuids]
         ids, noids = docs.partition{|d|d['_id']}
-        uuid_count = [noids.length, @server.uuid_batch_count].max
         noids.each do |doc|
-          nextid = server.next_uuid(uuid_count) rescue nil
+          nextid = server.next_uuid
           doc['_id'] = nextid if nextid
         end
       end

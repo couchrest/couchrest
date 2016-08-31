@@ -2,7 +2,7 @@ require File.expand_path("../../spec_helper", __FILE__)
 
 describe CouchRest::Database do
   before(:each) do
-    @cr = CouchRest.new(COUCHHOST)
+    @cr = CouchRest.new(COUCHHOST, { uuid_batch_count: 2 })
     @db = @cr.database(TESTDB)
     @db.delete! rescue CouchRest::NotFound
     @db = @cr.create_db(TESTDB) # rescue nil
@@ -265,6 +265,13 @@ describe CouchRest::Database do
 
       expect(@db.connection).to receive(:post).with("/couchrest-test/_bulk_docs", {:docs => id_docs})
       
+      @db.bulk_save(docs)
+    end
+
+    it "should not request more uuids than the server's uuid limit" do
+      docs = [{'key' => 'value'}, {'key' => 'value'}, {'key' => 'value'}, {'key' => 'value'}, {'key' => 'value'}]
+
+      expect(@db.connection).to receive(:get).with("_uuids?count=2").exactly(3).times.and_call_original
       @db.bulk_save(docs)
     end
 
