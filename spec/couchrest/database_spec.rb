@@ -657,6 +657,14 @@ describe CouchRest::Database do
       end
       expect(@db.get(@id)['upvotes']).to eq 11
     end
+    it "should upsert a missing id" do
+      new_id = 'new_id'
+      @db.update_doc new_id do |doc|
+        doc['status'] = 'new'
+      end
+      expect(@db.get(new_id)['status']).to eq 'new'
+    end
+    
     it "should fail if update_limit is reached" do
       expect do
         @db.update_doc @id do |doc|
