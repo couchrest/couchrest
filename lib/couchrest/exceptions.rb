@@ -81,7 +81,7 @@ module CouchRest
   # The request failed with an error code not managed by the code
   class RequestFailed < Exception
     def message
-      "HTTP status code #{http_code}"
+      "HTTP #{http_code}: #{http_body}"
     end
 
     def to_s
@@ -95,7 +95,7 @@ module CouchRest
 
   STATUSES.each_pair do |code, message|
     klass = Class.new(RequestFailed) do
-      send(:define_method, :message) {"#{http_code ? "#{http_code} " : ''}#{message}"}
+      send(:define_method, :message) {"#{http_code ? "#{http_code} " : ''}#{message}#{http_body ? " #{http_body}" : ''}"}
     end
     klass_constant = const_set message.delete(' \-\''), klass
     Exceptions::EXCEPTIONS_MAP[code] = klass_constant
