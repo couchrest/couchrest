@@ -51,35 +51,18 @@ describe CouchRest::Server do
       expect(server.connection).to be_a(CouchRest::Connection)
     end
 
-    it "should cache connection in current thread" do
-      server.connection # instantiate
-      conns = Thread.current['couchrest.connections']
-      expect(server.connection).to eql(conns[COUCHHOST + "##{{}.hash}"])
-    end
-
-    it "should cache connection in current thread with options" do
-      Thread.current['couchrest.connections'] = {}
-      srv = CouchRest::Server.new(mock_url, :persistent => false)
-      srv.connection # instantiate
-      conns = Thread.current['couchrest.connections']
-      expect(srv.connection.object_id).to eql(conns[conns.keys.last].object_id)
-      expect(conns.length).to eql(1)
-    end
-
-    it "should not cache connection in current thread with different options" do
-      conns = Thread.current['couchrest.connections'] = {}
-      srv = CouchRest::Server.new(mock_url, :persistent => true)
-      srv.connection # init
-      srv2 = CouchRest::Server.new(mock_url, :persistent => false)
-      srv2.connection # init
-      expect(conns.length).to eql(2)
-      expect(srv.connection.object_id).to_not eql(srv2.connection.object_id)
+    it "should be shared by all threads" do
+      conn = server.connection
+      conn2 = nil
+      Thread.new {
+        conn2 = server.connection
+      }.join
+      expect(conn.object_id).to eql(conn2.object_id)
     end
 
     it "should pass configuration options to the connection" do
-      expect(mock_server.connection.options[:persistent]).to be_true
-      srv = CouchRest::Server.new(mock_url, :persistent => false)
-      expect(srv.connection.options[:persistent]).to be_false
+      srv = CouchRest::Server.new(mock_url, :timeout => 120)
+      expect(srv.connection.options[:timeout]).to eql(120)
     end
 
   end

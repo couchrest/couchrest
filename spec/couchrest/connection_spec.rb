@@ -172,29 +172,6 @@ describe CouchRest::Connection do
         expect(res['name']).to eql(doc['name'])
       end
 
-      context "persistency" do
-        before :each do
-          stub_request(:get, "http://mock/db/test-doc")
-            .to_return(:body => doc.to_json)
-        end
-
-        it "should have persistency enabled by default" do
-          conn = CouchRest::Connection.new(mock_uri)
-          expect(conn.options[:persistent]).to be_true
-          http1 = conn.http
-          conn.get(mock_uri.path)
-          expect(conn.http.object_id).to eql(http1.object_id)
-        end
-
-        it "should disable persistency" do
-          conn = CouchRest::Connection.new(mock_uri, :persistent => false)
-          expect(conn.options[:persistent]).to be_false
-          http1 = conn.http
-          conn.get(mock_uri.path)
-          expect(conn.http.object_id).to_not eql(http1.object_id)
-        end
-      end
-
       it "should raise exception if document missing" do
         uri = URI(DB.to_s + "/missingdoc")
         conn = CouchRest::Connection.new(uri)

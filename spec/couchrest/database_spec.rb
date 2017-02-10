@@ -209,7 +209,7 @@ describe CouchRest::Database do
         end
       rescue RuntimeError
       end
-      expect(changes.first["seq"]).to eql(1)
+      expect(changes.first["seq"].to_i).to eql(1)
     end
 
     it "should provide id of last document" do
