@@ -4,10 +4,12 @@ rvm:
   - 2.1.0
   - 2.0.0
   - jruby-1.7.26
-  - rubinius-3
-  #- rbx-3
+  - rbx
 services: couchdb
 before_install:
   - gem install bundler
 env:
   - JRUBY_OPTS=--2.0
+matrix:
+  allow_failure:
+    - rvm: rbx
