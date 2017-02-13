@@ -12,6 +12,9 @@ module CouchRest
     # saving new documents. See also #next_uuid.
     attr_reader :uuids
 
+    # Connection object prepared on initialization
+    attr_reader :connection
+
     # The connection options we should use to connect with
     attr_reader :connection_options
 
@@ -26,13 +29,7 @@ module CouchRest
         @connection_options = opts
       end
       @uuid_batch_count ||= 1000
-    end
-
-    # Lazy load the connection for the current thread
-    def connection
-      conns = (Thread.current['couchrest.connections'] ||= {})
-      key = "#{uri.to_s}##{connection_options.hash}"
-      conns[key] ||= Connection.new(uri, connection_options)
+      @connection = Connection.new(uri, connection_options)
     end
 
     # Lists all databases on the server

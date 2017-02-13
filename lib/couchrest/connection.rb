@@ -5,7 +5,7 @@ module CouchRest
   # Handle connections to the CouchDB server and provide a set of HTTP based methods to
   # perform requests.
   #
-  # All connections are persistent, unless configured otherwise. A connection cannot be re-used to connect to other servers.
+  # All connections are persistent and thread safe. A connection cannot be re-used to connect to other servers once instantiated.
   #
   # Six types of REST requests are supported: get, put, post, delete, copy and head.
   #
@@ -16,7 +16,6 @@ module CouchRest
   #
   # When initializing a connection, the following options are available:
   #
-  #  * `:persistent` true by default, forces the HTTP connection to be persistent to ensure each request attempts to use the same TCP socket, especially important for SSL connections.
   #  * `:timeout` (or `:read_timeout`) and `:open_timeout` the time in miliseconds to wait for the request, see the [Net HTTP Persistent documentation](http://docs.seattlerb.org/net-http-persistent/Net/HTTP/Persistent.html#attribute-i-read_timeout) for more details.
   #  * `:verify_ssl` verify ssl certificates (or not)
   #  * `:ssl_client_cert`, `:ssl_client_key` parameters controlling ssl client certificate authentication
@@ -54,13 +53,13 @@ module CouchRest
 
     SUCCESS_RESPONSE_CODES = [200, 201, 202, 204]
 
-    attr_reader :uri, :last_response, :options
+    attr_reader :uri, :last_response, :options, :http
 
     def initialize(uri, options = {})
       raise "CouchRest::Connection.new requires URI::HTTP(S) parameter" unless uri.is_a?(URI::HTTP)
       @uri = clean_uri(uri)
       @options = options.dup
-      @options[:persistent] = true if @options[:persistent].nil?
+      @http = prepare_http_connection
     end
 
     # Send a GET request.
@@ -97,13 +96,7 @@ module CouchRest
       execute('HEAD', path, options)
     end
 
-    # Special accessor that will either return the last used http
-    # connection or prepare a new one if none available.
-    def http
-      @http || prepare_http_connection
-    end
-
-    protected
+    private
 
     # Duplicate and remove excess baggage from the provided URI
     def clean_uri(uri)
@@ -116,12 +109,8 @@ module CouchRest
 
     # Take a look at the options povided and try to apply them to the HTTP conneciton.
     def prepare_http_connection
-      conn = @http
-      if conn.nil? || !options[:persistent]
-        conn = HTTPClient.new(options[:proxy] || self.class.proxy)
-        set_http_connection_options(conn, options)
-        @http = conn # Always set to last used connection
-      end
+      conn = HTTPClient.new(options[:proxy] || self.class.proxy)
+      set_http_connection_options(conn, options)
       conn
     end
 
@@ -149,8 +138,6 @@ module CouchRest
     end
 
     def execute(method, path, options, payload = nil, &block)
-      conn = prepare_http_connection
-
       req = {
         :method => method,
         :uri    => uri + path
@@ -167,13 +154,13 @@ module CouchRest
         req[:body] = payload_from_doc(req, payload, options)
       end
 
-      send_and_parse_response(conn, req, options, &block)
+      send_and_parse_response(req, options, &block)
     end
 
-    def send_and_parse_response(conn, req, opts, &block)
+    def send_and_parse_response(req, opts, &block)
       if block_given?
         parser = CouchRest::StreamRowParser.new(opts[:continuous] ? :feed : :array)
-        response = send_request(conn, req) do |chunk|
+        response = send_request(req) do |chunk|
           parser.parse(chunk) do |doc|
             block.call(parse_body(doc, opts))
           end
@@ -181,15 +168,15 @@ module CouchRest
         handle_response_code(response)
         parse_body(parser.header, opts)
       else
-        response = send_request(conn, req)
+        response = send_request(req)
         handle_response_code(response)
         parse_response(response, opts)
       end
     end
 
     # Send request, and leave a reference to the response for debugging purposes
-    def send_request(conn, req, &block)
-      @last_response = conn.request(req.delete(:method), req.delete(:uri), req, &block)
+    def send_request(req, &block)
+      @last_response = @http.request(req.delete(:method), req.delete(:uri), req, &block)
     end
 
     def handle_response_code(response)
