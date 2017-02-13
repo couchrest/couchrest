@@ -219,6 +219,40 @@ describe CouchRest::Database do
     end
   end
 
+  describe "Update a document through an update function" do
+    before(:each) do
+      @db.save_doc('_id' => '_design/update_test',
+                   'updates' => {'make' => <<-JS
+                      function(doc, req){
+                        var parmesian = JSON.parse(req.body);
+                        if(doc){
+                          var new_doc = doc;
+                          new_doc.tacos = 'tasty';
+                          new_doc.data = parmesian.data;
+                        } else {
+                          var new_doc = {'_id': parmesian.juicy, tacos: 'tasty', data: parmesian.data};
+                        }
+                        return [new_doc, '{"ok": true}'];
+                      }
+                    JS
+      })
+    end
+    it "should create a doc when calling the make update" do
+      id = 'abcuhc398093'
+      @db.update('update_test/make', :body => {:juicy => id})['ok'].should be_true
+      @db.get(id)['tacos'].should == 'tasty'
+    end
+    it "should allow creating a big doc" do
+      @db.update('update_test/make', :body => {:juicy => "abc123", :data => (1..10000).to_a})
+      @db.get('abc123')['data'].length.should == 10000
+    end
+    it "should allow updating a big doc" do
+      @db.update('update_test/make', :body => {:juicy => "abc123"})
+      @db.update('update_test/make', :id => 'abc123', :body => {:data => (1..10000).to_a})
+      @db.get('abc123')['data'].length.should == 10000
+    end
+  end
+
   describe "GET (document by id) when the doc exists" do
     before(:each) do
       @r = @db.save_doc({'lemons' => 'from texas', 'and' => 'spain'})

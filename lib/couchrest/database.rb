@@ -81,6 +81,23 @@ module CouchRest
       replicate(other_db, continuous, :source => name, :create_target => create_target, :doc_ids => doc_ids)
     end
 
+    # Valid options are :id, :body, and :params
+    def update(name, opts = {})
+      id = opts[:id]
+      body = opts[:body]
+      params = opts[:params]
+      name = name.split('/')
+      dname = name.shift
+      uname = name.join('/')
+      url = "#{@root}/_design/#{dname}/_update/#{uname}"
+      if(id)
+        url += '/' + id
+      end
+      url = CouchRest.paramify_url url, params if params
+      m = id ? 'put' : 'post'
+      CouchRest.send(m, url, body)
+    end
+
     # DELETE the database itself. This is not undoable and could be rather
     # catastrophic. Use with care!
     def delete!
