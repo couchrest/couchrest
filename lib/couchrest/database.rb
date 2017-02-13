@@ -249,6 +249,7 @@ module CouchRest
 
       until resp['ok'] or update_limit <= 0
         doc = self.get(doc_id, params)
+        doc = { '_id' => doc_id } if doc.nil?
         yield doc
         begin
           resp = self.save_doc doc
