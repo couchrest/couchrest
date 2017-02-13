@@ -1,4 +1,4 @@
-== 2.0.1 - 2017-02-10
+== 2.0.1 - 2017-02-13
 
 * Minor changes
   * Removing option for persistent connections, everything is now persistent
