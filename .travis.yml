@@ -11,5 +11,5 @@ before_install:
 env:
   - JRUBY_OPTS=--2.0
 matrix:
-  allow_failure:
+  allow_failures:
     - rvm: rbx
