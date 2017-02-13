@@ -24,7 +24,7 @@ end
 
 describe CouchRest::RequestFailed do
   before do
-    @response = double('HTTP Response', :status => 500)
+    @response = double('HTTP Response', :status => 500, :body => '{"error": "error_code", "reason": "Reason for error"}')
   end
 
   it "stores the http response on the exception" do
@@ -41,12 +41,15 @@ describe CouchRest::RequestFailed do
   end
 
   it "http_body convenience method for fetching the body (decoding when necessary)" do
-    expect(CouchRest::RequestFailed.new(@response).http_code).to eq 500
-    expect(CouchRest::RequestFailed.new(@response).message).to eq 'HTTP status code 500'
+    expect(CouchRest::RequestFailed.new(@response).http_body).to eq @response.body
   end
 
   it "shows the status code in the message" do
     expect(CouchRest::RequestFailed.new(@response).to_s).to match(/500/)
+  end
+
+  it "includes the response body in the message" do
+    expect(CouchRest::RequestFailed.new(@response).message).to match(/#{@response.body}/)
   end
 end
 
