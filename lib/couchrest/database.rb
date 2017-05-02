@@ -136,6 +136,7 @@ module CouchRest
     # accept the risk that a small proportion of updates could be lost due to a
     # crash."
     def save_doc(doc, bulk = false, batch = false)
+      doc = Document.new doc
       if doc['_attachments']
         doc['_attachments'] = encode_attachments(doc['_attachments'])
       end
