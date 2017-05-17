@@ -360,6 +360,37 @@ module CouchRest
       end
     end
 
+    # GET /db/_index
+    def indexes
+      connection.get "#{path}/_index"
+    end
+
+    def find_index(name)
+      index_doc = self.indexes
+      return index_doc["indexes"].detect{|i| i["name"] == name}
+    end
+
+    # POST /db/_index
+    def save_index(payload)
+      connection.post "#{path}/_index", payload
+    end
+
+    def delete_index(index_name)
+      index = find_index index_name
+      # find the index
+      connection.delete "#{path}/_index/#{index["ddoc"]}/json/#{index_name}"
+    end
+
+    # POST /db/_find
+    def find(query)
+      connection.post "#{path}/_find", query
+    end
+
+    # POST /db/_explain
+    def explain(query)
+      connection.post "#{path}/_explain", query
+    end
+
     private
 
     def replicate(other_db, continuous, options)
@@ -407,5 +438,6 @@ module CouchRest
     def name_to_view_path(name)
       name =~ /^([^_].*?)\/(.*)$/ ? "_design/#{$1}/_view/#{$2}" : name
     end
+
   end
 end
