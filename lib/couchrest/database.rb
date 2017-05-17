@@ -309,7 +309,7 @@ module CouchRest
     # All standard CouchDB options can be provided.
     #
     # Warning: sending :feed => 'continuous' will cause your code to block
-    # indefinetly while waiting for changes. You might want to look-up an
+    # indefinitely while waiting for changes. You might want to look-up an
     # alternative to this.
     def changes(params = {}, payload = {}, &block)
       view("_changes", params, payload, &block)
