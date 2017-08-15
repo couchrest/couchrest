@@ -28,14 +28,14 @@ describe CouchRest::Pager do
   describe "paging all docs" do
     it "should yield total_docs / limit times" do
       n = 0
-      @pager.all_docs(10) do |doc|
+      @pager.all_docs({limit:10}) do |doc|
         n += 1
       end
       expect(n).to eql 10
     end
     it "should yield each docrow group without duplicate docs" do
       docids = {}
-      @pager.all_docs(10) do |docrows|
+      @pager.all_docs({limit:10}) do |docrows|
         docrows.each do |row|
           expect(docids[row['id']]).to be_nil
           docids[row['id']] = true
@@ -44,7 +44,7 @@ describe CouchRest::Pager do
       expect(docids.keys.length).to eql 100
     end
     it "should yield each docrow group" do
-      @pager.all_docs(10) do |docrows|
+      @pager.all_docs({limit:10}) do |docrows|
         doc = @db.get(docrows[0]['id'])
         expect(doc['number'].class).to eql Fixnum
       end      

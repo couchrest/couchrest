@@ -7,18 +7,19 @@ module CouchRest
       @db = db
     end
     
-    def all_docs(limit=100, &block)
-      startkey = nil
+    def all_docs(opts={}, &block)
+      opts[:startkey] = nil
       oldend = nil
       
-      while docrows = request_all_docs(limit+1, startkey)        
-        startkey = docrows.last['key']
-        docrows.pop if docrows.length > limit
-        if oldend == startkey
+      opts[:limit] = (opts[:limit] || 100) + 1
+      while docrows = request_all_docs(opts)
+        opts[:startkey] = docrows.last['key']
+        docrows.pop if docrows.length >= opts[:limit]
+        if oldend == opts[:startkey]
           break
         end
         yield(docrows)
-        oldend = startkey
+        oldend = opts[:startkey]
       end
     end
     
@@ -81,10 +82,7 @@ module CouchRest
 
     private
     
-    def request_all_docs limit, startkey = nil
-      opts = {}
-      opts[:limit] = limit if limit
-      opts[:startkey] = startkey if startkey      
+    def request_all_docs opts
       results = @db.documents(opts)
       rows = results['rows']
       rows unless rows.length == 0
