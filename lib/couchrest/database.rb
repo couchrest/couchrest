@@ -284,7 +284,11 @@ module CouchRest
       req_path = CouchRest.paramify_url("#{path}/#{view_path}", params)
 
       if payload.empty?
-        connection.get req_path, opts, &block
+        begin
+          connection.get req_path, opts, &block
+        rescue CouchRest::NotFound => caused_by
+          raise CouchRest::ViewNotFound.new( name, caused_by )
+        end
       else
         connection.post req_path, payload, opts, &block
       end

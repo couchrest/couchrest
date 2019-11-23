@@ -105,4 +105,18 @@ module CouchRest
   class ServerBrokeConnection < ::Exception
   end
 
+  class ViewNotFound < Exception
+    def initialize name, cause = nil
+      @name = name
+      @cause = cause
+    end
+
+    def cause
+      @cause
+    end
+
+    def message
+      @name
+    end
+  end
 end
