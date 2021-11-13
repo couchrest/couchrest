@@ -14,7 +14,7 @@
 
 require 'multi_json'
 require 'mime/types'
-require 'httpclient'
+require 'httpx'
 
 $:.unshift File.dirname(__FILE__) unless
  $:.include?(File.dirname(__FILE__)) ||

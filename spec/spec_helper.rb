@@ -2,6 +2,7 @@ require "bundler/setup"
 require "rubygems"
 require "rspec"
 require "webmock/rspec"
+require "httpx/adapters/webmock"
 
 require File.join(File.dirname(__FILE__), '..','lib','couchrest')
 # check the following file to see how to use the spec'd features.

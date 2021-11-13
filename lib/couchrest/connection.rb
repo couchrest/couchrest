@@ -109,32 +109,44 @@ module CouchRest
 
     # Take a look at the options povided and try to apply them to the HTTP conneciton.
     def prepare_http_connection
-      conn = HTTPClient.new(options[:proxy] || self.class.proxy)
-      set_http_connection_options(conn, options)
+      conn = HTTPX.plugin(:persistent).plugin(:compression)
+      if (proxy_uri = options[:proxy] || self.class.proxy)
+        conn = conn.plugin(:proxy).with_proxy(uri: proxy_uri)
+      end
+
+      conn = set_http_connection_options(conn, options)
       conn
     end
 
-    # Prepare the http connection options for HTTPClient.
+    # Prepare the http connection options for HTTPX.
     # We try to maintain RestClient compatability in option names as this is what we used before.
     def set_http_connection_options(conn, opts)
       # Authentication
       unless uri.user.to_s.empty?
-        conn.force_basic_auth = true
-        conn.set_auth(uri.to_s, uri.user, uri.password)
+        conn = conn.plugin(:basic_authentication).basic_authentication(uri.user, uri.password)
       end
 
       # SSL Certificate option mapping
+      @ssl_options = {}
       if opts.include?(:verify_ssl)
-        conn.ssl_config.verify_mode = opts[:verify_ssl] ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
+        @ssl_options[:verify_mode] = opts[:verify_ssl] ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
       end
-      conn.ssl_config.client_cert = opts[:ssl_client_cert] if opts.include?(:ssl_client_cert)
-      conn.ssl_config.client_key  = opts[:ssl_client_key]  if opts.include?(:ssl_client_key)
-      conn.ssl_config.set_trust_ca(opts[:ssl_ca_file]) if opts.include?(:ssl_ca_file)
+      @ssl_options[:client_cert] = opts[:ssl_client_cert] if opts.include?(:ssl_client_cert)
+      @ssl_options[:client_key]  = opts[:ssl_client_key]  if opts.include?(:ssl_client_key)
+      @ssl_options[:ca_path] = (opts[:ssl_ca_file]) if opts.include?(:ssl_ca_file)
 
       # Timeout options
-      conn.receive_timeout = opts[:timeout] if opts.include?(:timeout)
-      conn.connect_timeout = opts[:open_timeout] if opts.include?(:open_timeout)
-      conn.send_timeout    = opts[:read_timeout] if opts.include?(:read_timeout)
+
+      conn = conn.with(
+        timeout: { 
+          operation_timeout: opts[:timeout],
+          connect_timeout: opts[:open_timeout]
+        }.compact
+      )
+
+      conn
+      # conn.receive_timeout = opts[:timeout] 
+      # conn.send_timeout    = opts[:read_timeout] if opts.include?(:read_timeout)
     end
 
     def execute(method, path, options, payload = nil, &block)
@@ -176,7 +188,20 @@ module CouchRest
 
     # Send request, and leave a reference to the response for debugging purposes
     def send_request(req, &block)
-      @last_response = @http.request(req.delete(:method), req.delete(:uri), req, &block)
+      # require 'byebug'; byebug
+      @last_response = @http.request(
+        req[:method].downcase, 
+        req[:uri], 
+        {
+          ssl: @ssl_options, 
+          body: req[:body],
+          headers: req[:header]
+        }.compact
+      )
+      if block_given?
+        @last_response.body.each(&block)
+      end
+      @last_response
     end
 
     def handle_response_code(response)
@@ -185,7 +210,11 @@ module CouchRest
 
     def parse_response(response, opts)
       if opts[:head]
-        opts[:raw] ? response.http_header.dump : response.headers
+        if opts[:raw]
+          response.headers.to_h.map {|key, v| "#{key[0].upcase}#{key[1..-1]}: #{v}"}.join("\n")
+        else
+          response.headers.to_h.transform_keys {|key| "#{key[0].upcase}#{key[1..-1]}" }
+        end
       else
         parse_body(response.body, opts)
       end
@@ -194,9 +223,9 @@ module CouchRest
     def parse_body(body, opts)
       if opts[:raw]
         # passthru
-        body
+        body.to_s
       else
-        MultiJson.load(body, prepare_json_load_options(opts))
+        MultiJson.load(body.to_s, prepare_json_load_options(opts))
       end
     end
 
@@ -209,7 +238,7 @@ module CouchRest
     def payload_from_doc(req, doc, opts = {})
       if doc.is_a?(IO) || doc.is_a?(StringIO) || doc.is_a?(Tempfile) # attachments
         req[:header]['Content-Type'] = mime_for(req[:uri].path)
-        doc
+        doc.read # XXX in theory httpx supports streaming IO objects but spec failing
       elsif opts[:raw] || doc.nil?
         doc
       else
