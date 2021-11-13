@@ -6,3 +6,4 @@ pkg
 Gemfile.lock
 *.rvmrc
 .bundle
+.tool-versions
